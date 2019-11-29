@@ -13,7 +13,7 @@
 					  	<el-form-item label="密码" prop="password">
 				    		<el-input type="password" v-model="loginUser.password" placeholder="请输入密码"></el-input>
 					  	</el-form-item>
-					  	<el-row>
+					  	<!--<el-row :gutter="10">
 					  		<el-col :span="18">
 					  			<el-form-item label="验证码" prop="identify" :inline="true">
 					  				<el-input v-model="loginUser.identify" placeholder="请输入验证码"></el-input>
@@ -24,14 +24,14 @@
 					    			<SIdentify :identifyCode="identifyCode" :contentWidth="contentWidth"></SIdentify>
 						    	</div>
 					  		</el-col>
-					  	</el-row>
+					  	</el-row>-->
 					  	<!--<el-form-item label="验证码" prop="identify" :inline="true">
 			  				<el-input v-model="loginUser.identify" placeholder="请输入验证码"></el-input>
 				  			<div class="code" @click="refreshCode">
 				    			<SIdentify :identifyCode="identifyCode"></SIdentify>
 					    	</div>
 					  	</el-form-item>-->
-					  	<el-form-item label="选择身份">
+					  	<el-form-item label="身份">
 				    		<el-select v-model="loginUser.identity" placeholder="请选择身份">
 				    			<el-option label="学生" value="student"></el-option>
 				    			<el-option label="教师" value="teacher"></el-option>
@@ -41,6 +41,7 @@
 					  	<el-form-item>
 					    	<el-button type="primary" class="submit_btn" @click="submitForm('loginForm')">登陆</el-button>
 					  	</el-form-item>
+					  	
 					</el-form>
 				</div>
 			</el-col>
@@ -65,7 +66,6 @@
 					identity: 'student',
 					identify: ''
 				},
-				identifyCodes: '1234567890',
 				identifyCode: '',
 				contentWidth: 112,
 				rules:{
@@ -91,6 +91,11 @@
 						max: 20,
 						message: '长度在6-20个字符之间',
 						trigger: 'blur'
+					}],
+					identify:[
+					{
+						required: true,
+						message: '验证码不能为空'
 					}]
 				}
 			}
@@ -104,16 +109,25 @@
 				var _this = this;
 				setTimeout(function(){
 					_this.identifyCode = '';
-					_this.makeCode(this.identifyCodes,4);
-				},500);
+					_this.makeCode();
+				},100);
 			},
-			makeCode(o,l){
-				for(let i = 0; i < l; i++){
-					this.identifyCode += this.identifyCodes[
-						this.randomNum(0,this.identifyCodes.length)
-					];
-				}
-				console.log(this.identifyCode);
+			makeCode(){
+				this.$axios
+					.get('/api/server-user/identify')
+					.then(res => {
+						var data = res.data;
+						if(res.status == 200){
+							this.identifyCode = data.code;
+							//console.log(this.identifyCode)
+						}
+						else{
+							this.$message({
+								message: "账号或密码错误！",
+								type: "error"
+							});
+						}
+					})
 			}
 		},
 		mounted(){
@@ -121,8 +135,12 @@
 			var _this = this;
 			setTimeout(function(){
 				_this.identifyCode = '';
-				_this.makeCode(this.identifyCodes,4);
-			},500);
+				_this.makeCode();
+			},100);
+            window.onresize = function(){ // 定义窗口大小变更通知事件
+                _this.screenWidth = document.documentElement.clientWidth; //窗口宽度
+                _this.screenHeight = document.documentElement.clientHeight; //窗口高度
+            };
 		}
 	}
 </script>
@@ -154,6 +172,9 @@
 		float: right;
 	}
 	.submit_btn{
+		width: 100%;
+	}
+	.el-select{
 		width: 100%;
 	}
 </style>
