@@ -1,29 +1,14 @@
 const seneca = require('seneca')()
-const SenecaWeb = require('seneca-web')
-const Koa = require('koa')
-const Router = require('koa-router')
-const app = new Koa()
-const userModule = require('./api/user.js')
-const identifyModule = require('./api/identify')
+const svgCaptcha = require('svg-captcha')
 
-// 初始化用户模块
-seneca.use(userModule.init)
-seneca.use(identifyModule.init)
-
-// 初始化seneca-web插件，并适配koa
-seneca.use(SenecaWeb, {
-    context: Router(),
-    adapter: require('seneca-web-adapter-koa2'),
-    routes: userModule.routes
-})
-seneca.use(SenecaWeb, {
-    context: Router(),
-    adapter: require('seneca-web-adapter-koa2'),
-    routes: identifyModule.routes
+// 获取验证码
+seneca.add('target:server-user,module:identify,if:code', (msg, done) => {
+    var options = {
+        width: msg.width,
+        height: msg.height
+    }
+    var identifyCode = svgCaptcha.create(options);
+    done(null, identifyCode);
 })
 
-seneca.ready(() => {
-    app.use(seneca.export('web/context')().routes())
-})
-
-app.listen(8001)
+seneca.listen(8001)

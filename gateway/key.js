@@ -1,3 +1,7 @@
 module.exports = {
-    userURI: 'http://192.168.99.100:8001'
+    userServer:{
+        port: '8001',
+        pin: 'target:server-user',
+        host: '192.168.99.100'
+    }
 }
