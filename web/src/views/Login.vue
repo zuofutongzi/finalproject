@@ -68,8 +68,8 @@
 					},
 					{
 						min: 2,
-						max: 20,
-						message: '长度在2-20个字符之间'
+						max: 12,
+						message: '长度在2-12个字符之间'
 					}],
 					password:[
 					{
@@ -116,6 +116,23 @@
 							});
 						}
 					})
+			},
+			submitForm(formName){
+				this.$refs[formName].validate(valid => {
+					if(valid){
+						this.$message({
+							message: "登陆成功！",
+							type: "success"
+						});
+					}
+					else{
+						this.$message({
+							message: "账号或密码填写格式错误！",
+							type: "error"
+						});
+						return false;
+					}
+				})
 			}
 		},
 		mounted(){
