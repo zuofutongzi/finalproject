@@ -7,8 +7,8 @@
 				</section>
 				<div style="padding: 20px;">
 					<el-form :model="loginUser" status-icon :rules="rules" ref="loginForm" label-width="80px" class="loginForm">
-						<el-form-item label="用户名" prop="name">
-				    		<el-input v-model="loginUser.name" placeholder="请输入用户名"></el-input>
+						<el-form-item label="用户名" prop="userid">
+				    		<el-input v-model="loginUser.userid" placeholder="请输入用户名"></el-input>
 					  	</el-form-item>
 					  	<el-form-item label="密码" prop="password">
 				    		<el-input type="password" v-model="loginUser.password" placeholder="请输入密码"></el-input>
@@ -21,12 +21,12 @@
 				    		</el-select>
 					  	</el-form-item>
 					  	<el-row :gutter="10">
-					  		<el-col :span="18">
-					  			<el-form-item label="验证码" prop="code" :inline="true">
-					  				<el-input v-model="loginUser.code" placeholder="请输入验证码"></el-input>
+					  		<el-col :sm="{span:18}" :xs="{span:15}">
+					  			<el-form-item label="验证码" prop="identifyCode" :inline="true">
+					  				<el-input v-model="loginUser.identifyCode" placeholder="请输入验证码"></el-input>
 							  	</el-form-item>
 					  		</el-col>
-					  		<el-col :span="6">
+					  		<el-col :sm="{span:6}" :xs="{span:9}">
 					  			<div class="code" @click="refreshCode"></div>
 					  		</el-col>
 					  	</el-row>
@@ -52,15 +52,15 @@
 		data(){
 			return{
 				loginUser:{
-					name: '',
+					userid: '',
 					password: '',
 					identity: 'student',
-					identify: ''
+					identifyCode: ''
 				},
 				contentWidth: 112,
 				contentHeight: 40,
 				rules:{
-					name:[
+					userid:[
 					{
 						required: true,
 						message: '用户名不能为空',
@@ -83,7 +83,7 @@
 						message: '长度在6-20个字符之间',
 						trigger: 'blur'
 					}],
-					identify:[
+					identifyCode:[
 					{
 						required: true,
 						message: '验证码不能为空'
@@ -97,37 +97,41 @@
 				this.makeCode(this.contentWidth,this.contentHeight);
 			},
 			makeCode(width,height){
-				var options = {
-					width: width,
-					height: height
-				}
 				this.$axios
-					.post('/api/identify', options)
+					.get('/api/identify?width='+width+'&height='+height)
 					.then(res => {
 						var data = res.data;
 						if(res.status == 200){
 							$('.code').empty();
 							$('.code').append(data);
-						}
-						else{
-							this.$message({
-								message: res.msg,
-								type: "error"
-							});
+							this.loginUser.identifyCode = '';
 						}
 					})
 			},
 			submitForm(formName){
 				this.$refs[formName].validate(valid => {
 					if(valid){
-						this.$message({
-							message: "登陆成功！",
-							type: "success"
-						});
+						var options = {
+							userid: this.loginUser.userid,
+							password: this.loginUser.password,
+							identity: this.loginUser.identity,
+							identifyCode: this.loginUser.identifyCode
+						}
+						this.$axios
+							.post('/api/user',options)
+							.then(res => {
+								if(res.status == 200){
+									this.$message({
+										message: "登陆成功！",
+										type: "success"
+									});
+									this.$router.push("/aaaa");
+								}
+							})
 					}
 					else{
 						this.$message({
-							message: "账号或密码填写格式错误！",
+							message: "填写格式错误！",
 							type: "error"
 						});
 						return false;

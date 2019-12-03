@@ -23,8 +23,8 @@ public class CanalClient {
                 Message message = connector.getWithoutAck(batchSize);
                 long batchId = message.getId();
                 int size = message.getEntries().size();
-                System.out.println("batchId = " + batchId);
-                System.out.println("size = " + size);
+                // System.out.println("batchId = " + batchId);
+                // System.out.println("size = " + size);
                 if (batchId == -1 || size == 0) {
                     try {
                         Thread.sleep(1000);
