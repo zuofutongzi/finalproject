@@ -1,12 +1,11 @@
-const userSeneca = require('seneca')()
 const express = require('express')
-const router = express.Router();
-const URI = require('../key.js')
-
-userSeneca.client(URI.userServer)
+const router = express.Router()
+const key = require('../config/key.js')
+const userSeneca = key.userSeneca
 
 // @route  GET /api/identify
 // @desc   获取验证码
+// @token  false
 // @access public
 router.get('/identify', (req, done) => {
     var options = {

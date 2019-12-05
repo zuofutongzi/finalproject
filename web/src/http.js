@@ -20,6 +20,11 @@ axios.interceptors.request.use(config => {
 	// 加载动画
 	startLoading();
 	
+	if(localStorage.eleToken){
+		// 设置统一的请求header
+		config.headers.Authorization = localStorage.eleToken;
+	}
+	
 	return config;
 }, error => {
 	return Promise.reject(error);
@@ -33,7 +38,18 @@ axios.interceptors.response.use(response => {
 }, error => {
 	// 错误提醒
 	endLoading();
-	Message.error(error.response.data);
+	//Message.error(error.response.data);
+	
+	// 获取错误状态码
+	const { status } = error.response;
+	if(status == 401){
+		Message.error('用户登陆超时，请重新登陆！');
+		localStorage.removeItem('eleToken');
+		router.push('/login');
+	}
+	else{
+		Message.error(error.response.data);
+	}
 	
 	return Promise.reject(error);
 })

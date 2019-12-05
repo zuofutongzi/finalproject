@@ -63,14 +63,14 @@ public class CanalClient {
 
             for (RowData rowData : rowChage.getRowDatasList()) {
                 if (eventType == EventType.DELETE) {
-                    redisDelete(rowData.getBeforeColumnsList());
+                    redisDelete(entry.getHeader().getTableName(),rowData.getBeforeColumnsList());
                 } else if (eventType == EventType.INSERT) {
-                    redisInsert(rowData.getAfterColumnsList());
+                    redisInsert(entry.getHeader().getTableName(),rowData.getAfterColumnsList());
                 } else {
                     System.out.println("-------> before");
                     printColumn(rowData.getBeforeColumnsList());
                     System.out.println("-------> after");
-                    redisUpdate(rowData.getAfterColumnsList());
+                    redisUpdate(entry.getHeader().getTableName(),rowData.getAfterColumnsList());
                 }
             }
         }
@@ -82,33 +82,33 @@ public class CanalClient {
         }
     }
 
-    private static void redisInsert(List<Column> columns) {
+    private static void redisInsert(String table,List<Column> columns) {
         JSONObject json = new JSONObject();
         for (Column column : columns) {
             json.put(column.getName(), column.getValue());
         }
         if (columns.size() > 0) {
-            RedisUtil.stringSet("user:" + columns.get(0).getValue(), json.toJSONString());
+            RedisUtil.stringSet(table + ":" + columns.get(0).getValue(), json.toJSONString());
         }
     }
 
-    private static void redisUpdate(List<Column> columns) {
+    private static void redisUpdate(String table,List<Column> columns) {
         JSONObject json = new JSONObject();
         for (Column column : columns) {
             json.put(column.getName(), column.getValue());
         }
         if (columns.size() > 0) {
-            RedisUtil.stringSet("user:" + columns.get(0).getValue(), json.toJSONString());
+            RedisUtil.stringSet(table + ":" + columns.get(0).getValue(), json.toJSONString());
         }
     }
 
-    private static void redisDelete(List<Column> columns) {
+    private static void redisDelete(String table,List<Column> columns) {
         JSONObject json = new JSONObject();
         for (Column column : columns) {
             json.put(column.getName(), column.getValue());
         }
         if (columns.size() > 0) {
-            RedisUtil.delKey("user:" + columns.get(0).getValue());
+            RedisUtil.delKey(table + ":" + columns.get(0).getValue());
         }
     }
 }

@@ -1,6 +1,7 @@
 const express = require('express')
 const session = require('express-session')
 const bodyParser = require("body-parser")
+const passport = require('passport')
 const app = express()
 
 // session
@@ -14,6 +15,11 @@ app.use(session({
 // 使用body-parser中间件
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
+
+// passport初始化
+app.use(passport.initialize());
+
+require('./config/passport')(passport);
 
 // 引入接口
 const identify = require('./api/identify')

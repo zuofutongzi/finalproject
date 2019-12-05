@@ -41,14 +41,11 @@
 </template>
 
 <script>
-	import SIdentify from '../components/identify.vue'
+	import jwt_decode from 'jwt-decode'
 	import $ from 'jquery'
 	
 	export default{
 		name: 'login',
-		components: {
-			SIdentify
-		},
 		data(){
 			return{
 				loginUser:{
@@ -120,12 +117,22 @@
 						this.$axios
 							.post('/api/user',options)
 							.then(res => {
+								var data = res.data;
 								if(res.status == 200){
 									this.$message({
 										message: "登陆成功！",
 										type: "success"
 									});
-									this.$router.push("/aaaa");
+									
+									var { token } = data;
+									localStorage.setItem('eleToken', token);
+									
+									// 解析token
+									var decoded = jwt_decode(token);
+									this.$store.dispatch('setAuthenticated', !this.isEmpty(decoded));
+									this.$store.dispatch('setUser', decoded);
+									
+									this.$router.push("/home");
 								}
 							})
 					}
@@ -137,6 +144,14 @@
 						return false;
 					}
 				})
+			},
+			isEmpty(value){
+				return (
+					value === undefined ||
+					value === null ||
+					(typeof value === 'object' && Object.keys(value).length === 0) ||
+					(typeof value === 'string' && value.trim().length === 0)
+				)
 			}
 		},
 		mounted(){
