@@ -22,6 +22,5 @@ redisClient.on('error', err => {
 
 module.exports = {
     mysql: mysqlConnection,
-    redis: redisClient,
-    secretOrKey: 'secret'
+    redis: redisClient
 }

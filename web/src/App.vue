@@ -33,5 +33,8 @@
 	html,body,#app{
 		width: 100%;
 		height: 100%;
+		background: url(./assets/background.jpg) no-repeat center center; 
+		background-size: cover; 
+		background-attachment: fixed; 
 	}
 </style>

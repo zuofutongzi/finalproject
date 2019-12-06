@@ -6,11 +6,6 @@ const logger = require('../logger')
 const key = require('../config/key.js')
 const userSeneca = key.userSeneca
 
-// @token  true
-router.get('/user', passport.authenticate('jwt', {session: false}), (req, done) => {
-    done.send(req.user)
-})
-
 // @route  PUT /api/user
 // @desc   用户注册
 // @token  false
@@ -18,7 +13,7 @@ router.get('/user', passport.authenticate('jwt', {session: false}), (req, done) 
 router.put('/user', (req, done) => {
     var options = JSON.parse(JSON.stringify(req.body));
     userSeneca.act('target:server-user,module:user,if:register', options,
-    (err,res) => {
+    (err, res) => {
         if(err){
             done.status(500).send(err.data.payload.details.message)
         }
@@ -31,13 +26,13 @@ router.put('/user', (req, done) => {
 // @route  POST /api/user
 // @desc   用户登陆
 // @token  false
-// @return token jwt passport
+// @return token
 // @access public
 router.post('/user', (req, done) => {
     var options = JSON.parse(JSON.stringify(req.body));
     options.currentCode = req.session.identifyCode;
     userSeneca.act('target:server-user,module:user,if:login', options,
-    (err,res) => {
+    (err, res) => {
         if(err){
             done.status(500).send(err.data.payload.details.message)
         }
@@ -46,14 +41,7 @@ router.post('/user', (req, done) => {
             var rule = {
                 userid: res.userid, 
                 identity: res.identity, 
-                name: res.name,
-                sex: res.sex,
-                IDcard: res.IDcard,
-                birthday: res.birthday,
-                college: res.college,
-                major: res.major,
-                phone: res.phone,
-                email: res.email
+                name: res.name
             }
             jwt.sign(rule, key.secretOrKey, {expiresIn: 3600}, (err, token) => {
                 if(err){
@@ -66,6 +54,24 @@ router.post('/user', (req, done) => {
                     })
                 }
             })
+        }
+    })
+})
+
+// @route  GET /api/user
+// @desc   用户信息
+// @token  true
+// @return userdetail
+// @access public
+router.get('/user', passport.authenticate('jwt', {session: false}), (req, done) => {
+    var options = { userid: req.user.userid };
+    userSeneca.act('target:server-user,module:user,if:detail', options,
+    (err, res) => {
+        if(err){
+            done.status(500).send(err.data.payload.details.message)
+        }
+        else{
+            done.send(res)
         }
     })
 })

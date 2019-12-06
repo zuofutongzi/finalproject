@@ -13,6 +13,7 @@
 		width: 100%;
 		height: 100%;
 		overflow: hidden;
+		color: white;
 	}
 	.notfound img{
 		width: 100%;
