@@ -22,5 +22,6 @@ redisClient.on('error', err => {
 
 module.exports = {
     mysql: mysqlConnection,
-    redis: redisClient
+    redis: redisClient,
+    notifyDir: './通知/'
 }

@@ -24,10 +24,12 @@ require('./config/passport')(passport);
 // 引入接口
 const identify = require('./api/identify')
 const user = require('./api/user')
+const notify = require('./api/notify')
 
 // 使用api
 app.use('/api',identify)
 app.use('/api',user)
+app.use('/api',notify)
 
 const port = process.env.PORT || 5000;
 app.listen(port,() => {

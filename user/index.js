@@ -1,6 +1,8 @@
 const seneca = require('seneca')()
 const svgCaptcha = require('svg-captcha')
 const bcrypt = require('bcryptjs')
+const fs = require('fs')
+const marked = require('marked')
 const key = require('./key')
 const logger = require('./logger')
 
@@ -97,6 +99,73 @@ seneca.add('target:server-user,module:identify,if:code', (msg, done) => {
     }
     var identifyCode = svgCaptcha.create(options);
     done(null, identifyCode);
+})
+
+// notify
+// 获取通知列表
+seneca.add('target:server-user,module:notify,if:list', (msg, done) => {
+    redis.keys('notify:*', (err, keys) => {
+        if(err){
+            done(new Error('数据库访问失败，请稍后再试...'))
+        }
+        else if(keys[0] == null){
+            done(new Error('当前没用通知！'))
+        }
+        else{
+            var redisKey = keys;
+            redis.mget(redisKey, (err, res) => {
+                if(err){
+                    done(new Error('数据库访问失败，请稍后再试...'))
+                }
+                else{
+                    var data = [];
+                    res.forEach(item => {
+                        data.push(JSON.parse(item))
+                    })
+                    data.sort((a, b) => {
+                        if(a.top === b.top){
+                            var atime = new Date(a.time);
+                            var btime = new Date(b.time);
+                            if(atime === btime){
+                                if(a.notifyid > b.notifyid)
+                                    return -1
+                                else
+                                    return 1
+                            }
+                            else{
+                                if(atime > btime)
+                                    return -1
+                                else
+                                    return 1
+                            }
+                        }
+                        else{
+                            if(a.top > b.top)
+                                return -1
+                            else
+                                return 1
+                        }
+                    })
+                    done(null, data)
+                }
+            })
+        }
+    })
+})
+
+// 获取具体通知
+seneca.add('target:server-user,module:notify,if:detail', (msg, done) => {
+    var { content } = msg;
+    var path = key.notifyDir + content;
+
+    fs.readFile(path, (err, data) => {
+        if(err){
+            done(new Error('文件不存在！'))
+        }else{
+            str = marked(data.toString());
+            done(null, {data: str})
+        } 
+    });
 })
 
 seneca.listen(8001)
