@@ -22,9 +22,7 @@
 			:fullscreen="true"
 			center>
 			<el-row>
-				<el-col id="dialogMain" :xs='{span: 24}' :sm='{span: 16, offset: 4}'>
-					<span>aaa</span>
-				</el-col>
+				<el-col id="dialogMain" :xs='{span: 24}' :sm='{span: 16, offset: 4}'></el-col>
 			</el-row>
 		</el-dialog>
 	</div>
@@ -80,6 +78,10 @@
 	      				if(res.status == 200){
 	      					this.dialogTitle = row.content;
 	      					this.dialogVisible = true;
+	      					data += '<br/><p><strong>相关下载：</strong></p>';
+	      					if(!this.isEmpty(row.appendix)){
+	      						data += '<a name="file" download="'+row.appendix+'" href="/api/notify/'+row.appendix+'">'+row.appendix+'</a>'
+	      					}
 	      					// 延迟，解决elementui组件中dialog的懒渲染问题
       						setTimeout(() => {
       							$('#dialogMain').empty();
@@ -87,7 +89,15 @@
       						},0)
 	      				}
 	      			})
-	      	}
+	      	},
+	      	isEmpty(value){
+				return (
+					value === undefined ||
+					value === null ||
+					(typeof value === 'object' && Object.keys(value).length === 0) ||
+					(typeof value === 'string' && value.trim().length === 0)
+				)
+			}
 		}
 	}
 </script>

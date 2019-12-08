@@ -1,4 +1,6 @@
 const seneca = require('seneca')()
+const express = require('express')
+const bodyParser = require("body-parser")
 const svgCaptcha = require('svg-captcha')
 const bcrypt = require('bcryptjs')
 const fs = require('fs')
@@ -8,6 +10,11 @@ const logger = require('./logger')
 
 const mysql = key.mysql
 const redis = key.redis
+
+const app = express()
+// 使用body-parser中间件
+app.use(bodyParser.urlencoded({extended: false}));
+app.use(bodyParser.json());
 
 // user
 // 用户注册(单条)
@@ -153,19 +160,36 @@ seneca.add('target:server-user,module:notify,if:list', (msg, done) => {
     })
 })
 
-// 获取具体通知
-seneca.add('target:server-user,module:notify,if:detail', (msg, done) => {
-    var { content } = msg;
-    var path = key.notifyDir + content;
+// 获取附件
+app.get('/notify/:appendix', (msg, done) => {
+    var appendix = msg.params.appendix;
+    var appendixPath = key.appendixDir + appendix;
 
-    fs.readFile(path, (err, data) => {
+    var size = fs.statSync(appendixPath).size;  
+    var f = fs.createReadStream(appendixPath);  
+    done.writeHead(200, {    
+        'Content-Type': 'application/force-download',    
+        'Content-Disposition': 'attachment; filename=' + appendix,    
+        'Content-Length': size  
+    });  
+    f.pipe(done);
+})
+
+// 获取具体通知
+seneca.add('target:server-user,module:notify,if:content', (msg, done) => {
+    var { content } = msg;
+    var contentPath = key.notifyDir + content;
+
+    fs.readFile(contentPath, (err, data) => {
         if(err){
             done(new Error('文件不存在！'))
-        }else{
-            str = marked(data.toString());
+        }
+        else{
+            var str = marked(data.toString());
             done(null, {data: str})
         } 
     });
 })
 
+app.listen(8002)
 seneca.listen(8001)
