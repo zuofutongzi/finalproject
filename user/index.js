@@ -30,14 +30,15 @@ seneca.add('target:server-user,module:user,if:register', (msg, done) => {
             else{
                 password = hash;
 
-                var insert = 'insert into user(userid,password,identity,name,sex,IDcard,birthday,college,major) values(?,?,?,?,?,?,?,?,?)';
-                var insert_params = [userid, password, identity, name, sex, IDcard, birthday, college, major];
+                var insert = 'insert into ' + identity + '(userid,password,name,sex,IDcard,birthday,college,major) values(?,?,?,?,?,?,?,?)';
+                var insert_params = [userid, password, name, sex, IDcard, birthday, college, major];
                 mysql.query(insert, insert_params, (err, user) => {
                     if(err){
-                        logger.error(err.message);
+                        logger.error('(user-register):' + err.message);
                         done(new Error('用户注册失败！'))
                     }
                     else{
+                        logger.info('(user-register):注册成功');
                         done(null, {msg: '用户注册成功！'})
                     }
                 })
@@ -54,7 +55,7 @@ seneca.add('target:server-user,module:user,if:login', (msg, done) => {
         done(new Error('验证码错误！'));
     }
     else{
-        var redisKey = 'user:' + userid;
+        var redisKey = identity + ':' + userid;
         redis.mget(redisKey, (err, res) => {
             if(err){
                 done(new Error('数据库访问失败，请稍后再试...'))
@@ -66,8 +67,8 @@ seneca.add('target:server-user,module:user,if:login', (msg, done) => {
                 var data = JSON.parse(res);
                 // 密码解密
                 bcrypt.compare(password, data.password, function(err, res) {
-                    if(err || !res || (identity !== data.identity)){
-                        done(new Error('密码或身份错误！'))
+                    if(err || !res){
+                        done(new Error('密码错误！'))
                     }
                     else{
                         done(null, data);
@@ -80,8 +81,8 @@ seneca.add('target:server-user,module:user,if:login', (msg, done) => {
 
 // 用户信息
 seneca.add('target:server-user,module:user,if:detail', (msg, done) => {
-    var { userid } = msg;
-    var redisKey = 'user:' + userid;
+    var { userid, identity } = msg;
+    var redisKey = identity + ':' + userid;
     redis.mget(redisKey, (err, res) => {
         if(err){
             done(new Error('数据库访问失败，请稍后再试...'))
@@ -166,8 +167,14 @@ app.get('/notify/:appendix', (msg, done) => {
     var appendixPath = key.appendixDir + appendix;
 
     var size = fs.statSync(appendixPath).size;  
-    var f = fs.createReadStream(appendixPath);  
-    done.writeHead(200, {    
+    var f = fs.createReadStream(appendixPath);
+    // 附件若包含中文，需要字符转换才能放入header
+    var reg = new RegExp("[\\u4E00-\\u9FFF]+","g");
+　　if(reg.test(appendix)){
+        appendix = encodeURI(appendix,"GBK");
+        appendix = appendix.toString('iso8859-1');
+    }
+    done.writeHead(200, {
         'Content-Type': 'application/force-download',    
         'Content-Disposition': 'attachment; filename=' + appendix,    
         'Content-Length': size  

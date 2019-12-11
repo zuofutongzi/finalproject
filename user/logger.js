@@ -1,12 +1,14 @@
 const winston = require('winston');
 const moment = require('moment');
+const { createLogger, format, transports } = require('winston')
+const { combine, timestamp, label, printf } = format
 
 let customLevels = {
     levels: {
-        debug: 0,
-        info: 1,
-        warn: 2,
-        error: 3
+        debug: 3,
+        info: 2,
+        warn: 1,
+        error: 0
     },
     colors: {
         debug: 'blue',
@@ -27,13 +29,21 @@ winston.addColors({
 var logger = winston.createLogger({
     level: 'debug',
     levels: customLevels.levels,
+    format: combine(
+        timestamp({
+            format: 'YYYY-MM-DD HH:mm:ss'
+        }),
+        printf(info => {
+          return `${info.timestamp} [${info.level}]: ${info.message}`
+        })
+    ),
     transports: [
         new (winston.transports.Console)({
             level: 'error',
             levels: customLevels.levels,
             timestamp: function(){return moment().format('YYYY-MM-DD HH:mm:ss')},
             colorize: true,
-            silent: true //true关闭，false打开
+            silent: false //true关闭，false打开
         }),
         new (winston.transports.File)({
             name: 'info',
@@ -42,7 +52,15 @@ var logger = winston.createLogger({
             level: 'info',
             levels: customLevels.levels,
             timestamp: function(){return moment().format('YYYY-MM-DD HH:mm:ss')},
-            json: false
+            json: false,
+            format: combine(
+                timestamp({
+                    format: 'YYYY-MM-DD HH:mm:ss'
+                }),
+                printf(info => {
+                  return `${info.timestamp} [${info.level}]: ${info.message}`
+                })
+            )
         }),
         new (winston.transports.File)({
             name: 'error',
@@ -51,7 +69,15 @@ var logger = winston.createLogger({
             level: 'error',
             levels: customLevels.levels,
             timestamp: function(){return moment().format('YYYY-MM-DD HH:mm:ss')},
-            json: false
+            json: false,
+            format: combine(
+                timestamp({
+                    format: 'YYYY-MM-DD HH:mm:ss'
+                }),
+                printf(info => {
+                  return `${info.timestamp} [${info.level}]: ${info.message}`
+                })
+            )
         })
     ]
 })

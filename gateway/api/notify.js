@@ -23,11 +23,13 @@ router.get('/notify', passport.authenticate('jwt', {session: false}), (req, done
 
 // @route  GET /api/notify/:appendix
 // @desc   获取附件
-// @token  true
+// @token  false
 // @access public
 router.get('/notify/:appendix', async (req, done) => {
     var appendix = req.params.appendix;
-    var url = '192.168.99.100:8002/notify/a.docx'
+    var url = key.userServerRequest + '/notify/' + appendix;
+    // url中文转换处理
+    url = encodeURI(url);
     request.get({
         url: url,
         json: req.body,
@@ -36,7 +38,7 @@ router.get('/notify/:appendix', async (req, done) => {
             'Content-Type': 'application/octet-stream'
         },
     }).on('response', function(response) {
-        this.pipe(response)
+        this.pipe(done)
     });
 })
 

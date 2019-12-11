@@ -1,0 +1,2 @@
+2019-12-11 16:22:04 [error]: ER_NO_SUCH_TABLE: Table 'user.undefined' doesn't exist
+2019-12-11 16:52:16 [error]: (user-register):ER_NO_SUCH_TABLE: Table 'user.undefined' doesn't exist
