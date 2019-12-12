@@ -108,14 +108,8 @@ export default{
 		submitForm(formName){
 			this.$refs[formName].validate(valid => {
 				if(valid){
-					var options = {
-						userid: this.loginUser.userid,
-						password: this.loginUser.password,
-						identity: this.loginUser.identity,
-						identifyCode: this.loginUser.identifyCode
-					}
 					this.$axios
-						.post('/api/user',options)
+						.post('/api/user', this.loginUser)
 						.then(res => {
 							var data = res.data;
 							if(res.status == 200){

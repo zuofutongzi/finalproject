@@ -21,33 +21,14 @@ router.get('/notify', passport.authenticate('jwt', {session: false}), (req, done
     })
 })
 
-// @route  GET /api/notify/:appendix
-// @desc   获取附件
-// @token  false
-// @access public
-router.get('/notify/:appendix', async (req, done) => {
-    var appendix = req.params.appendix;
-    var url = key.userServerRequest + '/notify/' + appendix;
-    // url中文转换处理
-    url = encodeURI(url);
-    request.get({
-        url: url,
-        json: req.body,
-        gzip:true,
-        headers:{
-            'Content-Type': 'application/octet-stream'
-        },
-    }).on('response', function(response) {
-        this.pipe(done)
-    });
-})
-
-// @route  POST /api/notify
+// @route  GET /api/notify/:notifyid
 // @desc   获取具体通知
 // @token  true
 // @access public
-router.post('/notify', passport.authenticate('jwt', {session: false}), (req, done) => {
-    var options = JSON.parse(JSON.stringify(req.body));
+router.get('/notify/:notifyid', passport.authenticate('jwt', {session: false}), (req, done) => {
+    var options = {
+        notifyid: req.params.notifyid
+    }
     userSeneca.act('target:server-user,module:notify,if:content', options,
     (err,res) => {
         if(err){
@@ -57,6 +38,27 @@ router.post('/notify', passport.authenticate('jwt', {session: false}), (req, don
             done.send(res.data)
         }
     })
+})
+
+// @route  GET /api/notify/:notifyid/appendix/:appendix
+// @desc   获取附件
+// @token  false
+// @access public
+router.get('/notify/:notifyid/appendix/:appendix', async (req, done) => {
+    var appendix = req.params.appendix;
+    var uri = key.userServerRequest + '/notify/' + appendix;
+    // url中文转换处理
+    uri = encodeURI(uri);
+    request.get({
+        url: uri,
+        json: req.body,
+        gzip:true,
+        headers:{
+            'Content-Type': 'application/octet-stream'
+        },
+    }).on('response', function(response) {
+        this.pipe(done)
+    });
 })
 
 module.exports = router;

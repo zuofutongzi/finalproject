@@ -53,6 +53,30 @@ export default{
 							item.content = '[置顶]' + item.content;
 						}
 					})
+					this.notifyData.sort((a, b) => {
+                        if(a.top === b.top){
+                            var atime = new Date(a.time);
+                            var btime = new Date(b.time);
+                            if(atime === btime){
+                                if(a.notifyid > b.notifyid)
+                                    return -1
+                                else
+                                    return 1
+                            }
+                            else{
+                                if(atime > btime)
+                                    return -1
+                                else
+                                    return 1
+                            }
+                        }
+                        else{
+                            if(a.top > b.top)
+                                return -1
+                            else
+                                return 1
+                        }
+                    })
 				}
 			})
 	},
@@ -64,15 +88,8 @@ export default{
 			return '';
 		},
 		handleRowClick(row){
-			var content = row.content;
-			content = content.replace('[置顶]','');
-			content += '.md';
-			
-			var options = {
-				content: content
-			}
 			this.$axios
-				.post('/api/notify', options)
+				.get('/api/notify/' + row.notifyid)
 				.then(res => {
 					var data = res.data;
 					if(res.status == 200){
@@ -80,7 +97,7 @@ export default{
 						this.dialogVisible = true;
 						data += '<br/><p><strong>相关下载：</strong></p>';
 						if(!this.isEmpty(row.appendix)){
-							data += '<a name="file" download="'+row.appendix+'" href="/api/notify/'+row.appendix+'">'+row.appendix+'</a>'
+							data += '<a name="file" download="'+row.appendix+'" href="/api/notify/'+row.notifyid+'/appendix/'+row.appendix+'">'+row.appendix+'</a>'
 						}
 						// 延迟，解决elementui组件中dialog的懒渲染问题
 						setTimeout(() => {

@@ -57,14 +57,51 @@ router.post('/user', (req, done) => {
     })
 })
 
-// @route  GET /api/user
-// @desc   用户信息
+// @route  GET /api/user/:id
+// @desc   指定用户信息
 // @token  true
 // @return userdetail
 // @access public
-router.get('/user', passport.authenticate('jwt', {session: false}), (req, done) => {
-    //var options = { userid: req.user.userid };
+router.get('/user/:id', passport.authenticate('jwt', {session: false}), (req, done) => {
     userSeneca.act('target:server-user,module:user,if:detail', req.user,
+    (err, res) => {
+        if(err){
+            done.status(500).send(err.data.payload.details.message)
+        }
+        else{
+            done.send(res)
+        }
+    })
+})
+
+// @route  POST /api/user/:id
+// @desc   修改指定用户信息
+// @token  true
+// @return userdetail
+// @access public
+router.post('/user/:id', passport.authenticate('jwt', {session: false}), (req, done) => {
+    var options = JSON.parse(JSON.stringify(req.body));
+    options.identity = req.user.identity;
+    userSeneca.act('target:server-user,module:user,if:change', options,
+    (err, res) => {
+        if(err){
+            done.status(500).send(err.data.payload.details.message)
+        }
+        else{
+            done.send(res)
+        }
+    })
+})
+
+// @route  POST /api/user/:id/password
+// @desc   指定用户密码修改
+// @token  true
+// @access public
+router.post('/user/:id/password', passport.authenticate('jwt', {session: false}), (req, done) => {
+    var options = JSON.parse(JSON.stringify(req.body));
+    options.identity = req.user.identity;
+    options.userid = req.user.userid;
+    userSeneca.act('target:server-user,module:user,if:password', options,
     (err, res) => {
         if(err){
             done.status(500).send(err.data.payload.details.message)

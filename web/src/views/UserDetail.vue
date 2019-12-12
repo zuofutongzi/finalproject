@@ -1,8 +1,8 @@
 <template>
     <div class="userDetail">
-        <el-row>
+        <el-row class="user">
             <el-col :lg="{span:16,offset:4}" :md="{span:16,offset:4}">
-                <el-form :model="userDetail" :rules="rules" ref="loginForm" label-position="left" label-width="80px" class="userDetailForm">
+                <el-form :model="userDetail" :rules="userRules" ref="userForm" label-position="left" label-width="80px" class="userDetailForm">
                     <el-divider content-position="left">个人信息</el-divider>
                     <el-form-item label="学号" prop="userid">
                         {{ userDetail.userid }}
@@ -19,6 +19,13 @@
                     <el-form-item label="出生日期">
                         {{ userDetail.birthday }}
                     </el-form-item>
+                    <el-form-item label="民族">
+                        {{ userDetail.nation }}
+                    </el-form-item>
+                    <el-form-item label="政治面貌">
+                        {{ userDetail.politicalStatus }}
+                    </el-form-item>
+                    <el-divider content-position="left">专业信息</el-divider>
                     <el-form-item label="学院">
                         {{ userDetail.college }}
                     </el-form-item>
@@ -28,69 +35,255 @@
                     <el-form-item label="行政班">
                         {{ userDetail.class }}
                     </el-form-item>
-                    <el-form-item label="民族">
-                        {{ userDetail.nation }}
+                    <el-form-item label="所在级">
+                        {{ userDetail.enrol }}
                     </el-form-item>
-                    <el-form-item label="政治面貌">
-                        {{ userDetail.politicalStatus }}
-                    </el-form-item>
-                    <el-form-item label="电话">
+                    <el-divider content-position="left">联系信息</el-divider>
+                    <el-form-item label="电话" prop="phone">
                         <el-input v-model="userDetail.phone"></el-input>
                     </el-form-item>
-                    <el-form-item label="邮箱">
+                    <el-form-item label="邮箱" prop="email">
                         <el-input v-model="userDetail.email"></el-input>
                     </el-form-item>
+                    <el-form-item label="qq" prop="qq">
+                        <el-input v-model="userDetail.qq"></el-input>
+                    </el-form-item>
+                    <el-form-item label="家庭地址" prop="address">
+                        <el-input v-model="userDetail.address"></el-input>
+                    </el-form-item>
                     <el-form-item>
-                        <el-button type="primary" class="submit_btn" @click="submitForm('userDetail')">提交</el-button>
+                        <el-button type="primary" plain @click="dialogVisible = true">修改密码</el-button>
+                        <el-button type="primary" @click="submitUser('userForm')">提交</el-button>
                     </el-form-item>
                 </el-form>
             </el-col>
         </el-row>
+        <el-dialog title="修改密码" :visible.sync="dialogVisible" :width="dialogWidth">
+            <el-form :model="password" :rules="passwordRules" ref="passwordForm" label-position="left" class="userDetailForm">
+                <el-form-item label="输入原密码" label-width="100px" prop="oldPassword">
+                    <el-input type="password" v-model="password.oldPassword"></el-input>
+                </el-form-item>
+                <el-form-item label="输入新密码" label-width="100px" prop="newPassword">
+                    <el-input type="password" v-model="password.newPassword"></el-input>
+                </el-form-item>
+                <el-form-item label="确认新密码" label-width="100px" prop="confirmPassword">
+                    <el-input type="password" v-model="password.confirmPassword"></el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" class="passwordBtn" @click="submitPassword('passwordForm')">确定</el-button>
+                </el-form-item>
+            </el-form>
+        </el-dialog>
     </div>
 </template>
 
 <script>
+import $ from 'jquery'
+
 export default {
     components: {},
     data() {
+        var validateConfirmPass = (rule, value, callback) => {
+            if(value !== this.password.newPassword){
+                callback(new Error('两次输入密码不一致'));
+            }
+            else{
+                callback();
+            }
+        }
+        var validateNewPass = (rule, value, callback) => {
+            if(value == this.password.oldPassword){
+                callback(new Error('新密码不能和原密码一致'));
+            }
+            else{
+                callback();
+            }
+        }
         return {
+            userid: '',
+            dialogVisible: false,
+            dialogWidth: '',
             userDetail: {
-                userid: '31601077',
-                name: '姚欢倪',
-                sex: '女',
-                IDcard: '330302199801214823',
-                birthday: '1998-01-21',
-                college: '计算机与计算科学学院',
-                major: '计算机科学与技术',
-                class: '计算机1601',
-                nation: '汉族',
-                politicalStatus: '团员',
+                userid: '',
+                name: '',
+                sex: '',
+                IDcard: '',
+                birthday: '',
+                college: '',
+                major: '',
+                class: '',
+                enrol: '',
+                nation: '',
+                politicalStatus: '',
                 phone: '',
-                email: ''
+                email: '',
+                address: '',
+                qq: ''
             },
-            rules:{
-			}
+            password: {
+                oldPassword: '',
+                newPassword: '',
+                confirmPassword: ''
+            },
+            userRules: {
+                phone: [{
+                    min: 11,
+                    max: 11,
+                    message: '请输入11位手机号码',
+                    trigger: 'blur'
+                }],
+                email: [{
+                    type: 'email',
+                    message: '邮箱格式不正确',
+                    trigger: 'blur'
+                }],
+                qq: [{
+                    min: 5,
+                    max: 12,
+                    message: '长度在5-12个字符之间',
+                    trigger: 'blur'
+                }],
+                address: [{
+                    max: 30,
+                    message: '长度小于30个字符',
+                    trigger: 'blur'
+                }]
+            },
+            passwordRules: {
+                oldPassword: [{
+                    required: true,
+                    message: '原密码不能为空',
+                    trigger: 'blur'
+                }],
+                newPassword: [
+                {
+                    required: true,
+                    message: '新密码不能为空',
+                    trigger: 'blur'
+                },
+                {
+                    min: 6,
+					max: 20,
+					message: '长度在6-20个字符之间',
+					trigger: 'blur'
+                },
+                {
+                    validator: validateNewPass,
+                    trigger: 'blur'
+                }],
+                confirmPassword: [
+                {
+                    required: true,
+                    message: '确认密码不能为空',
+                    trigger: 'blur'
+                },
+                {
+                    min: 6,
+					max: 20,
+					message: '长度在6-20个字符之间',
+					trigger: 'blur'
+                },
+                {
+                    validator: validateConfirmPass,
+                    trigger: 'blur'
+                }]
+            }
         };
     },
     watch: {},
     computed: {},
-    methods: {},
+    methods: {
+        submitUser(formName){
+            this.$refs[formName].validate(valid => {
+                if(valid){
+                    this.$axios
+                        .post('/api/user/' + this.userid, this.userDetail)
+                        .then(res => {
+                            if(res.status == 200){
+                                var data = res.data;
+                                this.$message({
+									message: data.msg,
+									type: "success"
+                                });
+                            }
+                        })
+                }
+                else{
+					this.$message({
+						message: "填写格式错误！",
+						type: "error"
+					});
+					return false;
+				}
+            })
+        },
+        submitPassword(formName){
+            this.$refs[formName].validate(valid => {
+                if(valid){
+                    this.$axios
+                        .post('/api/user/' + this.userid + '/password', this.password)
+                        .then(res => {
+                            if(res.status == 200){
+                                var data = res.data;
+                                this.$message({
+									message: data.msg,
+									type: "success"
+                                });
+                                this.dialogVisible = false;
+                                this.password.oldPassword = '';
+                                this.password.newPassword = '';
+                                this.password.confirmPassword = '';
+                            }
+                        })
+                }
+                else{
+					this.$message({
+						message: "填写格式错误！",
+						type: "error"
+					});
+					return false;
+				}
+            })
+        }
+    },
     created() {},
-    mounted() {}
+    mounted() {
+        this.userid = this.$store.getters.user.userid;
+        this.$axios
+            .get('/api/user/' + this.userid)
+            .then(res => {
+                if(res.status == 200){
+                    this.userDetail = res.data
+                }
+            })
+        var width = $(window).width();
+        if(width < 768){
+            this.dialogWidth = '100%';
+        }
+        else if(width < 1200){
+            this.dialogWidth = '50%';
+        }
+        else{
+            this.dialogWidth = '30%';
+        }
+    }
 };
 </script>
 
 <style scoped>
     .userDetailForm{
-        padding-left: 20px;
-        padding-right: 20px;
+        padding-left: 10px;
+        padding-right: 10px;
     }
     .el-divider__text{
         font-weight: bolder;
         left: 0 !important;
         padding-left: 0 !important;
     }
-    .el-input{
+    .user .el-input{
         width: auto;
+    }
+    .passwordBtn{
+        float: right;
     }
 </style>
