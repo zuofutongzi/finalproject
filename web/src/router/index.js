@@ -4,6 +4,7 @@ import Login from '../views/Login.vue'
 import Index from '../views/Index.vue'
 import Notify from '../views/Notify.vue'
 import UserDetail from '../views/UserDetail.vue'
+import NotifyPublish from '../views/NotifyPublish.vue'
 import NotFound from '../views/404.vue'
 
 Vue.use(VueRouter)
@@ -36,6 +37,11 @@ const routes = [
 			path: '/userDetail',
 			name: 'userDetail',
 			component: UserDetail
+		},
+		{
+			path: '/notifyPublish',
+			name: 'notifyPublish',
+			component: NotifyPublish
 		}]
 	},
 	{

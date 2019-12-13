@@ -75,9 +75,9 @@ export default{
 					trigger: 'blur'
 				},
 				{
-					min: 6,
+					min: 5,
 					max: 20,
-					message: '长度在6-20个字符之间',
+					message: '长度在5-20个字符之间',
 					trigger: 'blur'
 				}],
 				identifyCode:[

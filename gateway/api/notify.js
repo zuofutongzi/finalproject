@@ -40,11 +40,11 @@ router.get('/notify/:notifyid', passport.authenticate('jwt', {session: false}), 
     })
 })
 
-// @route  GET /api/notify/:notifyid/appendix/:appendix
+// @route  GET /api/notify/appendix/:appendix
 // @desc   获取附件
 // @token  false
 // @access public
-router.get('/notify/:notifyid/appendix/:appendix', async (req, done) => {
+router.get('/notify/appendix/:appendix', async (req, done) => {
     var appendix = req.params.appendix;
     var uri = key.userServerRequest + '/notify/' + appendix;
     // url中文转换处理
@@ -59,6 +59,14 @@ router.get('/notify/:notifyid/appendix/:appendix', async (req, done) => {
     }).on('response', function(response) {
         this.pipe(done)
     });
+})
+
+// @route  PUT /api/notify/appendix
+// @desc   附件上传
+// @token  false
+// @access public
+router.put('/notify/appendix', (req, done) => {
+    done.send({a: 1})
 })
 
 module.exports = router;

@@ -97,7 +97,7 @@ export default{
 						this.dialogVisible = true;
 						data += '<br/><p><strong>相关下载：</strong></p>';
 						if(!this.isEmpty(row.appendix)){
-							data += '<a name="file" download="'+row.appendix+'" href="/api/notify/'+row.notifyid+'/appendix/'+row.appendix+'">'+row.appendix+'</a>'
+							data += '<a name="file" download="'+row.appendix+'" href="/api/notify/appendix/'+row.appendix+'">'+row.appendix+'</a>'
 						}
 						// 延迟，解决elementui组件中dialog的懒渲染问题
 						setTimeout(() => {

@@ -2,7 +2,7 @@
 	<div class="index">
 		<HeadNav class='hidden-xs-only'></HeadNav>
 		<el-container>
-		  	<el-aside class="hidden-xs-only" style='width: 166px;'>
+		  	<el-aside class="hidden-xs-only" style='width: 186px;'>
   				<LeftMenu :menu='menu'></LeftMenu>
   			</el-aside>
   			<el-main>
@@ -64,6 +64,52 @@ export default{
 						path: 'selectClass'
 					}
 				];
+				break;
+			case 'manager':
+				this.menu = [
+				{
+					icon: 'el-icon-house',
+					title: '首页',
+					path: 'notify'
+				},
+				{
+					icon: 'el-icon-tickets',
+					title: '通知公告',
+					path: 'notifyMenu',
+					children: [
+					{
+						title: '通知发布',
+						path: 'notifyPublish'
+					},
+					{
+						title: '通知编辑',
+						path: 'notifyEdit'
+					}]
+				},
+				{
+					icon: 'el-icon-user',
+					title: '人员管理',
+					path: 'userMenu',
+					children: [
+					{
+						title: '学生管理',
+						path: 'studentManager'
+					},
+					{
+						title: '教师管理',
+						path: 'teacherManager'
+					}]
+				},
+				{
+					icon: 'el-icon-date',
+					title: '课程管理',
+					path: 'classManager'
+				},
+				{
+					icon: 'el-icon-edit-outline',
+					title: '选课管理',
+					path: 'classSelectManager'
+				}];
 				break;
 		}
 	},

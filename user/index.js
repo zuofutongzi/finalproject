@@ -31,8 +31,12 @@ seneca.add('target:server-user,module:user,if:register', (msg, done) => {
             else{
                 password = hash;
 
-                var insert = 'insert into ' + identity + '(userid,password,name,sex,IDcard,birthday,college,major) values(?,?,?,?,?,?,?,?)';
-                var insert_params = [userid, password, name, sex, IDcard, birthday, college, major];
+                // 学生注册
+                // var insert = 'insert into ' + identity + '(userid,password,name,sex,IDcard,birthday,college,major) values(?,?,?,?,?,?,?,?)';
+                // var insert_params = [userid, password, name, sex, IDcard, birthday, college, major];
+                // 管理员注册
+                var insert = 'insert into ' + identity + '(userid, password)  values(?, ?)';
+                var insert_params = [userid, password];
                 mysql.query(insert, insert_params, (err, user) => {
                     if(err){
                         logger.error('(user-register):' + err.message);
