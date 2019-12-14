@@ -109,7 +109,7 @@ export default{
 			this.$refs[formName].validate(valid => {
 				if(valid){
 					this.$axios
-						.post('/api/user', this.loginUser)
+						.post('/api/user/' + this.loginUser.userid, this.loginUser)
 						.then(res => {
 							var data = res.data;
 							if(res.status == 200){

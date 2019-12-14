@@ -5,6 +5,8 @@ const svgCaptcha = require('svg-captcha')
 const bcrypt = require('bcryptjs')
 const fs = require('fs')
 const marked = require('marked')
+const stream = require('stream')
+const Duplex = stream.Duplex;
 const key = require('./key')
 const logger = require('./logger')
 
@@ -13,8 +15,8 @@ const redis = key.redis
 
 const app = express()
 // 使用body-parser中间件
-app.use(bodyParser.urlencoded({extended: false}));
-app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({limit: '20mb', extended: true}));
+app.use(bodyParser.json({limit: '20mb'}));
 
 // user
 // 用户注册(单条)
@@ -52,6 +54,26 @@ seneca.add('target:server-user,module:user,if:register', (msg, done) => {
     });
 })
 
+// 指定用户信息
+seneca.add('target:server-user,module:user,if:detail', (msg, done) => {
+    var { userid, identity } = msg;
+    var redisKey = identity + ':' + userid;
+    redis.mget(redisKey, (err, res) => {
+        if(err){
+            logger.error('(user-detail):' + err.message);
+            done(new Error('数据库访问失败，请稍后再试...'))
+        }
+        else if(res[0] == null){
+            done(new Error('用户不存在！'))
+        }
+        else{
+            var data = JSON.parse(res);
+            delete data.password;
+            done(null, data)
+        }
+    })
+})
+
 // 用户登陆
 seneca.add('target:server-user,module:user,if:login', (msg, done) => {
     var { userid, password, identity, identifyCode, currentCode } = msg;
@@ -83,26 +105,6 @@ seneca.add('target:server-user,module:user,if:login', (msg, done) => {
             }
         })
     }
-})
-
-// 指定用户信息
-seneca.add('target:server-user,module:user,if:detail', (msg, done) => {
-    var { userid, identity } = msg;
-    var redisKey = identity + ':' + userid;
-    redis.mget(redisKey, (err, res) => {
-        if(err){
-            logger.error('(user-detail):' + err.message);
-            done(new Error('数据库访问失败，请稍后再试...'))
-        }
-        else if(res[0] == null){
-            done(new Error('用户不存在！'))
-        }
-        else{
-            var data = JSON.parse(res);
-            delete data.password;
-            done(null, data)
-        }
-    })
 })
 
 // 修改指定用户信息
@@ -242,8 +244,18 @@ seneca.add('target:server-user,module:notify,if:content', (msg, done) => {
     })
 })
 
+// 上传附件
+app.post('/notify/appendix', (msg, done) => {
+    var file = msg.body;
+    var copy = Buffer.from(file.buffer.data)
+    var ws = fs.createWriteStream(key.appendixDir + file.originalname);
+    ws.write(copy);
+    ws.end();
+    done.send({a: 1})
+})
+
 // 获取附件
-app.get('/notify/:appendix', (msg, done) => {
+app.get('/notify/appendix/:appendix', (msg, done) => {
     var appendix = msg.params.appendix;
     var appendixPath = key.appendixDir + appendix;
 

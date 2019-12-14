@@ -2,8 +2,10 @@ const express = require('express')
 const router = express.Router()
 const passport = require('passport')
 const request = require('request-promise-native')
+const multer  = require('multer')
 const key = require('../config/key.js')
 const userSeneca = key.userSeneca
+const upload = multer()
 
 // @route  GET /api/notify
 // @desc   获取通知列表
@@ -40,13 +42,29 @@ router.get('/notify/:notifyid', passport.authenticate('jwt', {session: false}), 
     })
 })
 
+// @route  POST /api/notify/appendix
+// @desc   附件上传
+// @token  false
+// @access public
+router.post('/notify/appendix', upload.single('file'), (req, done) => {
+    var file = req.file;
+    var uri = key.userServerRequest + '/notify/appendix';
+    request.post({
+        url: uri,
+        json: file,
+        gzip:true
+    }).on('response', (response) => {
+        done.send(response)
+    });
+})
+
 // @route  GET /api/notify/appendix/:appendix
 // @desc   获取附件
 // @token  false
 // @access public
 router.get('/notify/appendix/:appendix', async (req, done) => {
     var appendix = req.params.appendix;
-    var uri = key.userServerRequest + '/notify/' + appendix;
+    var uri = key.userServerRequest + '/notify/appendix/' + appendix;
     // url中文转换处理
     uri = encodeURI(uri);
     request.get({
@@ -59,14 +77,6 @@ router.get('/notify/appendix/:appendix', async (req, done) => {
     }).on('response', function(response) {
         this.pipe(done)
     });
-})
-
-// @route  PUT /api/notify/appendix
-// @desc   附件上传
-// @token  false
-// @access public
-router.put('/notify/appendix', (req, done) => {
-    done.send({a: 1})
 })
 
 module.exports = router;

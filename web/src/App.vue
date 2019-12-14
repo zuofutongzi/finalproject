@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <router-view/>
+		<router-view/>
   </div>
 </template>
 
@@ -35,6 +35,8 @@
 		height: 100%;
 		background: url(./assets/background.jpg) no-repeat center center; 
 		background-size: cover; 
-		background-attachment: fixed; 
+		background-attachment: fixed;
+		overflow-x: hidden;
+		overflow-y: auto;
 	}
 </style>

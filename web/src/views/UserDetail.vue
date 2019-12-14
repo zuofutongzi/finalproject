@@ -197,7 +197,7 @@ export default {
             this.$refs[formName].validate(valid => {
                 if(valid){
                     this.$axios
-                        .post('/api/user/' + this.userid, this.userDetail)
+                        .put('/api/user/' + this.userid, this.userDetail)
                         .then(res => {
                             if(res.status == 200){
                                 var data = res.data;
@@ -221,7 +221,7 @@ export default {
             this.$refs[formName].validate(valid => {
                 if(valid){
                     this.$axios
-                        .post('/api/user/' + this.userid + '/password', this.password)
+                        .put('/api/user/' + this.userid + '/password', this.password)
                         .then(res => {
                             if(res.status == 200){
                                 var data = res.data;
