@@ -23,6 +23,28 @@ router.get('/notify', passport.authenticate('jwt', {session: false}), (req, done
     })
 })
 
+// @route  POST /api/notify
+// @desc   添加通知
+// @token  true
+// @access public
+router.post('/notify', passport.authenticate('jwt', {session: false}), (req, done) => {
+    if(req.user.identity !== 'manager'){
+        done.status(500).send("没有权限！")
+    }
+    else{
+        var options = JSON.parse(JSON.stringify(req.body));
+        userSeneca.act('target:server-user,module:notify,if:add', options,
+        (err,res) => {
+            if(err){
+                done.status(500).send(err.data.payload.details.message)
+            }
+            else{
+                done.send(res)
+            }
+        })
+    }
+})
+
 // @route  GET /api/notify/:notifyid
 // @desc   获取具体通知
 // @token  true

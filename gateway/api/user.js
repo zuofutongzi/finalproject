@@ -65,6 +65,7 @@ router.post('/user/:id', (req, done) => {
                 }
                 else{
                     done.send({
+                        msg: res.msg,
                         success: true,
                         token: 'Bearer ' + token
                     })

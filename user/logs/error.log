@@ -6,3 +6,5 @@
 2019-12-15 14:37:29 [error]: (notify-appendix):文件不存在
 2019-12-15 14:37:43 [error]: (notify-appendix):文件不存在
 2019-12-15 15:00:31 [error]: (notify-appendix):文件不存在
+2019-12-15 16:54:27 [error]: (notify-add):ER_BAD_FIELD_ERROR: Unknown column 'impotant' in 'field list'
+2019-12-15 16:54:51 [error]: (notify-add):ER_DATA_TOO_LONG: Data too long for column 'time' at row 1

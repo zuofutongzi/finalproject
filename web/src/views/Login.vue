@@ -114,7 +114,7 @@ export default{
 							var data = res.data;
 							if(res.status == 200){
 								this.$message({
-									message: "登陆成功！",
+									message: data.msg,
 									type: "success"
 								});
 								

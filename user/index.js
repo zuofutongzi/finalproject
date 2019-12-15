@@ -23,6 +23,7 @@ seneca.add('target:server-user,module:identify,if:code', identify.code)
 
 // notify
 seneca.add('target:server-user,module:notify,if:list', notify.list)
+seneca.add('target:server-user,module:notify,if:add', notify.add)
 seneca.add('target:server-user,module:notify,if:content', notify.content)
 app.use('/', notify.router)
 

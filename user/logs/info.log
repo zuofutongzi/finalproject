@@ -32,3 +32,21 @@
 2019-12-15 15:20:24 [info]: (user-change):用户信息修改成功
 2019-12-15 15:20:26 [info]: (user-change):用户信息修改成功
 2019-12-15 15:20:58 [info]: (notify-appendix):文件上传成功！
+2019-12-15 15:30:59 [info]: (notify-appendix):文件上传成功！
+2019-12-15 15:31:36 [info]: (notify-appendix):文件上传成功！
+2019-12-15 16:54:27 [error]: (notify-add):ER_BAD_FIELD_ERROR: Unknown column 'impotant' in 'field list'
+2019-12-15 16:54:51 [error]: (notify-add):ER_DATA_TOO_LONG: Data too long for column 'time' at row 1
+2019-12-15 16:55:53 [info]: (notify-add):通知添加成功
+2019-12-15 17:01:20 [info]: (notify-add):通知添加成功
+2019-12-15 17:05:20 [info]: (notify-add):通知添加成功
+2019-12-15 17:43:14 [info]: (notify-add):通知添加成功
+2019-12-15 18:01:36 [info]: (notify-add):通知添加成功
+2019-12-15 18:01:36 [info]: (notify-appendix):文件上传成功！
+2019-12-15 18:06:39 [info]: (notify-add):通知添加成功
+2019-12-15 18:08:59 [info]: (notify-add):通知添加成功
+2019-12-15 18:09:33 [info]: (notify-add):通知添加成功
+2019-12-15 18:10:42 [info]: (notify-add):通知添加成功
+2019-12-15 18:10:42 [info]: (notify-appendix):文件上传成功！
+2019-12-15 18:14:31 [info]: (notify-add):通知添加成功
+2019-12-15 18:22:14 [info]: (notify-add):通知添加成功
+2019-12-15 18:22:15 [info]: (notify-appendix):文件上传成功！

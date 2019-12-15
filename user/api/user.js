@@ -24,7 +24,7 @@ function register(msg, done){
                 // 管理员注册
                 var insert = 'insert into ' + identity + '(userid, password)  values(?, ?)';
                 var insert_params = [userid, password];
-                mysql.query(insert, insert_params, (err, user) => {
+                mysql.query(insert, insert_params, (err, res) => {
                     if(err){
                         logger.error('(user-register):' + err.message);
                         done(new Error('用户注册失败！'))
@@ -84,6 +84,7 @@ function login(msg, done){
                         done(new Error('密码错误！'))
                     }
                     else{
+                        data.msg = '登陆成功！';
                         done(null, data);
                     }
                 });

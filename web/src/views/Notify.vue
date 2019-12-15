@@ -6,7 +6,7 @@
 		    :row-class-name="tableRowClassName"
 		    @row-click="handleRowClick">
 		    <el-table-column
-		      	prop="content"
+		      	prop="title"
 		      	label="通知"
 		      	min-width="200">
 		    </el-table-column>
@@ -47,35 +47,49 @@ export default{
 				if(res.status == 200){
 					this.notifyData = res.data;
 					this.notifyData.forEach(item => {
-						var index = item.content.lastIndexOf('.');
-						item.content = item.content.substring(0,index);
 						if(item.top == 'true'){
-							item.content = '[置顶]' + item.content;
+							item.title = '[置顶]' + item.title;
 						}
 					})
 					this.notifyData.sort((a, b) => {
-                        if(a.top === b.top){
-                            var atime = new Date(a.time);
-                            var btime = new Date(b.time);
-                            if(atime === btime){
-                                if(a.notifyid > b.notifyid)
-                                    return -1
-                                else
-                                    return 1
-                            }
-                            else{
-                                if(atime > btime)
-                                    return -1
-                                else
-                                    return 1
-                            }
-                        }
-                        else{
-                            if(a.top > b.top)
-                                return -1
-                            else
-                                return 1
-                        }
+						if(a.top == b.top){
+							if(a.top == 'true'){
+								if(a.important == b.important){
+									if(new Date(a.time) == new Date(b.time)){
+										return 0
+									}
+									else if(new Date(a.time) > new Date(b.time)){
+										return -1
+									}
+									else{
+										return 1
+									}
+								}
+								else if(a.important > b.important){
+									return -1
+								}
+								else{
+									return 1
+								}
+							}
+							else{
+								if(new Date(a.time) == new Date(b.time)){
+									return 0
+								}
+								else if(new Date(a.time) > new Date(b.time)){
+									return -1
+								}
+								else{
+									return 1
+								}
+							}
+						}
+						else if(a.top > b.top){
+							return -1
+						}
+						else{
+							return 1
+						}
                     })
 				}
 			})
@@ -93,7 +107,7 @@ export default{
 				.then(res => {
 					var data = res.data;
 					if(res.status == 200){
-						this.dialogTitle = row.content;
+						this.dialogTitle = row.title;
 						this.dialogVisible = true;
 						data += '<br/><p><strong>相关下载：</strong></p>';
 						if(!this.isEmpty(row.appendix)){
