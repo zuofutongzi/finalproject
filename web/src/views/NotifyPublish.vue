@@ -15,8 +15,10 @@
                         ref="upload"
                         action="/api/notify/appendix"
                         accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.zip,.rar"
+                        :on-error="handleError"
+                        :on-remove="handleRemove"
+                        :before-upload="handleBeforUpload"
                         :limit="1"
-                        :file-list="fileList"
                         :auto-upload="false">
                         <el-button slot="trigger" size="small" type="success">选取文件</el-button>
                         <!-- <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload">上传到服务器</el-button> -->
@@ -38,7 +40,7 @@ export default {
     props: {},
     data() {
         return {
-            editor: null,
+            mditor: null,
             notify: {
                 important: '',
                 top: '',
@@ -46,32 +48,45 @@ export default {
                 title: '',
                 content: '',
                 time: ''
-            },
-            fileList: []
+            }
         };
     },
     watch: {},
     computed: {},
     methods: {
-        submitUpload(){
-            this.$refs.upload.submit();
-        },
         submitForm(){
+            this.$refs.upload.submit();
+            // console.log(this.notify)
 			// if(this.isEmpty(this.notify.title)){
             //     this.$message({
             //         message: "标题不能为空！",
             //         type: "error"
             //     });
             // }
-            // else if(this.isEmpty(this.notify.content)){
+            // else if(this.isEmpty(this.mditor.value)){
             //     this.$message({
             //         message: "内容不能为空！",
             //         type: "error"
             //     });
             // }
             // else{
-            //     console.log(this.notify)
+            //     this.notify.content = this.mditor.value;
+            //     console.log(this.notify);
             // }
+        },
+        handleError(err, file, fileList){
+            this.$message({
+                message: err.message,
+                type: "error"
+            });
+        },
+        handleRemove(file, fileList) {
+            console.log(file, fileList);
+        },
+        handleBeforUpload(file){
+            this.notify.appendix = file.name;
+            console.log("handleBeforUpload")
+            console.log(file)
         },
         isEmpty(value){
 			return (
@@ -84,7 +99,7 @@ export default {
     },
     created() {},
     mounted() {
-        this.editor =  Mditor.fromTextarea(document.getElementById('editor'));
+        this.mditor =  Mditor.fromTextarea(document.getElementById('editor'));
     }
 };
 </script>

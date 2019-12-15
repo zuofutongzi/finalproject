@@ -1,3 +1,8 @@
 2019-12-11 16:22:04 [error]: ER_NO_SUCH_TABLE: Table 'user.undefined' doesn't exist
 2019-12-11 16:52:16 [error]: (user-register):ER_NO_SUCH_TABLE: Table 'user.undefined' doesn't exist
 2019-12-13 13:06:26 [error]: (user-register):ER_NO_SUCH_TABLE: Table 'user.undefined' doesn't exist
+2019-12-15 14:36:53 [error]: (notify-appendix):文件不存在
+2019-12-15 14:37:19 [error]: (notify-appendix):文件不存在
+2019-12-15 14:37:29 [error]: (notify-appendix):文件不存在
+2019-12-15 14:37:43 [error]: (notify-appendix):文件不存在
+2019-12-15 15:00:31 [error]: (notify-appendix):文件不存在

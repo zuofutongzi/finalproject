@@ -53,9 +53,11 @@ router.post('/notify/appendix', upload.single('file'), (req, done) => {
         url: uri,
         json: file,
         gzip:true
-    }).on('response', (response) => {
+    }).then((response) => {
         done.send(response)
-    });
+    }).catch((err) => {
+        done.status(500).send('文件上传失败！')
+    })
 })
 
 // @route  GET /api/notify/appendix/:appendix
@@ -74,9 +76,9 @@ router.get('/notify/appendix/:appendix', async (req, done) => {
         headers:{
             'Content-Type': 'application/octet-stream'
         },
-    }).on('response', function(response) {
+    }).on('response', function(response){
         this.pipe(done)
-    });
+    })
 })
 
 module.exports = router;
