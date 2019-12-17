@@ -1,17 +1,10 @@
 <template>
 	<div id="block" class='suspensionButton'>
-	    <!-- <el-dropdown trigger="click">
-	    	<img src="../assets/menu.jpg" class="el-dropdown-link"/>
-	      	<el-dropdown-menu slot="dropdown">
-	      		<router-link v-for='item in menu' :to='item.path' :key="item.path">
-	      			<el-dropdown-item :icon="item.icon">{{ item.title }}</el-dropdown-item>
-	      		</router-link>
-	      	</el-dropdown-menu>
-	    </el-dropdown> -->
 		<el-popover
 			placement="right"
 			trigger="click">
 			<el-menu
+				:unique-opened="true"
 				default-active="2"
 				class="el-menu-vertical-demo">
 				<template v-for='item in menu'>

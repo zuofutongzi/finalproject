@@ -45,23 +45,26 @@ router.post('/notify', passport.authenticate('jwt', {session: false}), (req, don
     }
 })
 
-// @route  GET /api/notify/:notifyid
-// @desc   获取具体通知
+// @route  PUT /api/notify
+// @desc   修改通告
 // @token  true
 // @access public
-router.get('/notify/:notifyid', passport.authenticate('jwt', {session: false}), (req, done) => {
-    var options = {
-        notifyid: req.params.notifyid
+router.put('/notify', passport.authenticate('jwt', {session: false}), (req, done) => {
+    if(req.user.identity !== 'manager'){
+        done.status(500).send("没有权限！")
     }
-    userSeneca.act('target:server-user,module:notify,if:content', options,
-    (err,res) => {
-        if(err){
-            done.status(500).send(err.data.payload.details.message);
-        }
-        else{
-            done.send(res.data)
-        }
-    })
+    else{
+        var options = JSON.parse(JSON.stringify(req.body));
+        userSeneca.act('target:server-user,module:notify,if:edit', options,
+        (err,res) => {
+            if(err){
+                done.status(500).send(err.data.payload.details.message)
+            }
+            else{
+                done.send(res)
+            }
+        })
+    }
 })
 
 // @route  POST /api/notify/appendix

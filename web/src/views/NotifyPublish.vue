@@ -156,7 +156,7 @@ export default {
     },
     created() {},
     mounted() {
-        this.mditor =  Mditor.fromTextarea(document.getElementById('editor'));
+        this.mditor =  Mditor.fromTextarea(document.getElementById('editor')); 
     }
 };
 </script>

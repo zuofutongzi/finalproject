@@ -1,9 +1,6 @@
 const express = require('express')
 const router = express.Router()
 const fs = require('fs')
-const marked = require('marked')
-const mditor = require("mditor")
-const parser = new mditor.Parser()
 const logger = require('../logger')
 const key = require('../key')
 
@@ -42,7 +39,6 @@ function list(msg, done){
 // 添加通知
 function add(msg, done){
     var { title, content, appendix, top, important, time } = msg;
-    content = parser.parse(content);
     var insert = 'insert into notify(title,content,appendix,top,important,time) values(?,?,?,?,?,?)';
     var insert_params = [title, content, appendix, top, important, time];
     mysql.query(insert, insert_params, (err, res) => {
@@ -57,18 +53,19 @@ function add(msg, done){
     })
 }
 
-// 获取具体通知
-function content(msg, done){
-    var { notifyid } = msg;
-    var redisKey = 'notify:' + notifyid;
-    redis.mget(redisKey, (err, res) => {
+// 修改通知
+function edit(msg, done){
+    var { notifyid, title, content, appendix, top, important, time } = msg;
+    var insert = 'update notify set title = ?, content = ?, appendix = ?, top = ?, important = ?, time = ? where notifyid = ?';
+    var insert_params = [title, content, appendix, top, important, time, notifyid];
+    mysql.query(insert, insert_params, (err, res) => {
         if(err){
-            logger.error('(notify-content):' + err.message);
-            done(new Error('数据库访问失败，请稍后再试...'))
+            logger.error('(notify-edit):' + err.message);
+            done(new Error('通知修改失败！'))
         }
         else{
-            var data = JSON.parse(res);
-            done(null, {data: data.content})
+            logger.info('(notify-edit):通知修改成功');
+            done(null, {msg: '通知修改成功！'})
         }
     })
 }
@@ -124,6 +121,6 @@ router.get('/notify/appendix/:appendix', (msg, done) => {
 module.exports = {
     list: list,
     add: add,
-    content: content,
+    edit: edit,
     router: router
 }

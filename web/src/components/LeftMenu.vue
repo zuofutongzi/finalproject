@@ -2,6 +2,7 @@
 	<el-row class="left-menu">
 		<el-col>
 			<el-menu
+				:unique-opened="true"
 				default-active="2"
 				class="el-menu-vertical-demo">
 				<template v-for='item in menu'>

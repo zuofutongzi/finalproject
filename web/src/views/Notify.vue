@@ -22,7 +22,7 @@
 			:fullscreen="true"
 			center>
 			<el-row>
-				<el-col id="dialogMain" :xs='{span: 24}' :sm='{span: 16, offset: 4}'></el-col>
+				<el-col id="dialogMain" class="markdown-body" :xs='{span: 24}' :sm='{span: 16, offset: 4}'></el-col>
 			</el-row>
 		</el-dialog>
 	</div>
@@ -30,6 +30,7 @@
 
 <script>
 import $ from 'jquery'
+import Editor from 'mditor'
 
 export default{
 	name: 'notify',
@@ -37,7 +38,8 @@ export default{
 		return {
 			notifyData: [],
 			dialogVisible: false,
-			dialogTitle: ''
+			dialogTitle: '',
+			mditor: null
 		}
 	},
 	mounted(){
@@ -51,46 +53,7 @@ export default{
 							item.title = '[置顶]' + item.title;
 						}
 					})
-					this.notifyData.sort((a, b) => {
-						if(a.top == b.top){
-							if(a.top == 'true'){
-								if(a.important == b.important){
-									if(new Date(a.time) == new Date(b.time)){
-										return 0
-									}
-									else if(new Date(a.time) > new Date(b.time)){
-										return -1
-									}
-									else{
-										return 1
-									}
-								}
-								else if(a.important > b.important){
-									return -1
-								}
-								else{
-									return 1
-								}
-							}
-							else{
-								if(new Date(a.time) == new Date(b.time)){
-									return 0
-								}
-								else if(new Date(a.time) > new Date(b.time)){
-									return -1
-								}
-								else{
-									return 1
-								}
-							}
-						}
-						else if(a.top > b.top){
-							return -1
-						}
-						else{
-							return 1
-						}
-                    })
+					this.notifyData = this.mySort(this.notifyData);
 				}
 			})
 	},
@@ -102,24 +65,19 @@ export default{
 			return '';
 		},
 		handleRowClick(row){
-			this.$axios
-				.get('/api/notify/' + row.notifyid)
-				.then(res => {
-					var data = res.data;
-					if(res.status == 200){
-						this.dialogTitle = row.title;
-						this.dialogVisible = true;
-						data += '<br/><p><strong>相关下载：</strong></p>';
-						if(!this.isEmpty(row.appendix)){
-							data += '<a name="file" download="'+row.appendix+'" href="/api/notify/appendix/'+row.appendix+'">'+row.appendix+'</a>'
-						}
-						// 延迟，解决elementui组件中dialog的懒渲染问题
-						setTimeout(() => {
-							$('#dialogMain').empty();
-							$('#dialogMain').append(data);
-						},0)
-					}
-				})
+			this.dialogTitle = row.title;
+			var data = new Editor.Parser().parse(row.content);
+			data += '<br/><p><strong>相关下载：</strong></p>';
+			if(!this.isEmpty(row.appendix)){
+				data += '<a name="file" download="'+row.appendix+'" href="/api/notify/appendix/'+row.appendix+'">'+row.appendix+'</a>'
+			}
+
+			this.dialogVisible = true;
+			// 延迟，解决elementui组件中dialog的懒渲染问题
+			setTimeout(() => {
+				$('#dialogMain').empty();
+				$('#dialogMain').append(data);
+			},0)
 		},
 		isEmpty(value){
 			return (
@@ -128,6 +86,51 @@ export default{
 				(typeof value === 'object' && Object.keys(value).length === 0) ||
 				(typeof value === 'string' && value.trim().length === 0)
 			)
+		},
+		mySort(array){
+			// 置顶放上面，置顶公告中，重要的公告放上面
+			// 非置顶公告按时间排序
+			array.sort((a, b) => {
+				if(a.top == b.top){
+					if(a.top == 'true'){
+						if(a.important == b.important){
+							if(new Date(a.time) == new Date(b.time)){
+								return 0
+							}
+							else if(new Date(a.time) > new Date(b.time)){
+								return -1
+							}
+							else{
+								return 1
+							}
+						}
+						else if(a.important > b.important){
+							return -1
+						}
+						else{
+							return 1
+						}
+					}
+					else{
+						if(new Date(a.time) == new Date(b.time)){
+							return 0
+						}
+						else if(new Date(a.time) > new Date(b.time)){
+							return -1
+						}
+						else{
+							return 1
+						}
+					}
+				}
+				else if(a.top > b.top){
+					return -1
+				}
+				else{
+					return 1
+				}
+			})
+			return array;
 		}
 	}
 }

@@ -5,6 +5,7 @@ import Index from '../views/Index.vue'
 import Notify from '../views/Notify.vue'
 import UserDetail from '../views/UserDetail.vue'
 import NotifyPublish from '../views/NotifyPublish.vue'
+import NotifyEdit from '../views/NotifyEdit.vue'
 import NotFound from '../views/404.vue'
 
 Vue.use(VueRouter)
@@ -42,6 +43,11 @@ const routes = [
 			path: '/notifyPublish',
 			name: 'notifyPublish',
 			component: NotifyPublish
+		},
+		{
+			path: '/notifyEdit',
+			name: 'notifyEdit',
+			component: NotifyEdit
 		}]
 	},
 	{
