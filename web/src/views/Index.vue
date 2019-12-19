@@ -65,51 +65,81 @@ export default{
 					}
 				];
 				break;
+			case 'teacher':
+				this.menu = [
+					{
+						icon: 'el-icon-house',
+						title: '首页',
+						path: 'notify'
+					},
+					{
+						icon: 'el-icon-user',
+						title: '个人信息',
+						path: 'teacherDetail'
+					},
+					{
+						icon: 'el-icon-collection',
+						title: '班级管理',
+						path: 'classManager'
+					},
+					{
+						icon: 'el-icon-notebook-2',
+						title: '课程管理',
+						path: 'tcourseManager'
+					},
+					{
+						icon: 'el-icon-edit',
+						title: '成绩管理',
+						path: 'gradeManager'
+					}
+				]
+				break;
 			case 'manager':
 				this.menu = [
-				{
-					icon: 'el-icon-house',
-					title: '首页',
-					path: 'notify'
-				},
-				{
-					icon: 'el-icon-tickets',
-					title: '通知公告',
-					path: 'notifyMenu',
-					children: [
 					{
-						title: '通知发布',
-						path: 'notifyPublish'
+						icon: 'el-icon-house',
+						title: '首页',
+						path: 'notify'
 					},
 					{
-						title: '通知编辑',
-						path: 'notifyEdit'
-					}]
-				},
-				{
-					icon: 'el-icon-user',
-					title: '人员管理',
-					path: 'userMenu',
-					children: [
-					{
-						title: '学生管理',
-						path: 'studentManager'
+						icon: 'el-icon-tickets',
+						title: '通知公告',
+						path: 'notifyMenu',
+						children: [
+						{
+							title: '通知发布',
+							path: 'notifyPublish'
+						},
+						{
+							title: '通知编辑',
+							path: 'notifyEdit'
+						}]
 					},
 					{
-						title: '教师管理',
-						path: 'teacherManager'
-					}]
-				},
-				{
-					icon: 'el-icon-date',
-					title: '课程管理',
-					path: 'classManager'
-				},
-				{
-					icon: 'el-icon-edit-outline',
-					title: '选课管理',
-					path: 'classSelectManager'
-				}];
+						icon: 'el-icon-user',
+						title: '人员管理',
+						path: 'userMenu',
+						children: [
+						{
+							title: '学生管理',
+							path: 'studentManager'
+						},
+						{
+							title: '教师管理',
+							path: 'teacherManager'
+						}]
+					},
+					{
+						icon: 'el-icon-date',
+						title: '课程管理',
+						path: 'courseManager'
+					},
+					{
+						icon: 'el-icon-edit-outline',
+						title: '选课管理',
+						path: 'courseSelectManager'
+					}
+				];
 				break;
 		}
 	},

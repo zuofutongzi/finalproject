@@ -7,7 +7,8 @@ const redis = key.redis
 
 // 用户注册(单条)
 function register(msg, done){
-    var { userid, password, identity, name, sex, IDcard, birthday, college, major } = msg;
+    // var { userid, password, identity, name, sex, IDcard, birthday, college, major } = msg;
+    var { identity,userid,password,name,sex,nation,politicalStatus,IDcard,birthday,college,enrol,classTeacher } = msg;
 
     // 密码加密
     bcrypt.genSalt(10, (err, salt) =>{
@@ -22,8 +23,11 @@ function register(msg, done){
                 // var insert = 'insert into ' + identity + '(userid,password,name,sex,IDcard,birthday,college,major) values(?,?,?,?,?,?,?,?)';
                 // var insert_params = [userid, password, name, sex, IDcard, birthday, college, major];
                 // 管理员注册
-                var insert = 'insert into ' + identity + '(userid, password)  values(?, ?)';
-                var insert_params = [userid, password];
+                // var insert = 'insert into ' + identity + '(userid, password)  values(?, ?)';
+                // var insert_params = [userid, password];
+                // 教师注册
+                var insert = 'insert into ' + identity + '(userid,password,name,sex,nation,politicalStatus,IDcard,birthday,college,enrol,classTeacher) values(?,?,?,?,?,?,?,?,?,?,?)';
+                var insert_params = [userid,password,name,sex,nation,politicalStatus,IDcard,birthday,college,enrol,classTeacher];
                 mysql.query(insert, insert_params, (err, res) => {
                     if(err){
                         logger.error('(user-register):' + err.message);

@@ -112,6 +112,36 @@ export default {
         },
         deleteSelection(){
             // 删除选择内容
+			var options = [];
+			this.multipleSelection.forEach(item => {
+				options.push(parseInt(item.notifyid));
+			})
+
+			if(this.isEmpty(options)){
+				this.$message({
+					message: "选项不能为空",
+					type: "error"
+				});
+			}
+			else{
+				this.$axios
+				.delete('/api/notify', {data: options})
+				.then(res => {
+					if(res.status == 200){
+						var data = res.data;
+						this.$message({
+							message: data.msg,
+							type: "success"
+						});
+
+						this.notifyData = this.notifyData.filter(item => {
+							return options.indexOf(parseInt(item.notifyid)) == -1;
+						})
+
+						this.multipleSelection = [];
+					}
+				})
+			}
         },
         tableRowClassName({row}){
 			if (row.important == 'true') {

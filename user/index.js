@@ -25,6 +25,7 @@ seneca.add('target:server-user,module:identify,if:code', identify.code)
 seneca.add('target:server-user,module:notify,if:list', notify.list)
 seneca.add('target:server-user,module:notify,if:add', notify.add)
 seneca.add('target:server-user,module:notify,if:edit', notify.edit)
+seneca.add('target:server-user,module:notify,if:delete', notify.delete)
 app.use('/', notify.router)
 
 app.listen(8002)

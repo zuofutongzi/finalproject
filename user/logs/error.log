@@ -8,3 +8,5 @@
 2019-12-15 15:00:31 [error]: (notify-appendix):文件不存在
 2019-12-15 16:54:27 [error]: (notify-add):ER_BAD_FIELD_ERROR: Unknown column 'impotant' in 'field list'
 2019-12-15 16:54:51 [error]: (notify-add):ER_DATA_TOO_LONG: Data too long for column 'time' at row 1
+2019-12-19 13:59:22 [error]: (notify-delete):ER_PARSE_ERROR: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '* from notify where notifyid in ( '14', '13')' at line 1
+2019-12-19 14:01:31 [error]: (notify-delete):ER_PARSE_ERROR: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '* from notify where notifyid in ( 14, 13)' at line 1

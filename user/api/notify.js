@@ -70,6 +70,32 @@ function edit(msg, done){
     })
 }
 
+//删除通知
+function mydelete(msg, done){
+    var { notifyid } = msg;
+    var sql = 'delete from notify where notifyid in (';
+    for(var i = 0; i < notifyid.length; i++){
+        if(i == 0){
+            sql += ' ?';
+        }
+        else{
+            sql += ', ?';
+        }
+    }
+    sql += ')';
+    var sql_params = notifyid;
+    mysql.query(sql, sql_params, (err, res) => {
+        if(err){
+            logger.error('(notify-delete):' + err.message);
+            done(new Error('通知删除失败！'))
+        }
+        else{
+            logger.info('(notify-delete):通知删除成功');
+            done(null, {msg: '通知删除成功！'})
+        }
+    })
+}
+
 // 未找到使用seneca实现文件上传下载的方法，另增加express接口
 // 上传附件
 router.post('/notify/appendix', (msg, done) => {
@@ -122,5 +148,6 @@ module.exports = {
     list: list,
     add: add,
     edit: edit,
+    delete: mydelete,
     router: router
 }

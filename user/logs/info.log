@@ -158,3 +158,24 @@
 2019-12-17 18:09:02 [info]: (notify-edit):通知修改成功
 2019-12-17 18:09:02 [info]: (notify-appendix):文件上传成功！
 2019-12-17 18:10:27 [info]: (notify-edit):通知修改成功
+2019-12-19 13:31:56 [info]: (notify-add):通知添加成功
+2019-12-19 13:32:22 [info]: (notify-add):通知添加成功
+2019-12-19 13:59:22 [error]: (notify-delete):ER_PARSE_ERROR: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '* from notify where notifyid in ( '14', '13')' at line 1
+2019-12-19 14:01:31 [error]: (notify-delete):ER_PARSE_ERROR: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '* from notify where notifyid in ( 14, 13)' at line 1
+2019-12-19 14:03:14 [info]: (notify-delete):通知删除成功
+2019-12-19 14:14:35 [info]: (notify-add):通知添加成功
+2019-12-19 14:14:41 [info]: (notify-add):通知添加成功
+2019-12-19 14:14:49 [info]: (notify-add):通知添加成功
+2019-12-19 14:14:58 [info]: (notify-delete):通知删除成功
+2019-12-19 14:15:40 [info]: (notify-add):通知添加成功
+2019-12-19 14:15:45 [info]: (notify-add):通知添加成功
+2019-12-19 14:15:52 [info]: (notify-delete):通知删除成功
+2019-12-19 14:26:16 [info]: (notify-delete):通知删除成功
+2019-12-19 14:26:25 [info]: (notify-add):通知添加成功
+2019-12-19 14:26:29 [info]: (notify-add):通知添加成功
+2019-12-19 14:26:37 [info]: (notify-delete):通知删除成功
+2019-12-19 14:56:50 [info]: (user-register):注册成功
+2019-12-19 15:16:57 [info]: (user-password):密码修改成功
+2019-12-19 15:17:10 [info]: (user-password):密码修改成功
+2019-12-19 16:05:24 [info]: (user-change):用户信息修改成功
+2019-12-19 16:05:30 [info]: (user-change):用户信息修改成功

@@ -6,6 +6,7 @@ import Notify from '../views/Notify.vue'
 import UserDetail from '../views/UserDetail.vue'
 import NotifyPublish from '../views/NotifyPublish.vue'
 import NotifyEdit from '../views/NotifyEdit.vue'
+import TeacherDetail from '../views/TeacherDetail.vue'
 import NotFound from '../views/404.vue'
 
 Vue.use(VueRouter)
@@ -25,30 +26,36 @@ const routes = [
 		name: 'index',
 		component: Index,
 		children: [
-		{
-			path: '',
-			component: Notify
-		},
-		{
-			path: '/notify',
-			name: 'notify',
-			component: Notify
-		},
-		{
-			path: '/userDetail',
-			name: 'userDetail',
-			component: UserDetail
-		},
-		{
-			path: '/notifyPublish',
-			name: 'notifyPublish',
-			component: NotifyPublish
-		},
-		{
-			path: '/notifyEdit',
-			name: 'notifyEdit',
-			component: NotifyEdit
-		}]
+			{
+				path: '',
+				component: Notify
+			},
+			{
+				path: '/notify',
+				name: 'notify',
+				component: Notify
+			},
+			{
+				path: '/userDetail',
+				name: 'userDetail',
+				component: UserDetail
+			},
+			{
+				path: '/notifyPublish',
+				name: 'notifyPublish',
+				component: NotifyPublish
+			},
+			{
+				path: '/notifyEdit',
+				name: 'notifyEdit',
+				component: NotifyEdit
+			},
+			{
+				path: '/teacherDetail',
+				name: 'teacherDetail',
+				component: TeacherDetail
+			}
+		]
 	},
 	{
 		path: '*',

@@ -48,14 +48,36 @@ router.post('/notify', passport.authenticate('jwt', {session: false}), (req, don
 // @route  PUT /api/notify
 // @desc   修改通告
 // @token  true
-// @access public
+// @access manager
 router.put('/notify', passport.authenticate('jwt', {session: false}), (req, done) => {
     if(req.user.identity !== 'manager'){
-        done.status(500).send("没有权限！")
+        done.status(500).send('没有权限！')
     }
     else{
         var options = JSON.parse(JSON.stringify(req.body));
         userSeneca.act('target:server-user,module:notify,if:edit', options,
+        (err,res) => {
+            if(err){
+                done.status(500).send(err.data.payload.details.message)
+            }
+            else{
+                done.send(res)
+            }
+        })
+    }
+})
+
+// @route  DELETE /api/notify
+// @desc   删除通告
+// @token  true
+// @access manager
+router.delete('/notify', passport.authenticate('jwt', {session: false}), (req, done) => {
+    if(req.user.identity !== 'manager'){
+        done.status(500).send('没有权限！')
+    }
+    else{
+        var options = {notifyid: req.body};
+        userSeneca.act('target:server-user,module:notify,if:delete', options,
         (err,res) => {
             if(err){
                 done.status(500).send(err.data.payload.details.message)
