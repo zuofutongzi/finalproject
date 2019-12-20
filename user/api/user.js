@@ -45,7 +45,7 @@ function register(msg, done){
 
 // 指定用户信息
 function detail(msg, done){
-    var { userid, identity } = msg;
+    var { userid, identity, asker } = msg;
     var redisKey = identity + ':' + userid;
     redis.mget(redisKey, (err, res) => {
         if(err){
@@ -57,8 +57,13 @@ function detail(msg, done){
         }
         else{
             var data = JSON.parse(res);
-            delete data.password;
-            done(null, data)
+            var back = null;
+            // 请求自己信息，将密码去除返回
+            if(identity == asker){
+                back = data;
+                delete back.password;
+            }
+            done(null, back)
         }
     })
 }

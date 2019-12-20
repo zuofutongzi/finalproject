@@ -94,8 +94,12 @@ export default{
 			this.makeCode(this.contentWidth,this.contentHeight);
 		},
 		makeCode(width,height){
+			var options = {
+				width: width,
+				height: height
+			}
 			this.$axios
-				.get('/api/identify?width='+width+'&height='+height)
+				.get('/api/identify', {params: options})
 				.then(res => {
 					var data = res.data;
 					if(res.status == 200){

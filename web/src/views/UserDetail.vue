@@ -100,26 +100,10 @@ export default {
             }
         }
         return {
-            userid: '',
+            user: {},
             dialogVisible: false,
             dialogWidth: '',
-            userDetail: {
-                userid: '',
-                name: '',
-                sex: '',
-                IDcard: '',
-                birthday: '',
-                college: '',
-                major: '',
-                class: '',
-                enrol: '',
-                nation: '',
-                politicalStatus: '',
-                phone: '',
-                email: '',
-                address: '',
-                qq: ''
-            },
+            userDetail: {},
             password: {
                 oldPassword: '',
                 newPassword: '',
@@ -196,8 +180,9 @@ export default {
         submitUser(formName){
             this.$refs[formName].validate(valid => {
                 if(valid){
+                    this.userDetail.identity = this.user.identity;
                     this.$axios
-                        .put('/api/user/' + this.userid, this.userDetail)
+                        .put('/api/user/' + this.user.userid, this.userDetail)
                         .then(res => {
                             if(res.status == 200){
                                 var data = res.data;
@@ -220,8 +205,11 @@ export default {
         submitPassword(formName){
             this.$refs[formName].validate(valid => {
                 if(valid){
+                    var options = this.password;
+                    options.identity = this.user.identity;
+                    options.userid = this.user.userid;
                     this.$axios
-                        .put('/api/user/' + this.userid + '/password', this.password)
+                        .put('/api/user/' + this.user.userid + '/password', options)
                         .then(res => {
                             if(res.status == 200){
                                 var data = res.data;
@@ -248,9 +236,9 @@ export default {
     },
     created() {},
     mounted() {
-        this.userid = this.$store.getters.user.userid;
+        this.user = this.$store.getters.user;
         this.$axios
-            .get('/api/user/' + this.userid)
+            .get('/api/user/' + this.user.userid, {params: this.user})
             .then(res => {
                 if(res.status == 200){
                     this.userDetail = res.data

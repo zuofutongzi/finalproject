@@ -28,7 +28,10 @@ router.post('/user', (req, done) => {
 // @return userdetail
 // @access public
 router.get('/user/:id', passport.authenticate('jwt', {session: false}), (req, done) => {
-    userSeneca.act('target:server-user,module:user,if:detail', req.user,
+    // req.query请求对象的信息 req.user请求者的信息
+    var options = req.query;
+    options.asker = req.user.identity;
+    userSeneca.act('target:server-user,module:user,if:detail', options,
     (err, res) => {
         if(err){
             done.status(500).send(err.data.payload.details.message)
@@ -82,7 +85,6 @@ router.post('/user/:id', (req, done) => {
 // @access public
 router.put('/user/:id', passport.authenticate('jwt', {session: false}), (req, done) => {
     var options = JSON.parse(JSON.stringify(req.body));
-    options.identity = req.user.identity;
     userSeneca.act('target:server-user,module:user,if:change', options,
     (err, res) => {
         if(err){
@@ -100,8 +102,6 @@ router.put('/user/:id', passport.authenticate('jwt', {session: false}), (req, do
 // @access public
 router.put('/user/:id/password', passport.authenticate('jwt', {session: false}), (req, done) => {
     var options = JSON.parse(JSON.stringify(req.body));
-    options.identity = req.user.identity;
-    options.userid = req.user.userid;
     userSeneca.act('target:server-user,module:user,if:password', options,
     (err, res) => {
         if(err){
