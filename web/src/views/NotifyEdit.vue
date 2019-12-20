@@ -5,6 +5,7 @@
             <el-button @click="deleteSelection()">删除已选通知</el-button>
         </el-row>
         <el-table
+			class="hidden-xs-only"
 		    :data="notifyData"
             ref="multipleTable"
 		    style="width: 100%"
@@ -23,6 +24,25 @@
             <el-table-column
 		      	prop="time"
 		      	label="时间">
+		    </el-table-column>
+	  	</el-table>
+
+		<el-table
+			class="hidden-sm-and-up"
+		    :data="notifyData"
+            ref="multipleTable"
+		    style="width: 100%"
+		    :row-class-name="tableRowClassName"
+		    @row-click="handleRowClick"
+            @selection-change="handleSelectionChange">
+            <el-table-column
+                type="selection"
+                width="55">
+            </el-table-column>
+		    <el-table-column
+		      	prop="title"
+		      	label="通知"
+		      	min-width="200">
 		    </el-table-column>
 	  	</el-table>
 

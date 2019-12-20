@@ -5,6 +5,31 @@ const passport = require('passport')
 const key = require('../config/key.js')
 const userSeneca = key.userSeneca
 
+// @route  GET /api/user
+// @desc   获取用户信息
+// @token  true
+// @return userdetail
+// @access manager,teacher
+router.get('/user', passport.authenticate('jwt', {session: false}), (req, done) => {
+    var limits = ['manager', 'teacher'];
+    if(limits.indexOf(req.user.identity) == -1){
+        done.status(500).send("没有权限！")
+    }
+    else{
+        // req.query请求对象的信息 req.user请求者的信息
+        var options = req.query;
+        userSeneca.act('target:server-user,module:user,if:list', options,
+        (err, res) => {
+            if(err){
+                done.status(500).send(err.data.payload.details.message)
+            }
+            else{
+                done.send(res)
+            }
+        })
+    }
+})
+
 // @route  POST /api/user
 // @desc   用户注册
 // @token  false
@@ -30,7 +55,7 @@ router.post('/user', (req, done) => {
 router.get('/user/:id', passport.authenticate('jwt', {session: false}), (req, done) => {
     // req.query请求对象的信息 req.user请求者的信息
     var options = req.query;
-    options.asker = req.user.identity;
+    options.askerid = req.user.userid;
     userSeneca.act('target:server-user,module:user,if:detail', options,
     (err, res) => {
         if(err){
@@ -85,6 +110,7 @@ router.post('/user/:id', (req, done) => {
 // @access public
 router.put('/user/:id', passport.authenticate('jwt', {session: false}), (req, done) => {
     var options = JSON.parse(JSON.stringify(req.body));
+    options.askerid = req.user.userid;
     userSeneca.act('target:server-user,module:user,if:change', options,
     (err, res) => {
         if(err){
@@ -102,6 +128,7 @@ router.put('/user/:id', passport.authenticate('jwt', {session: false}), (req, do
 // @access public
 router.put('/user/:id/password', passport.authenticate('jwt', {session: false}), (req, done) => {
     var options = JSON.parse(JSON.stringify(req.body));
+    options.askerid = req.user.userid;
     userSeneca.act('target:server-user,module:user,if:password', options,
     (err, res) => {
         if(err){

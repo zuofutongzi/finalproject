@@ -7,6 +7,8 @@ import UserDetail from '../views/UserDetail.vue'
 import NotifyPublish from '../views/NotifyPublish.vue'
 import NotifyEdit from '../views/NotifyEdit.vue'
 import TeacherDetail from '../views/TeacherDetail.vue'
+import StudentManager from '../views/StudentManager.vue'
+import TeacherManager from '../views/TeacherManager.vue'
 import NotFound from '../views/404.vue'
 
 Vue.use(VueRouter)
@@ -54,6 +56,16 @@ const routes = [
 				path: '/teacherDetail',
 				name: 'teacherDetail',
 				component: TeacherDetail
+			},
+			{
+				path: '/studentManager',
+				name: 'studentManager',
+				component: StudentManager
+			},
+			{
+				path: '/teacherManager',
+				name: 'teacherManager',
+				component: TeacherManager
 			}
 		]
 	},

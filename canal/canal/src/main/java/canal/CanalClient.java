@@ -24,8 +24,6 @@ public class CanalClient {
                 Message message = connector.getWithoutAck(batchSize);
                 long batchId = message.getId();
                 int size = message.getEntries().size();
-                // System.out.println("batchId = " + batchId);
-                // System.out.println("size = " + size);
                 if (batchId == -1 || size == 0) {
                     try {
                         Thread.sleep(1000);
@@ -37,7 +35,6 @@ public class CanalClient {
                 }
                 // 提交确认
                 connector.ack(batchId);
-                // connector.rollback(batchId); // 处理失败, 回滚数据
             }
         } finally {
             connector.disconnect();
@@ -85,11 +82,31 @@ public class CanalClient {
 
     private static void redisInsert(String table,List<Column> columns) {
         JSONObject json = new JSONObject();
+        String enrol = null;
+        String myclass = null;
+        String key = null;
         for (Column column : columns) {
             json.put(column.getName(), column.getValue());
+            if (column.getIsKey()) {
+            	RedisUtil.sadd("idx:" + table, column.getValue());
+            	key = column.getValue();
+            }
+            if (table.equals("student")) {
+            	if (column.getName().equals("enrol")) {
+            		enrol = column.getValue();
+            	}
+            	else if (column.getName().equals("class")) {
+            		myclass = column.getValue();
+            	}
+            }
         }
         if (columns.size() > 0) {
             RedisUtil.stringSet(table + ":" + columns.get(0).getValue(), json.toJSONString());
+            if(table.equals("student")) {
+            	RedisUtil.sadd("idx:student:enrol", enrol);
+            	RedisUtil.sadd("idx:student:enrol:" + enrol, key);
+            	RedisUtil.sadd("idx:student:class:" + myclass, key);
+            }
         }
     }
 
@@ -105,11 +122,31 @@ public class CanalClient {
 
     private static void redisDelete(String table,List<Column> columns) {
         JSONObject json = new JSONObject();
+        String enrol = null;
+        String myclass = null;
+        String key = null;
         for (Column column : columns) {
             json.put(column.getName(), column.getValue());
+            if (column.getIsKey()) {
+            	RedisUtil.srem("idx:" + table, column.getValue());
+            	key = column.getValue();
+            }
+            if (table.equals("student")) {
+            	if (column.getName().equals("enrol")) {
+            		enrol = column.getValue();
+            	}
+            	else if (column.getName().equals("class")) {
+            		myclass = column.getValue();
+            	}
+            }
         }
         if (columns.size() > 0) {
             RedisUtil.delKey(table + ":" + columns.get(0).getValue());
+            if(table.equals("student")) {
+            	RedisUtil.srem("idx:student:enrol", enrol);
+            	RedisUtil.srem("idx:student:enrol:" + enrol, key);
+            	RedisUtil.srem("idx:student:class:" + myclass, key);
+            }
         }
     }
 }

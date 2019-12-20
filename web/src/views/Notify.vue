@@ -1,6 +1,7 @@
 <template>
 	<div class="notify">
 		<el-table
+			class="hidden-xs-only"
 		    :data="notifyData"
 		    style="width: 100%"
 		    :row-class-name="tableRowClassName"
@@ -13,6 +14,19 @@
 		    <el-table-column
 		      	prop="time"
 		      	label="时间">
+		    </el-table-column>
+	  	</el-table>
+
+		<el-table
+			class="hidden-sm-and-up"
+		    :data="notifyData"
+		    style="width: 100%"
+		    :row-class-name="tableRowClassName"
+		    @row-click="handleRowClick">
+		    <el-table-column
+		      	prop="title"
+		      	label="通知"
+		      	min-width="200">
 		    </el-table-column>
 	  	</el-table>
 	  	

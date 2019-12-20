@@ -29,14 +29,45 @@
                     <el-form-item label="学院">
                         {{ userDetail.college }}
                     </el-form-item>
+                    <el-form-item label="学历">
+                        {{ userDetail.eduBackground }}
+                    </el-form-item>
+                    <el-form-item label="职称">
+                        {{ userDetail.professionalTitle }}
+                    </el-form-item>
+                    <el-form-item label="入职时间">
+                        {{ userDetail.enrol }}
+                    </el-form-item>
                     <el-form-item label="班主任">
                         {{ classTeacher }}
                     </el-form-item>
                     <el-form-item label="班级">
                         {{ myclass }}
                     </el-form-item>
-                    <el-form-item label="入职时间">
-                        {{ userDetail.enrol }}
+                    <el-divider content-position="left">详细信息</el-divider>
+                    <el-form-item label="个人荣誉" prop="personalHonor">
+                        <el-input
+                            type="textarea"
+                            :autosize="{ minRows: 2 }"
+                            placeholder="请输入内容"
+                            v-model="userDetail.personalHonor">
+                        </el-input>
+                    </el-form-item>
+                    <el-form-item label="教学情况" prop="teachingSituation">
+                        <el-input
+                            type="textarea"
+                            :autosize="{ minRows: 2 }"
+                            placeholder="请输入内容"
+                            v-model="userDetail.teachingSituation">
+                        </el-input>
+                    </el-form-item>
+                    <el-form-item label="科研情况" prop="scientificSituation">
+                        <el-input
+                            type="textarea"
+                            :autosize="{ minRows: 2 }"
+                            placeholder="请输入内容"
+                            v-model="userDetail.scientificSituation">
+                        </el-input>
                     </el-form-item>
                     <el-divider content-position="left">联系信息</el-divider>
                     <el-form-item label="电话" prop="phone">

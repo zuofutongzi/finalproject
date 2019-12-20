@@ -5,6 +5,47 @@ const key = require('../key')
 const mysql = key.mysql
 const redis = key.redis
 
+function list(msg, done){
+    var { identity, filter } = msg;
+    redis.keys(identity + ':*', (err, keys) => {
+        if(err){
+            logger.error('(user-list):' + err.message);
+            done(new Error('数据库访问失败，请稍后再试...'))
+        }
+        else if(keys[0] == null){
+            if(identity == 'student'){
+                done(new Error('当前没用学生！'))
+            }
+            else if(identity == 'teacher'){
+                done(new Error('当前没用教师！'))
+            }
+            else{
+                done(new Error('当前没有用户！'))
+            }
+        }
+        else{
+            var redisKey = keys;
+            redis.mget(redisKey, (err, res) => {
+                if(err){
+                    logger.error('(user-list):' + err.message);
+                    done(new Error('数据库访问失败，请稍后再试...'))
+                }
+                else{
+                    var data = [];
+                    res.forEach(item => {
+                        data.push(JSON.parse(item))
+                    })
+                    if(filter != null){
+                        // 过滤条件
+                        console.log(1)
+                    }
+                    done(null, data)
+                }
+            })
+        }
+    })
+}
+
 // 用户注册(单条)
 function register(msg, done){
     // var { userid, password, identity, name, sex, IDcard, birthday, college, major } = msg;
@@ -45,7 +86,7 @@ function register(msg, done){
 
 // 指定用户信息
 function detail(msg, done){
-    var { userid, identity, asker } = msg;
+    var { userid, identity, askerid } = msg;
     var redisKey = identity + ':' + userid;
     redis.mget(redisKey, (err, res) => {
         if(err){
@@ -57,13 +98,17 @@ function detail(msg, done){
         }
         else{
             var data = JSON.parse(res);
-            var back = null;
             // 请求自己信息，将密码去除返回
-            if(identity == asker){
-                back = data;
-                delete back.password;
+            // 请求他人信息，将隐私信息去除返回
+            if(userid == askerid){
+                delete data.password;
             }
-            done(null, back)
+            else{
+                delete data.password;
+                delete data.IDcard;
+                delete data.birthday;
+            }
+            done(null, data)
         }
     })
 }
@@ -104,10 +149,26 @@ function login(msg, done){
 
 // 修改指定用户信息
 function change(msg, done){
-    var { userid, identity, phone, email, address, qq } = msg;
-    var update = 'update ' + identity + ' set phone = ?, email = ?, address = ?, qq = ? where userid = ?';
-    var update_params = [phone, email, address, qq, userid];
+    // 教师、学生共有信息
+    var { askerid, userid, identity, phone, email, address, qq } = msg;
+    // 教师独有信息
+    var { personalHonor, teachingSituation, scientificSituation } = msg;
 
+    if(askerid != userid){
+        logger.error('(user-change):禁止修改他人信息！');
+        done(new Error('禁止修改他人信息！'))
+    }
+
+    var update = '';
+    var update_params = [];
+    if(identity == 'student'){
+        update = 'update ' + identity + ' set phone = ?, email = ?, address = ?, qq = ? where userid = ?';
+        update_params = [phone, email, address, qq, userid];
+    }
+    else if(identity == 'teacher'){
+        update = 'update ' + identity + ' set phone = ?, email = ?, address = ?, qq = ?, personalHonor = ?, teachingSituation = ?, scientificSituation = ? where userid = ?';
+        update_params = [phone, email, address, qq, personalHonor, teachingSituation, scientificSituation, userid];
+    }
     mysql.query(update, update_params, (err, user) => {
         if(err){
             logger.error('(user-change):' + err.message);
@@ -122,7 +183,13 @@ function change(msg, done){
 
 // 密码修改
 function password(msg, done){
-    var { userid, identity, oldPassword, newPassword } = msg;
+    var { askerid, userid, identity, oldPassword, newPassword } = msg;
+
+    if(askerid != userid){
+        logger.error('(user-password):禁止修改他人密码！');
+        done(new Error('禁止修改他人密码！'))
+    }
+
     var redisKey = identity + ':' + userid;
     redis.mget(redisKey, (err, res) => {
         if(err){
@@ -172,6 +239,7 @@ function password(msg, done){
 }
 
 module.exports = {
+    list: list,
     register: register,
     detail: detail,
     login: login,

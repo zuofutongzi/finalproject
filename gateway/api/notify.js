@@ -26,7 +26,7 @@ router.get('/notify', passport.authenticate('jwt', {session: false}), (req, done
 // @route  POST /api/notify
 // @desc   添加通知
 // @token  true
-// @access public
+// @access manager
 router.post('/notify', passport.authenticate('jwt', {session: false}), (req, done) => {
     if(req.user.identity !== 'manager'){
         done.status(500).send("没有权限！")

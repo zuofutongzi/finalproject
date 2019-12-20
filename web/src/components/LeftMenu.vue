@@ -47,7 +47,7 @@
 	.left-menu{
 		width: 186px;
 		padding: 20px;
-		position: fixed;
+		position: fixed !important;
 	}
 	.left-menu a{
 		text-decoration: none;

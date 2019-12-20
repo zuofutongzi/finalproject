@@ -14,6 +14,14 @@ public class RedisUtil {
         }
         return jedis;
     }
+    
+    public static void sadd(String key, String value) {
+    	getJedis().sadd(key, value);
+    }
+    
+    public static void srem(String key, String value) {
+    	getJedis().srem(key, value);
+    }
 
     public static boolean existKey(String key) {
         return getJedis().exists(key);
