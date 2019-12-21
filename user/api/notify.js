@@ -9,7 +9,12 @@ const redis = key.redis
 
 // 获取通知列表
 function list(msg, done){
-    redis.keys('notify:*', (err, keys) => {
+    // sort 分页
+    // redis.sort('idx:student', 'get', 'student:*', 'limit', '0', '2', (err, keys) => {
+    //     console.log(keys)
+    // })
+
+    redis.sort('idx:notify', 'get', 'notify:*', (err, keys) => {
         if(err){
             logger.error('(notify-list):' + err.message);
             done(new Error('数据库访问失败，请稍后再试...'))
@@ -18,20 +23,11 @@ function list(msg, done){
             done(new Error('当前没用通知！'))
         }
         else{
-            var redisKey = keys;
-            redis.mget(redisKey, (err, res) => {
-                if(err){
-                    logger.error('(notify-list):' + err.message);
-                    done(new Error('数据库访问失败，请稍后再试...'))
-                }
-                else{
-                    var data = [];
-                    res.forEach(item => {
-                        data.push(JSON.parse(item))
-                    })
-                    done(null, data)
-                }
+            var data = [];
+            keys.forEach(item => {
+                data.push(JSON.parse(item))
             })
+            done(null, data)
         }
     })
 }

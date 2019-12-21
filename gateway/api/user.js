@@ -2,8 +2,11 @@ const express = require('express')
 const router = express.Router();
 const jwt = require('jsonwebtoken')
 const passport = require('passport')
+const request = require('request-promise-native')
+const multer  = require('multer')
 const key = require('../config/key.js')
 const userSeneca = key.userSeneca
+const upload = multer()
 
 // @route  GET /api/user
 // @desc   获取用户信息
@@ -44,6 +47,30 @@ router.post('/user', (req, done) => {
         else{
             done.send(res)
         }
+    })
+})
+
+// @route  POST /api/user/import
+// @desc   用户导入
+// @token  false
+// @access public
+router.post('/user/import', upload.single('file'), (req, done) => {
+    var file = req.file;
+    var options = JSON.parse(JSON.stringify(req.body));
+    var uri = key.userServerRequest + '/user/import';
+    request.post({
+        url: uri,
+        json: {file: file, options: options},
+        gzip: true
+    }).then((response) => {
+        if(response.status == 500){
+            done.status(500).send(response.msg)
+        }
+        else{
+            done.send(response)
+        }
+    }).catch((err) => {
+        done.status(500).send('文件上传失败！')
     })
 })
 

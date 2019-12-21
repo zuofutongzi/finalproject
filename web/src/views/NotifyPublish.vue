@@ -5,7 +5,7 @@
                 <el-form :model="notify" ref="notifyForm" class="notifyForm">
                     <el-divider content-position="left"><span>* </span>通知标题</el-divider>
                     <el-form-item prop="title">
-                        <el-input v-model="notify.title" placeholder="标题不超过30个字符"></el-input>
+                        <el-input v-model="notify.title" placeholder="标题不超过50个字符"></el-input>
                     </el-form-item>
                     <el-divider content-position="left"><span>* </span>通知内容</el-divider>
                     <textarea name="editor" id="editor"></textarea>
@@ -86,9 +86,9 @@ export default {
                     type: "error"
                 });
             }
-            else if(this.notify.title.length > 30){
+            else if(this.notify.title.length > 50){
                 this.$message({
-                    message: "标题不能超过30个字符！",
+                    message: "标题不能超过50个字符！",
                     type: "error"
                 });
             }

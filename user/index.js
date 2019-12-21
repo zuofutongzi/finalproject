@@ -3,11 +3,6 @@ const express = require('express')
 const bodyParser = require("body-parser")
 const app = express()
 
-// sort 分页
-// redis.sort('idx:student', 'get', 'student:*', 'limit', '0', '2', (err, keys) => {
-//     console.log(keys)
-// })
-
 // 使用body-parser中间件
 app.use(bodyParser.urlencoded({limit: '20mb', extended: false}));
 app.use(bodyParser.json({limit: '20mb'}));
@@ -23,6 +18,7 @@ seneca.add('target:server-user,module:user,if:detail', user.detail)
 seneca.add('target:server-user,module:user,if:login', user.login)
 seneca.add('target:server-user,module:user,if:change', user.change)
 seneca.add('target:server-user,module:user,if:password', user.password)
+app.use('/', user.router)
 
 // identify
 seneca.add('target:server-user,module:identify,if:code', identify.code)

@@ -1,8 +1,7 @@
 <template>
     <div class="notifyEdit">
         <el-row>
-            <el-button @click="toggleSelection()">取消选择</el-button>
-            <el-button @click="deleteSelection()">删除已选通知</el-button>
+            <el-button type="danger" plain @click="deleteSelection()">删除已选通知</el-button>
         </el-row>
         <el-table
 			class="hidden-xs-only"
@@ -51,7 +50,7 @@
 			:fullscreen="true"
 			title="公告修改"
 			center>
-			<el-row class="user">
+			<el-row class="notify">
 				<el-col :xs='{span: 24}' :sm='{span: 16, offset: 4}'>
 					<el-form :model="notify" ref="notifyForm" class="notifyForm">
 						<el-divider content-position="left"><span>* </span>通知标题</el-divider>
@@ -122,10 +121,6 @@ export default {
     watch: {},
     computed: {},
     methods: {
-        toggleSelection(rows) {
-            // 取消选择
-            this.$refs.multipleTable.clearSelection();
-        },
         handleSelectionChange(val) {
             // 选择
             this.multipleSelection = val;
