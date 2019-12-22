@@ -160,7 +160,7 @@ export default {
         },
         tableRowClassName({row}){
 			if (row.important == 'true') {
-				return 'warning-row';
+				return 'important-row';
 			}
 			return '';
 		},
@@ -365,13 +365,16 @@ export default {
 };
 </script>
 
-<style scoped>
-	.el-divider__text{
+<style>
+	.notifyEdit .el-divider__text{
         font-weight: bolder;
         left: 0 !important;
         padding-left: 0 !important;
     }
-    span{
+    .notifyEdit span{
         color: red;
     }
+	.notifyEdit .el-table .important-row {
+	    background: #fde2e2 !important;
+  	}
 </style>

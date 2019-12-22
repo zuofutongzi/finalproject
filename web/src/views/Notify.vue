@@ -74,7 +74,7 @@ export default{
 	methods:{
 		tableRowClassName({row}){
 			if (row.important == 'true') {
-				return 'warning-row';
+				return 'important-row';
 			}
 			return '';
 		},
@@ -151,10 +151,10 @@ export default{
 </script>
 
 <style>
-	.el-table .warning-row {
+	.notify .el-table .important-row {
 	    background: #fde2e2 !important;
   	}
-  	.el-dialog{
+  	.notify .el-dialog{
   		line-height: 30px;
   	}
 </style>

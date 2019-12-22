@@ -4,7 +4,7 @@
             <el-col :lg="{span:16,offset:4}" :md="{span:16,offset:4}">
                 <el-form :model="userDetail" :rules="userRules" ref="userForm" label-position="left" label-width="80px" class="userDetailForm">
                     <el-divider content-position="left">个人信息</el-divider>
-                    <el-form-item label="学号" prop="userid">
+                    <el-form-item label="教师编号" prop="userid">
                         {{ userDetail.userid }}
                     </el-form-item>
                     <el-form-item label="姓名">

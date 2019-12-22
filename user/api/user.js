@@ -1,7 +1,6 @@
 const bcrypt = require('bcryptjs')
 const express = require('express')
 const router = express.Router()
-const fs = require('fs')
 const xlsx = require('node-xlsx').default;
 const logger = require('../logger')
 const key = require('../key')
@@ -11,14 +10,54 @@ const redis = key.redis
 
 // 用户列表
 function list(msg, done){
-    var { identity, filter } = msg;
-    
+    // var options = {
+    //     identity: 'teacher',
+    //     filter: {
+    //         isPage: true,
+    //         page: 1,
+    //         size: 20
+    //     }
+    // }
+
+    var { identity } = msg;
+    var options = ['idx:' + identity, 'get', identity + ':*'];
+    var filter = JSON.parse(msg.filter);
+    if(filter.isPage){
+        options = options.concat(['limit', ((filter.page-1)*10).toString(), filter.size.toString()]);
+    }
+    redis.sort(options, (err, keys) => {
+        if(err){
+            logger.error('(notify-list):' + err.message);
+            done(new Error('数据库访问失败，请稍后再试...'))
+        }
+        else if(keys[0] == null){
+            done(new Error('当前没用用户！'))
+        }
+        else{
+            var data = [];
+            keys.forEach(item => {
+                var item = JSON.parse(item);
+                if(identity == 'teacher'){
+                    delete item.password;
+                    delete item.IDcard;
+                    delete item.birthday;
+
+                }
+                data.push(item)
+            })
+            done(null, data)
+        }
+    })
 }
 
 // 用户注册(单条)
 function register(msg, done){
+    // 学生
     // var { userid, password, identity, name, sex, IDcard, birthday, college, major } = msg;
-    var { identity,userid,password,name,sex,nation,politicalStatus,IDcard,birthday,college,enrol,classTeacher } = msg;
+    // 教师
+    // var { identity,userid,password,name,sex,nation,politicalStatus,IDcard,birthday,college,enrol,classTeacher } = msg;
+    // 管理员
+    var { identity, userid, password } = msg;
 
     // 密码加密
     bcrypt.genSalt(10, (err, salt) =>{
@@ -59,7 +98,6 @@ router.post('/user/import', (msg, done) => {
     try{
         var file = msg.body.file;
         var identity = msg.body.options.identity;
-        var salt = bcrypt.genSaltSync(10);
         var rule = [];
         var arrLength = 0; //rule的长度
         var idcardIndex = 0; //身份证号对应下标 
@@ -83,7 +121,7 @@ router.post('/user/import', (msg, done) => {
             idcardIndex = 6;
             passwordIndex = 1;
             arrLength = 11;
-            insert = 'insert into teacher(userid, password, name, sex, nation, politicalStatus, IDcard, college, eduBackground, professionalTitle, enrol, birthday) values ';
+            insert = 'insert ignore into teacher(userid, password, name, sex, nation, politicalStatus, IDcard, college, eduBackground, professionalTitle, enrol, birthday) values ';
             rule = [ '教师账号', '密码', '姓名', '性别', '民族', '政治面貌', '身份证', '学院', '教育背景', '职称', '入职年份' ];
         }
         else{
@@ -120,7 +158,7 @@ router.post('/user/import', (msg, done) => {
                 throw new Error('格式错误，请重新检查文件内容是否符合要求！')
             }
             // 密码加密
-            item[passwordIndex] = bcrypt.hashSync(item[passwordIndex].toString(), salt);
+            item[passwordIndex] = bcrypt.hashSync(item[passwordIndex].toString(), 10);
             // 生日生成
             var year = item[idcardIndex].slice(6,10);
             var month = item[idcardIndex].slice(10,12);

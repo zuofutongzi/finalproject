@@ -1,3 +1,4 @@
 2019-12-21 19:33:46 [error]: (user-import):ER_PARSE_ERROR: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '' at line 1
 2019-12-21 19:36:13 [error]: (user-import):格式错误，请重新检查文件内容是否符合要求！
 2019-12-21 19:36:30 [error]: (user-import):格式错误，请重新检查文件内容是否符合要求！
+2019-12-22 13:52:37 [error]: (user-import):ER_DUP_ENTRY: Duplicate entry '8165416' for key 'PRIMARY'
