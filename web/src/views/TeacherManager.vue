@@ -1,7 +1,7 @@
 <template>
     <div class="teacherManager">
         <el-row>
-            <el-button type="primary" plain>教师添加</el-button>
+            <el-button type="primary" plain @click="teacherAdd()">教师添加</el-button>
             <el-button type="success" plain @click="teacherImport()">教师导入</el-button>
         </el-row>
         <el-table
@@ -32,6 +32,53 @@
                 prop="professionalTitle">
             </el-table-column>
         </el-table>
+
+        <!-- 教师添加 -->
+        <el-dialog
+			:visible.sync="addDialogVisible"
+			title="教师添加"
+			center>
+			<el-row class="teacherAdd">
+				<el-col :xs='{span: 24}' :sm='{span: 16, offset: 4}'>
+                    <el-form :model="userAdd" ref="addForm" label-position="left" label-width="80px" class="addForm">
+                        <el-form-item label="教师账号" prop="userid">
+                            <el-input v-model="userAdd.userid"></el-input>
+                        </el-form-item>
+                        <el-form-item label="密码" prop="password">
+                            <el-input type="password" v-model="userAdd.password"></el-input>
+                        </el-form-item>
+                        <el-form-item label="姓名" prop="name">
+                            <el-input v-model="userAdd.name"></el-input>
+                        </el-form-item>
+                        <el-form-item label="性别" prop="sex">
+                            <el-radio v-model="userAdd.sex" label="男">男</el-radio>
+                            <el-radio v-model="userAdd.sex" label="女">女</el-radio>
+                        </el-form-item>
+                        <el-form-item label="民族" prop="nation">
+                            <el-input v-model="userAdd.nation"></el-input>
+                        </el-form-item>
+                        <el-form-item label="政治面貌" prop="politicalStatus">
+                            <el-input v-model="userAdd.politicalStatus"></el-input>
+                        </el-form-item>
+                        <el-form-item label="身份证" prop="IDcard">
+                            <el-input v-model="userAdd.IDcard"></el-input>
+                        </el-form-item>
+                        <el-form-item label="学院" prop="college">
+                            <el-input v-model="userAdd.college"></el-input>
+                        </el-form-item>
+                        <el-form-item label="教育背景" prop="eduBackground">
+                            <el-input v-model="userAdd.eduBackground"></el-input>
+                        </el-form-item>
+                        <el-form-item label="职称" prop="professionalTitle">
+                            <el-input v-model="userAdd.professionalTitle"></el-input>
+                        </el-form-item>
+                        <el-form-item label="入职年份" prop="enrol">
+                            <el-input v-model="userAdd.enrol"></el-input>
+                        </el-form-item>
+                    </el-form>
+				</el-col>
+			</el-row>
+		</el-dialog>
 
         <!-- 教师导入dialog -->
         <el-dialog
@@ -160,11 +207,13 @@ export default {
             user: {},
             userList: [],
             userDetail: {},
+            userAdd: {},
             uploadOption:{
                 identity: 'teacher'
             },
             importDialogVisible: false,
             detailDialogVisible: false,
+            addDialogVisible: false,
             collapse: '1',
             loading: null
         };
@@ -178,6 +227,9 @@ export default {
             }
             return '';
         },
+        teacherAdd(){
+            this.addDialogVisible = true;
+        },
         teacherImport(){
             this.importDialogVisible = true;
         },
@@ -185,7 +237,7 @@ export default {
             this.$refs.upload.submit();
             this.loading = this.$loading({
                 lock: true,
-                text: "拼命加载中...",
+                text: "数据较大，请耐性等待",
                 background: 'rgba(0,0,0,0.7)'
             });
         },
@@ -205,7 +257,24 @@ export default {
             this.$message({
                 message: response.msg,
                 type: "success"
-			});
+            });
+            var options = {
+                identity: 'teacher',
+                filter: {
+                    isPage: false
+                }
+            }
+            // 后端采用redis+mysql，canal监听binlog，数据同步需要时间，所以这里停顿1秒后再读取数据，否则，数据任然未空
+            var _this = this;
+            setTimeout(function(){
+                _this.$axios
+                    .get('/api/user', {params: options})
+                    .then(res => {
+                        if(res.status == 200){
+                            _this.userList = res.data;
+                        }
+                    })
+            },1000);
         },
         handleRowClick(row){
 			// dialog弹出
@@ -223,15 +292,6 @@ export default {
     created() {},
     mounted() {
         this.user = this.$store.getters.user;
-        // 分页获取
-        // var options = {
-        //     identity: 'teacher',
-        //     filter: {
-        //         isPage: true,
-        //         page: 1,
-        //         size: 20
-        //     }
-        // }
         var options = {
             identity: 'teacher',
             filter: {

@@ -27,8 +27,8 @@
                     </el-upload>
                     <el-divider content-position="left">通知性质</el-divider>
                     <el-form-item prop="type">
-                        <el-checkbox v-model="notify.important" true-label="true" false-label="false">重要公告</el-checkbox>
-                        <el-checkbox v-model="notify.top" true-label="true" false-label="false">置顶公告</el-checkbox>
+                        <el-checkbox v-model="notify.important">重要公告</el-checkbox>
+                        <el-checkbox v-model="notify.top">置顶公告</el-checkbox>
                     </el-form-item>
                     <el-divider content-position="left"></el-divider>
                     <el-form-item>
@@ -48,8 +48,8 @@ export default {
         return {
             mditor: null,
             notify: {
-                important: 'false',
-                top: 'false',
+                important: false,
+                top: false,
                 appendix: '',
                 title: '',
                 content: '',
@@ -116,8 +116,8 @@ export default {
                             }
 
                             this.notify = {
-                                important: 'false',
-                                top: 'false',
+                                important: false,
+                                top: false,
                                 appendix: '',
                                 title: '',
                                 content: '',

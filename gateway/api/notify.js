@@ -10,6 +10,7 @@ const upload = multer()
 // @route  GET /api/notify
 // @desc   获取通知列表
 // @token  true
+// @return notifyList
 // @access public
 router.get('/notify', passport.authenticate('jwt', {session: false}), (req, done) => {
     userSeneca.act('target:server-user,module:notify,if:list',
@@ -26,14 +27,15 @@ router.get('/notify', passport.authenticate('jwt', {session: false}), (req, done
 // @route  POST /api/notify
 // @desc   添加通知
 // @token  true
+// @return msg
 // @access manager
+// @params {title: String, content: String, appendix: String, top: bool, important: bool, time: String}
 router.post('/notify', passport.authenticate('jwt', {session: false}), (req, done) => {
     if(req.user.identity !== 'manager'){
         done.status(500).send("没有权限！")
     }
     else{
-        var options = JSON.parse(JSON.stringify(req.body));
-        userSeneca.act('target:server-user,module:notify,if:add', options,
+        userSeneca.act('target:server-user,module:notify,if:add', req.body,
         (err,res) => {
             if(err){
                 done.status(500).send(err.data.payload.details.message)
@@ -48,14 +50,15 @@ router.post('/notify', passport.authenticate('jwt', {session: false}), (req, don
 // @route  PUT /api/notify
 // @desc   修改通告
 // @token  true
+// @return msg
 // @access manager
+// @params {notifyid: Number, title: String, content: String, appendix: String, top: bool, important: bool, time: String}
 router.put('/notify', passport.authenticate('jwt', {session: false}), (req, done) => {
     if(req.user.identity !== 'manager'){
         done.status(500).send('没有权限！')
     }
     else{
-        var options = JSON.parse(JSON.stringify(req.body));
-        userSeneca.act('target:server-user,module:notify,if:edit', options,
+        userSeneca.act('target:server-user,module:notify,if:edit', req.body,
         (err,res) => {
             if(err){
                 done.status(500).send(err.data.payload.details.message)
@@ -70,7 +73,9 @@ router.put('/notify', passport.authenticate('jwt', {session: false}), (req, done
 // @route  DELETE /api/notify
 // @desc   删除通告
 // @token  true
+// @return msg
 // @access manager
+// @params {notifyid: Array}
 router.delete('/notify', passport.authenticate('jwt', {session: false}), (req, done) => {
     if(req.user.identity !== 'manager'){
         done.status(500).send('没有权限！')
@@ -92,6 +97,7 @@ router.delete('/notify', passport.authenticate('jwt', {session: false}), (req, d
 // @route  POST /api/notify/appendix
 // @desc   附件上传
 // @token  false
+// @return msg
 // @access public
 router.post('/notify/appendix', upload.single('file'), (req, done) => {
     var file = req.file;
@@ -110,6 +116,7 @@ router.post('/notify/appendix', upload.single('file'), (req, done) => {
 // @route  GET /api/notify/appendix/:appendix
 // @desc   获取附件
 // @token  false
+// @return msg
 // @access public
 router.get('/notify/appendix/:appendix', async (req, done) => {
     var appendix = req.params.appendix;

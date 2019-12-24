@@ -9,16 +9,16 @@ const mysql = key.mysql
 const redis = key.redis
 
 // 用户列表
+// 分页获取参数格式
+// var options = {
+//     identity: String,
+//     filter: {
+//         isPage: bool,
+//         page: number/null,
+//         size: number/null
+//     }
+// }
 function list(msg, done){
-    // var options = {
-    //     identity: 'teacher',
-    //     filter: {
-    //         isPage: true,
-    //         page: 1,
-    //         size: 20
-    //     }
-    // }
-
     var { identity } = msg;
     var options = ['idx:' + identity, 'get', identity + ':*'];
     var filter = JSON.parse(msg.filter);
@@ -94,59 +94,55 @@ function register(msg, done){
 
 // 未找到使用seneca实现文件上传下载的方法，另增加express接口
 // 用户导入
+// var options = {
+//     identity: String
+// }
 router.post('/user/import', (msg, done) => {
-    try{
-        var file = msg.body.file;
-        var identity = msg.body.options.identity;
-        var rule = [];
-        var arrLength = 0; //rule的长度
-        var idcardIndex = 0; //身份证号对应下标 
-        var passwordIndex = 0; //密码对应下标
+    redis.sort('idx:college', 'get', 'college:*', (err, key) => {
+        try{
+            var file = msg.body.file;
+            var identity = msg.body.options.identity;
+            var rule = [];
+            var arrLength = 0; //rule的长度
+            var idcardIndex = 0; //身份证号对应下标 
+            var passwordIndex = 0; //密码对应下标
+            var collegeClassIndex = 0; //教师对应分院，学生对应班级
 
-        var insert = '';
-        var insert_params = [];
+            var insert = '';
+            var insert_params = [];
 
-        // 数组转buffer
-        var copy = Buffer.from(file.buffer.data)
-        // 解析文件
-        var obj = xlsx.parse(copy);
-        // 数据需要在第一个表中
-        if(obj[0].data.length == 0){
-            throw new Error('格式错误，请重新检查文件内容是否符合要求！')
-        }
-        var data = obj[0].data;
-        var navigation = data[0];
-        // 教师导入
-        if(identity == 'teacher'){
-            idcardIndex = 6;
-            passwordIndex = 1;
-            arrLength = 11;
-            insert = 'insert ignore into teacher(userid, password, name, sex, nation, politicalStatus, IDcard, college, eduBackground, professionalTitle, enrol, birthday) values ';
-            rule = [ '教师账号', '密码', '姓名', '性别', '民族', '政治面貌', '身份证', '学院', '教育背景', '职称', '入职年份' ];
-        }
-        else{
-            throw new Error('添加对象身份类型错误！')
-        }
-        // 确认表格头部是否正确
-        for(var i = 0; i < arrLength; i++){
-            if(navigation[i] != rule[i]){
+            // 数组转buffer
+            var copy = Buffer.from(file.buffer.data)
+            // 解析文件
+            var obj = xlsx.parse(copy);
+            // 数据需要在第一个表中
+            if(obj[0].data.length == 0){
                 throw new Error('格式错误，请重新检查文件内容是否符合要求！')
             }
-        }
-
-        data = data.slice(1,data.length);
-        // 过滤空的数据
-        data = data.filter((value) => {    
-            return !(
-                value === undefined ||
-                value === null ||
-                (typeof value === 'object' && Object.keys(value).length === 0) ||
-                (typeof value === 'string' && value.trim().length === 0)
-            )
-        })
-        data.forEach(item => {
-            // 数据不能有空项
-            item = item.filter((value) => {    
+            var data = obj[0].data;
+            var navigation = data[0];
+            // 教师导入
+            if(identity == 'teacher'){
+                idcardIndex = 6;
+                passwordIndex = 1;
+                collegeClassIndex = 7;
+                arrLength = 11;
+                insert = 'insert ignore into teacher(userid, password, name, sex, nation, politicalStatus, IDcard, collegeid, eduBackground, professionalTitle, enrol, birthday) values ';
+                rule = [ '教师账号', '密码', '姓名', '性别', '民族', '政治面貌', '身份证', '学院', '教育背景', '职称', '入职年份' ];
+            }
+            else{
+                throw new Error('添加对象身份类型错误！')
+            }
+            // 确认表格头部是否正确
+            for(var i = 0; i < arrLength; i++){
+                if(navigation[i] != rule[i]){
+                    throw new Error('格式错误，请重新检查表头是否符合要求！')
+                }
+            }
+            
+            data = data.slice(1,data.length);
+            // 过滤空的数据
+            data = data.filter((value) => {    
                 return !(
                     value === undefined ||
                     value === null ||
@@ -154,50 +150,83 @@ router.post('/user/import', (msg, done) => {
                     (typeof value === 'string' && value.trim().length === 0)
                 )
             })
-            if(item.length != arrLength || typeof(item[idcardIndex]) != 'string'){
-                throw new Error('格式错误，请重新检查文件内容是否符合要求！')
+            // 分院获取
+            var collegeName = [];
+            var collegeId = [];
+            key.forEach((item, index) => {
+                collegeName[index] = JSON.parse(item).name;
+                collegeId[index] = JSON.parse(item).collegeid;
+            })
+            // 判断分院是否正确
+            var incollege = data.filter((value) => {
+                return collegeName.indexOf(value[collegeClassIndex]) != -1
+            })
+            if(incollege.length != data.length){
+                throw new Error("格式错误，请重新检查分院信息是否符合要求！")
             }
-            // 密码加密
-            item[passwordIndex] = bcrypt.hashSync(item[passwordIndex].toString(), 10);
-            // 生日生成
-            var year = item[idcardIndex].slice(6,10);
-            var month = item[idcardIndex].slice(10,12);
-            var day = item[idcardIndex].slice(12,14);
-            item.push(year + '-' + month + '-' + day);
-            // 生日字段后期加入，所以插入的字段比arrLength多1
-            var str = '(';
-            for(var i = 0; i < arrLength + 1; i++){
-                if(i == 0){
-                    str += '?';
+            data.forEach((item) => {
+                // 数据不能有空项
+                item = item.filter((value) => {    
+                    return !(
+                        value === undefined ||
+                        value === null ||
+                        (typeof value === 'object' && Object.keys(value).length === 0) ||
+                        (typeof value === 'string' && value.trim().length === 0)
+                    )
+                })
+                if(item.length != arrLength || typeof(item[idcardIndex]) != 'string'){
+                    throw new Error('格式错误，请重新检查文件内容是否符合要求！')
+                }
+                // 密码加密
+                item[passwordIndex] = bcrypt.hashSync(item[passwordIndex].toString(), 10);
+                // 分院编号
+                var index = collegeName.indexOf(item[collegeClassIndex]);
+                item[collegeClassIndex] = collegeId[index];
+                // 生日生成
+                var year = item[idcardIndex].slice(6,10);
+                var month = item[idcardIndex].slice(10,12);
+                var day = item[idcardIndex].slice(12,14);
+                item.push(year + '-' + month + '-' + day);
+                // 生日字段后期加入，所以插入的字段比arrLength多1
+                var str = '(';
+                for(var i = 0; i < arrLength + 1; i++){
+                    if(i == 0){
+                        str += '?';
+                    }
+                    else{
+                        str += ',?';
+                    }
+                }
+                str += '),'
+                insert += str;
+                insert_params = insert_params.concat(item);
+            })
+
+            insert = insert.slice(0, insert.length - 1)
+            mysql.query(insert, insert_params, (err, res) => {
+                if(err){
+                    logger.error('(user-import):' + err.message);
+                    throw new Error('用户导入失败！');
                 }
                 else{
-                    str += ',?';
+                    logger.info('(user-import):用户导入成功');
+                    done.send({msg: '用户导入成功！'})
                 }
-            }
-            str += '),'
-            insert += str;
-            insert_params = insert_params.concat(item);
-        })
-
-        insert = insert.slice(0, insert.length - 1)
-        mysql.query(insert, insert_params, (err, res) => {
-            if(err){
-                logger.error('(user-import):' + err.message);
-                throw new Error('用户导入失败！');
-            }
-            else{
-                logger.info('(user-import):用户导入成功');
-                done.send({msg: '用户导入成功！'})
-            }
-        })
-    }
-    catch(err){
-        logger.error('(user-import):' + err.message);
-        done.send({status: 500, msg: err.message})
-    }
+            })
+        }
+        catch(err){
+            logger.error('(user-import):' + err.message);
+            done.send({status: 500, msg: err.message})
+        }
+    })
 })
 
 // 指定用户信息
+// var options = {
+//     userid: String,
+//     identity: String,
+//     askerid: String
+// }
 function detail(msg, done){
     var { userid, identity, askerid } = msg;
     var redisKey = identity + ':' + userid;
@@ -227,6 +256,13 @@ function detail(msg, done){
 }
 
 // 用户登陆
+// var options = {
+//     userid: String,
+//     password: String,
+//     identity: String,
+//     identifyCode: String,
+//     currentCode: String
+// }
 function login(msg, done){
     var { userid, password, identity, identifyCode, currentCode } = msg;
     
@@ -261,6 +297,18 @@ function login(msg, done){
 }
 
 // 修改指定用户信息
+// var options = {
+//     askerid: String,
+//     userid: String,
+//     identity: String,
+//     phone: String,
+//     email: String,
+//     address: String,
+//     qq: String,
+//     personalHonor: String/null,
+//     teachingSituation: String/null,
+//     scientificSituation: String/null
+// }
 function change(msg, done){
     // 教师、学生共有信息
     var { askerid, userid, identity, phone, email, address, qq } = msg;
@@ -295,6 +343,13 @@ function change(msg, done){
 }
 
 // 密码修改
+// var options = {
+//     askerid: String,
+//     userid: String,
+//     identity: String,
+//     oldPassword: String,
+//     newPassword: String
+// }
 function password(msg, done){
     var { askerid, userid, identity, oldPassword, newPassword } = msg;
 

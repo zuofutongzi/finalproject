@@ -33,10 +33,18 @@ function list(msg, done){
 }
 
 // 添加通知
+// var options = {
+//     title: String, 
+//     content: String, 
+//     appendix: String, 
+//     top: bool, 
+//     important: bool, 
+//     time: String
+// }
 function add(msg, done){
     var { title, content, appendix, top, important, time } = msg;
     var insert = 'insert into notify(title,content,appendix,top,important,time) values(?,?,?,?,?,?)';
-    var insert_params = [title, content, appendix, top, important, time];
+    var insert_params = [title, content, appendix, top.toString(), important.toString(), time];
     mysql.query(insert, insert_params, (err, res) => {
         if(err){
             logger.error('(notify-add):' + err.message);
@@ -50,10 +58,19 @@ function add(msg, done){
 }
 
 // 修改通知
+// var options = {
+//     notifyid: Number, 
+//     title: String, 
+//     content: String, 
+//     appendix: String, 
+//     top: bool, 
+//     important: bool, 
+//     time: String
+// }
 function edit(msg, done){
     var { notifyid, title, content, appendix, top, important, time } = msg;
     var insert = 'update notify set title = ?, content = ?, appendix = ?, top = ?, important = ?, time = ? where notifyid = ?';
-    var insert_params = [title, content, appendix, top, important, time, notifyid];
+    var insert_params = [title, content, appendix, top.toString(), important.toString(), time, notifyid];
     mysql.query(insert, insert_params, (err, res) => {
         if(err){
             logger.error('(notify-edit):' + err.message);
@@ -67,6 +84,9 @@ function edit(msg, done){
 }
 
 //删除通知
+// var options = {
+//     notifyid: Array
+// }
 function mydelete(msg, done){
     var { notifyid } = msg;
     var sql = 'delete from notify where notifyid in (';

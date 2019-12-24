@@ -2,3 +2,13 @@
 2019-12-21 19:36:13 [error]: (user-import):格式错误，请重新检查文件内容是否符合要求！
 2019-12-21 19:36:30 [error]: (user-import):格式错误，请重新检查文件内容是否符合要求！
 2019-12-22 13:52:37 [error]: (user-import):ER_DUP_ENTRY: Duplicate entry '8165416' for key 'PRIMARY'
+2019-12-24 18:41:04 [error]: (user-import):格式错误，请重新检查分院信息是否符合要求！
+2019-12-24 18:42:05 [error]: (user-import):格式错误，请重新检查分院信息是否符合要求！
+2019-12-24 18:42:16 [error]: (user-import):格式错误，请重新检查分院信息是否符合要求！
+2019-12-24 18:42:51 [error]: (user-import):格式错误，请重新检查分院信息是否符合要求！
+2019-12-24 19:43:57 [error]: (user-import):redis.sort(...).then is not a function
+2019-12-24 20:04:25 [error]: (user-import):key.forEach is not a function
+2019-12-24 21:03:45 [error]: (user-import):redisSort(...) is not a function
+2019-12-24 21:07:59 [error]: (user-import):redis.sortAsync is not a function
+2019-12-24 21:09:30 [error]: (user-import):格式错误，请重新检查分院信息是否符合要求！
+2019-12-24 21:14:39 [error]: (user-import):格式错误，请重新检查分院信息是否符合要求！

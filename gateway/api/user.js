@@ -11,17 +11,17 @@ const upload = multer()
 // @route  GET /api/user
 // @desc   获取用户信息
 // @token  true
-// @return userdetail
+// @return userList
 // @access manager,teacher
+// @params {identity: String, filter: Object}
 router.get('/user', passport.authenticate('jwt', {session: false}), (req, done) => {
     var limits = ['manager', 'teacher'];
     if(limits.indexOf(req.user.identity) == -1){
         done.status(500).send("没有权限！")
     }
     else{
-        // req.query请求对象的信息 req.user请求者的信息
-        var options = req.query;
-        userSeneca.act('target:server-user,module:user,if:list', options,
+        // req.query请求对象的信息 req.user是token解析结果
+        userSeneca.act('target:server-user,module:user,if:list', req.query,
         (err, res) => {
             if(err){
                 done.status(500).send(err.data.payload.details.message)
@@ -36,10 +36,11 @@ router.get('/user', passport.authenticate('jwt', {session: false}), (req, done) 
 // @route  POST /api/user
 // @desc   用户注册
 // @token  false
+// @return msg
 // @access public
+// @params 
 router.post('/user', (req, done) => {
-    var options = JSON.parse(JSON.stringify(req.body));
-    userSeneca.act('target:server-user,module:user,if:register', options,
+    userSeneca.act('target:server-user,module:user,if:register', req.body,
     (err, res) => {
         if(err){
             done.status(500).send(err.data.payload.details.message)
@@ -53,10 +54,12 @@ router.post('/user', (req, done) => {
 // @route  POST /api/user/import
 // @desc   用户导入
 // @token  false
+// @return msg
 // @access public
+// @params {identity: String}
 router.post('/user/import', upload.single('file'), (req, done) => {
     var file = req.file;
-    var options = JSON.parse(JSON.stringify(req.body));
+    var options = req.body;
     var uri = key.userServerRequest + '/user/import';
     request.post({
         url: uri,
@@ -77,10 +80,10 @@ router.post('/user/import', upload.single('file'), (req, done) => {
 // @route  GET /api/user/:id
 // @desc   获取指定用户信息
 // @token  true
-// @return userdetail
+// @return userDetail
 // @access public
+// @params {userid: String, identity: String}
 router.get('/user/:id', passport.authenticate('jwt', {session: false}), (req, done) => {
-    // req.query请求对象的信息 req.user请求者的信息
     var options = req.query;
     options.askerid = req.user.userid;
     userSeneca.act('target:server-user,module:user,if:detail', options,
@@ -97,10 +100,12 @@ router.get('/user/:id', passport.authenticate('jwt', {session: false}), (req, do
 // @route  POST /api/user/:id
 // @desc   用户登陆
 // @token  false
-// @return token
+// @return token,msg
 // @access public
+// @params {userid: String, password: String, identity: String, identifyCode: String}
 router.post('/user/:id', (req, done) => {
-    var options = JSON.parse(JSON.stringify(req.body));
+    var options = req.body;
+    // 将存在session中的验证码结果和参数一起传给微服务
     options.currentCode = req.session.identifyCode;
     userSeneca.act('target:server-user,module:user,if:login', options,
     (err, res) => {
@@ -133,10 +138,14 @@ router.post('/user/:id', (req, done) => {
 // @route  PUT /api/user/:id
 // @desc   修改指定用户信息
 // @token  true
-// @return userdetail
+// @return msg
 // @access public
+// @params {
+//     userid: String, identity: String, 
+//     phone: String, email: String, address: String, qq: String,
+//     personalHonor: String/null, teachingSituation: String/null, scientificSituation: String/null}
 router.put('/user/:id', passport.authenticate('jwt', {session: false}), (req, done) => {
-    var options = JSON.parse(JSON.stringify(req.body));
+    var options = req.body;
     options.askerid = req.user.userid;
     userSeneca.act('target:server-user,module:user,if:change', options,
     (err, res) => {
@@ -152,9 +161,11 @@ router.put('/user/:id', passport.authenticate('jwt', {session: false}), (req, do
 // @route  PUT /api/user/:id/password
 // @desc   指定用户密码修改
 // @token  true
+// @return msg
 // @access public
+// @params {userid: String, identity: String, oldPassword: String, newPassword: String}
 router.put('/user/:id/password', passport.authenticate('jwt', {session: false}), (req, done) => {
-    var options = JSON.parse(JSON.stringify(req.body));
+    var options = req.body;
     options.askerid = req.user.userid;
     userSeneca.act('target:server-user,module:user,if:password', options,
     (err, res) => {

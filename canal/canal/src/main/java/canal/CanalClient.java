@@ -66,6 +66,7 @@ public class CanalClient {
                     redisInsert(entry.getHeader().getTableName(),rowData.getAfterColumnsList());
                 } else {
                     System.out.println("-------> before");
+                    redisUpdatePre(entry.getHeader().getTableName(),rowData.getBeforeColumnsList());
                     printColumn(rowData.getBeforeColumnsList());
                     System.out.println("-------> after");
                     redisUpdate(entry.getHeader().getTableName(),rowData.getAfterColumnsList());
@@ -82,70 +83,160 @@ public class CanalClient {
 
     private static void redisInsert(String table,List<Column> columns) {
         JSONObject json = new JSONObject();
+        // 学生
         String enrol = null;
         String myclass = null;
         String key = null;
+        // 教师
+        String college = null;
+        
         for (Column column : columns) {
             json.put(column.getName(), column.getValue());
             if (column.getIsKey()) {
-            	RedisUtil.sadd("idx:" + table, column.getValue());
             	key = column.getValue();
             }
             if (table.equals("student")) {
             	if (column.getName().equals("enrol")) {
             		enrol = column.getValue();
             	}
-            	else if (column.getName().equals("class")) {
+            	else if (column.getName().equals("classid")) {
             		myclass = column.getValue();
+            	}
+            }
+            else if (table.equals("teacher")) {
+            	if (column.getName().equals("collegeid")) {
+            		college = column.getValue();
             	}
             }
         }
         if (columns.size() > 0) {
             RedisUtil.stringSet(table + ":" + columns.get(0).getValue(), json.toJSONString());
-            if(table.equals("student")) {
-            	RedisUtil.sadd("idx:student:enrol", enrol);
+            RedisUtil.sadd("idx:" + table, key);
+            if (table.equals("student")) {
             	RedisUtil.sadd("idx:student:enrol:" + enrol, key);
             	RedisUtil.sadd("idx:student:class:" + myclass, key);
+            }
+            else if (table.equals("teacher")) {
+            	RedisUtil.sadd("idx:teacher:college:" + college, key);
+            }
+        }
+    }
+    
+    private static void redisUpdatePre(String table,List<Column> columns) {
+    	String key = null;
+    	// 学生
+    	String enrol = null;
+    	String myclass = null;
+    	// 教师
+    	String college = null;
+    	
+    	for (Column column : columns) {
+    		if (column.getIsKey()) {
+            	key = column.getValue();
+            }
+            if (table.equals("student")) {
+            	if (column.getName().equals("enrol")) {
+            		enrol = column.getValue();
+            	}
+            	else if (column.getName().equals("classid")) {
+            		myclass = column.getValue();
+            	}
+            }
+            else if (table.equals("teacher")) {
+            	if (column.getName().equals("collegeid")) {
+            		college = column.getValue();
+            	}
+            }
+    	}
+    	if (columns.size() > 0) {
+            if(table.equals("student")) {
+            	RedisUtil.srem("idx:student:enrol:" + enrol, key);
+            	RedisUtil.srem("idx:student:class:" + myclass, key);
+            }
+            else if (table.equals("teacher")) {
+            	RedisUtil.srem("idx:teacher:college:" + college, key);
             }
         }
     }
 
     private static void redisUpdate(String table,List<Column> columns) {
         JSONObject json = new JSONObject();
-        for (Column column : columns) {
-            json.put(column.getName(), column.getValue());
-        }
-        if (columns.size() > 0) {
-            RedisUtil.stringSet(table + ":" + columns.get(0).getValue(), json.toJSONString());
-        }
-    }
-
-    private static void redisDelete(String table,List<Column> columns) {
-        JSONObject json = new JSONObject();
-        String enrol = null;
-        String myclass = null;
+        
         String key = null;
+    	// 学生
+    	String enrol = null;
+    	String myclass = null;
+    	// 教师
+    	String college = null;
+        
         for (Column column : columns) {
             json.put(column.getName(), column.getValue());
             if (column.getIsKey()) {
-            	RedisUtil.srem("idx:" + table, column.getValue());
             	key = column.getValue();
             }
             if (table.equals("student")) {
             	if (column.getName().equals("enrol")) {
             		enrol = column.getValue();
             	}
-            	else if (column.getName().equals("class")) {
+            	else if (column.getName().equals("classid")) {
             		myclass = column.getValue();
+            	}
+            }
+            else if (table.equals("teacher")) {
+            	if (column.getName().equals("collegeid")) {
+            		college = column.getValue();
+            	}
+            }
+        }
+        if (columns.size() > 0) {
+            RedisUtil.stringSet(table + ":" + columns.get(0).getValue(), json.toJSONString());
+            if (table.equals("student")) {
+            	RedisUtil.sadd("idx:student:enrol:" + enrol, key);
+            	RedisUtil.sadd("idx:student:class:" + myclass, key);
+            }
+            else if (table.equals("teacher")) {
+            	RedisUtil.sadd("idx:teacher:college:" + college, key);
+            }
+        }
+    }
+
+    private static void redisDelete(String table,List<Column> columns) {
+        JSONObject json = new JSONObject();
+        // 学生
+        String enrol = null;
+        String myclass = null;
+        String key = null;
+        // 教师
+        String college = null;
+        
+        for (Column column : columns) {
+            json.put(column.getName(), column.getValue());
+            if (column.getIsKey()) {
+            	key = column.getValue();
+            }
+            if (table.equals("student")) {
+            	if (column.getName().equals("enrol")) {
+            		enrol = column.getValue();
+            	}
+            	else if (column.getName().equals("classid")) {
+            		myclass = column.getValue();
+            	}
+            }
+            else if (table.equals("teacher")) {
+            	if (column.getName().equals("collegeid")) {
+            		college = column.getValue();
             	}
             }
         }
         if (columns.size() > 0) {
             RedisUtil.delKey(table + ":" + columns.get(0).getValue());
+            RedisUtil.srem("idx:" + table, key);
             if(table.equals("student")) {
-            	RedisUtil.srem("idx:student:enrol", enrol);
             	RedisUtil.srem("idx:student:enrol:" + enrol, key);
             	RedisUtil.srem("idx:student:class:" + myclass, key);
+            }
+            else if (table.equals("teacher")) {
+            	RedisUtil.srem("idx:teacher:college:" + college, key);
             }
         }
     }

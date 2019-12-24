@@ -53,11 +53,11 @@
 			<el-row class="notify">
 				<el-col :xs='{span: 24}' :sm='{span: 16, offset: 4}'>
 					<el-form :model="notify" ref="notifyForm" class="notifyForm">
-						<el-divider content-position="left"><span>* </span>通知标题</el-divider>
+						<el-divider content-position="left"><span style="color: red">* </span>通知标题</el-divider>
 						<el-form-item prop="title">
 							<el-input v-model="notify.title" placeholder="标题不超过30个字符"></el-input>
 						</el-form-item>
-						<el-divider content-position="left"><span>* </span>通知内容</el-divider>
+						<el-divider content-position="left"><span style="color: red">* </span>通知内容</el-divider>
 						<textarea name="editor" id="editor"></textarea>
 						<el-divider content-position="left">附件</el-divider>
 						<el-upload
@@ -78,8 +78,8 @@
 						</el-upload>
 						<el-divider content-position="left">通知性质</el-divider>
 						<el-form-item prop="type">
-							<el-checkbox v-model="notify.important" true-label="true" false-label="false">重要公告</el-checkbox>
-							<el-checkbox v-model="notify.top" true-label="true" false-label="false">置顶公告</el-checkbox>
+							<el-checkbox v-model="notify.important">重要公告</el-checkbox>
+							<el-checkbox v-model="notify.top">置顶公告</el-checkbox>
 						</el-form-item>
 						<el-divider content-position="left"></el-divider>
 						<el-form-item>
@@ -109,8 +109,8 @@ export default {
 			newAppendix: false,
             notify: {
 				notifyid: '',
-                important: 'false',
-                top: 'false',
+                important: false,
+                top: false,
                 appendix: '',
                 title: '',
                 content: '',
@@ -159,7 +159,7 @@ export default {
 			}
         },
         tableRowClassName({row}){
-			if (row.important == 'true') {
+			if (row.important == true) {
 				return 'important-row';
 			}
 			return '';
@@ -220,7 +220,7 @@ export default {
                                 type: "success"
                             });
 							
-							if(this.notify.top == 'true'){
+							if(this.notify.top){
 								this.notify.title = '[置顶]' + this.notify.title;
 							}
 							this.notifyData = this.notifyData.map(item => {
@@ -237,8 +237,8 @@ export default {
 
                             this.notify = {
 								notifyid: '',
-                                important: 'false',
-                                top: 'false',
+                                important: false,
+                                top: false,
                                 appendix: '',
                                 title: '',
                                 content: '',
@@ -305,7 +305,7 @@ export default {
 			// 非置顶公告按时间排序
 			array.sort((a, b) => {
 				if(a.top == b.top){
-					if(a.top == 'true'){
+					if(a.top == true){
 						if(a.important == b.important){
 							if(new Date(a.time) == new Date(b.time)){
 								return 0
@@ -352,11 +352,28 @@ export default {
 			.get('/api/notify')
 			.then(res => {
 				if(res.status == 200){
-					this.notifyData = res.data;
-					this.notifyData.forEach(item => {
+					// this.notifyData = res.data;
+					// this.notifyData.forEach(item => {
+					// 	if(item.top == 'true'){
+					// 		item.title = '[置顶]' + item.title;
+					// 	}
+					// })
+					// this.notifyData = this.mySort(this.notifyData);
+					res.data.forEach(item => {
 						if(item.top == 'true'){
 							item.title = '[置顶]' + item.title;
+							item.top = true;
 						}
+						else{
+							item.top = false;
+						}
+						if(item.important == 'true'){
+							item.important = true;
+						}
+						else{
+							item.important = false;
+						}
+						this.notifyData.push(item);
 					})
 					this.notifyData = this.mySort(this.notifyData);
 				}
@@ -370,9 +387,6 @@ export default {
         font-weight: bolder;
         left: 0 !important;
         padding-left: 0 !important;
-    }
-    .notifyEdit span{
-        color: red;
     }
 	.notifyEdit .el-table .important-row {
 	    background: #fde2e2 !important;
