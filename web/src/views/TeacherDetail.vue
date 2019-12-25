@@ -29,7 +29,7 @@
                     <el-form-item label="学院">
                         {{ userDetail.college }}
                     </el-form-item>
-                    <el-form-item label="学历">
+                    <el-form-item label="教育背景">
                         {{ userDetail.eduBackground }}
                     </el-form-item>
                     <el-form-item label="职称">

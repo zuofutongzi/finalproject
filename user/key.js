@@ -23,5 +23,6 @@ redisClient.on('error', err => {
 module.exports = {
     mysql: mysqlConnection,
     redis: redisClient,
-    appendixDir: './附件/'
+    appendixDir: './附件/',
+    saltRounds: 10
 }

@@ -65,6 +65,7 @@
 							ref="upload"
 							action="/api/notify/appendix"
 							accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.zip,.rar"
+							:headers="headers"
 							:on-error="handleError"
 							:on-success="handleSuccess"
 							:on-remove="handleRemove"
@@ -101,6 +102,9 @@ export default {
     props: {},
     data() {
         return {
+			headers: {
+                Authorization: localStorage.eleToken
+            },
             notifyData: [],
             dialogVisible: false,
 			multipleSelection: [],

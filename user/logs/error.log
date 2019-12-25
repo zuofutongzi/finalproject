@@ -12,3 +12,5 @@
 2019-12-24 21:07:59 [error]: (user-import):redis.sortAsync is not a function
 2019-12-24 21:09:30 [error]: (user-import):格式错误，请重新检查分院信息是否符合要求！
 2019-12-24 21:14:39 [error]: (user-import):格式错误，请重新检查分院信息是否符合要求！
+2019-12-25 13:42:32 [error]: (user-import):Cannot destructure property `collegeName` of 'undefined' or 'null'.
+2019-12-25 13:46:10 [error]: (user-import):格式错误，请重新检查分院信息是否符合要求！

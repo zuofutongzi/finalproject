@@ -15,6 +15,7 @@
                         ref="upload"
                         action="/api/notify/appendix"
                         accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.zip,.rar"
+                        :headers="headers"
                         :on-error="handleError"
                         :on-success="handleSuccess"
                         :on-remove="handleRemove"
@@ -47,6 +48,9 @@ export default {
     data() {
         return {
             mditor: null,
+            headers: {
+                Authorization: localStorage.eleToken
+            },
             notify: {
                 important: false,
                 top: false,

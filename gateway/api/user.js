@@ -35,46 +35,58 @@ router.get('/user', passport.authenticate('jwt', {session: false}), (req, done) 
 
 // @route  POST /api/user
 // @desc   用户注册
-// @token  false
+// @token  true
 // @return msg
-// @access public
-// @params 
-router.post('/user', (req, done) => {
-    userSeneca.act('target:server-user,module:user,if:register', req.body,
-    (err, res) => {
-        if(err){
-            done.status(500).send(err.data.payload.details.message)
-        }
-        else{
-            done.send(res)
-        }
-    })
+// @access manager
+// @params { userid: String, password: String, name: String, sex: String, nation: String, 
+//           politicalStatus: String, IDcard: String, collegeid: String/null, eduBackground: String/null, 
+//           professionalTitle: String/null, enrol: String, identity: String }
+router.post('/user', passport.authenticate('jwt', {session: false}), (req, done) => {
+    if(req.user.identity != 'manager'){
+        done.status(500).send('没有权限！')
+    }
+    else{
+        userSeneca.act('target:server-user,module:user,if:register', req.body,
+        (err, res) => {
+            if(err){
+                done.status(500).send(err.data.payload.details.message)
+            }
+            else{
+                done.send(res)
+            }
+        })
+    }
 })
 
 // @route  POST /api/user/import
 // @desc   用户导入
-// @token  false
+// @token  true
 // @return msg
-// @access public
+// @access manager
 // @params {identity: String}
-router.post('/user/import', upload.single('file'), (req, done) => {
-    var file = req.file;
-    var options = req.body;
-    var uri = key.userServerRequest + '/user/import';
-    request.post({
-        url: uri,
-        json: {file: file, options: options},
-        gzip: true
-    }).then((response) => {
-        if(response.status == 500){
-            done.status(500).send(response.msg)
-        }
-        else{
-            done.send(response)
-        }
-    }).catch((err) => {
-        done.status(500).send('文件上传失败！')
-    })
+router.post('/user/import', passport.authenticate('jwt', {session: false}), upload.single('file'), (req, done) => {
+    if(req.user.identity != 'manager'){
+        done.status(500).send('没有权限！')
+    }
+    else{
+        var file = req.file;
+        var options = req.body;
+        var uri = key.userServerRequest + '/user/import';
+        request.post({
+            url: uri,
+            json: {file: file, options: options},
+            gzip: true
+        }).then((response) => {
+            if(response.status == 500){
+                done.status(500).send(response.msg)
+            }
+            else{
+                done.send(response)
+            }
+        }).catch((err) => {
+            done.status(500).send('文件上传失败！')
+        })
+    }
 })
 
 // @route  GET /api/user/:id

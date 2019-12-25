@@ -96,10 +96,10 @@ router.delete('/notify', passport.authenticate('jwt', {session: false}), (req, d
 
 // @route  POST /api/notify/appendix
 // @desc   附件上传
-// @token  false
+// @token  true
 // @return msg
 // @access public
-router.post('/notify/appendix', upload.single('file'), (req, done) => {
+router.post('/notify/appendix', passport.authenticate('jwt', {session: false}), upload.single('file'), (req, done) => {
     var file = req.file;
     var uri = key.userServerRequest + '/notify/appendix';
     request.post({

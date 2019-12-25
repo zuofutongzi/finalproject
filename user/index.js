@@ -10,6 +10,7 @@ app.use(bodyParser.json({limit: '20mb'}));
 const user = require('./api/user')
 const identify = require('./api/identify')
 const notify = require('./api/notify')
+const school = require('./api/school')
 
 // user
 seneca.add('target:server-user,module:user,if:list', user.list)
@@ -29,6 +30,9 @@ seneca.add('target:server-user,module:notify,if:add', notify.add)
 seneca.add('target:server-user,module:notify,if:edit', notify.edit)
 seneca.add('target:server-user,module:notify,if:delete', notify.delete)
 app.use('/', notify.router)
+
+// school
+seneca.add('target:server-user,module:school,if:collegeList', school.collegeList)
 
 app.listen(8002)
 seneca.listen(8001)

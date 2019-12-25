@@ -25,11 +25,13 @@ require('./config/passport')(passport);
 const identify = require('./api/identify')
 const user = require('./api/user')
 const notify = require('./api/notify')
+const school = require('./api/school')
 
 // 使用api
 app.use('/api',identify)
 app.use('/api',user)
 app.use('/api',notify)
+app.use('/api',school)
 
 const port = process.env.PORT || 5000;
 app.listen(port,() => {
