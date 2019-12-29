@@ -1,8 +1,26 @@
 <template>
     <div class="teacherManager">
-        <el-row>
+        <el-row class="teacherTop">
             <el-button type="primary" plain @click="teacherAdd()">教师添加</el-button>
             <el-button type="success" plain @click="teacherImport()">教师导入</el-button>
+            <el-select class="hidden-xs-only" v-model="filterCollege" @change="handleSelectChange" clearable placeholder="按分院筛选">
+                <el-option
+                    v-for="item in college"
+                    :key="item.collegeid"
+                    :label="item.name"
+                    :value="item.collegeid">
+                </el-option>
+            </el-select>
+        </el-row>
+        <el-row class="teacherXsTop">
+            <el-select class="hidden-sm-and-up" v-model="filterCollege" @change="handleSelectChange" clearable placeholder="按分院筛选">
+                <el-option
+                    v-for="item in college"
+                    :key="item.collegeid"
+                    :label="item.name"
+                    :value="item.collegeid">
+                </el-option>
+            </el-select>
         </el-row>
         <el-table
             :data="userList"
@@ -32,6 +50,13 @@
                 prop="professionalTitle">
             </el-table-column>
         </el-table>
+        <el-pagination
+            layout="prev, pager, next"
+            @current-change="handleCurrentChange"
+            :current-page.sync="currentPage"
+            :page-size="listPageSize"
+            :total="listTotal">
+        </el-pagination>
 
         <!-- 教师添加 -->
         <el-dialog
@@ -144,10 +169,13 @@
             :fullscreen="true"
 			title="教师信息"
 			center>
-			<el-row class="teacherImport">
+			<el-row class="teacherDetail">
 				<el-col :xs='{span: 24}' :sm='{span: 16, offset: 4}'>
                     <el-collapse v-model="collapse" accordion>
-                        <el-collapse-item title="个人信息" name="1">
+                        <el-collapse-item name="1">
+                            <template slot="title">
+                                <div class="marker blue"></div>个人信息
+                            </template>
                             <el-form :model="userDetail" label-position="left" label-width="100px" class="userDetailForm">
                                 <el-form-item label="教师编号">
                                     {{ userDetail.userid }}
@@ -166,16 +194,31 @@
                                 </el-form-item>
                             </el-form>
                         </el-collapse-item>
-                        <el-collapse-item title="专业信息" name="2">
+                        <el-collapse-item name="2">
+                            <template slot="title">
+                                <div class="marker green"></div>专业信息
+                            </template>
                             <el-form :model="userDetail" label-position="left" label-width="100px" class="userDetailForm">
                                 <el-form-item label="学院">
                                     {{ userDetail.college }}
                                 </el-form-item>
                                 <el-form-item label="学历">
-                                    {{ userDetail.eduBackground }}
+                                    <span v-show="eduBackgroundShow">
+                                        {{ userDetail.eduBackground }} 
+                                    </span>
+                                    <el-input v-show="!eduBackgroundShow" v-model="userDetail.eduBackground"></el-input>
+                                    <el-button type="text" @click="handleEdit('edu')">
+                                        <i :class="{'el-icon-edit': eduBackgroundShow, 'el-icon-check': !eduBackgroundShow}"></i>
+                                    </el-button>
                                 </el-form-item>
                                 <el-form-item label="职称">
-                                    {{ userDetail.professionalTitle }}
+                                    <span v-show="professionalTitleShow">
+                                        {{ userDetail.professionalTitle }} 
+                                    </span>
+                                    <el-input v-show="!professionalTitleShow" v-model="userDetail.professionalTitle"></el-input>
+                                    <el-button type="text" @click="handleEdit('title')">
+                                        <i :class="{'el-icon-edit': professionalTitleShow, 'el-icon-check': !professionalTitleShow}"></i>
+                                    </el-button>
                                 </el-form-item>
                                 <el-form-item label="入职时间">
                                     {{ userDetail.enrol }}
@@ -188,7 +231,10 @@
                                 </el-form-item>
                             </el-form>
                         </el-collapse-item>
-                        <el-collapse-item title="详细信息" name="3">
+                        <el-collapse-item name="3">
+                            <template slot="title">
+                                <div class="marker yellow"></div>详细信息
+                            </template>
                             <el-form :model="userDetail" label-position="left" label-width="100px" class="userDetailForm">
                                 <el-form-item label="个人荣誉">
                                     {{ userDetail.personalHonor }}
@@ -201,7 +247,10 @@
                                 </el-form-item>
                             </el-form>
                         </el-collapse-item>
-                        <el-collapse-item title="联系方式" name="4">
+                        <el-collapse-item name="4">
+                            <template slot="title">
+                                <div class="marker red"></div>联系方式
+                            </template>
                             <el-form :model="userDetail" label-position="left" label-width="100px" class="userDetailForm">
                                 <el-form-item label="电话">
                                     {{ userDetail.phone }}
@@ -244,21 +293,14 @@ export default {
             headers: {
                 Authorization: localStorage.eleToken
             },
-            items: [
-                { type: '', label: '计算机与计算科学学院' },
-                { type: 'success', label: '信息与电气工程学院' },
-                { type: 'info', label: '工程学院' },
-                { type: 'danger', label: '医学院' },
-                { type: 'warning', label: '外国语学院' },
-                { type: '', label: '商学院' },
-                { type: 'success', label: '传媒与人文学院' },
-                { type: 'info', label: '法学院' },
-                { type: 'danger', label: '创意与艺术设计学院' },
-                { type: 'warning', label: '新西兰UW学院' }
-            ],
+            items: [],
             college: [],
+            filterCollege: '',
             user: {},
             userList: [],
+            currentPage: 1,
+            listTotal: 0,
+            listPageSize: 20,
             userDetail: {},
             userAdd: {
                 sex: '男'
@@ -270,6 +312,8 @@ export default {
             detailDialogVisible: false,
             addDialogVisible: false,
             addDialogFullScreen: false,
+            eduBackgroundShow: true,
+            professionalTitleShow: true,
             collapse: '1',
             loading: null,
             addRules: {
@@ -382,6 +426,58 @@ export default {
             }
             return '';
         },
+        handleCurrentChange(val) {
+            this.currentPage = val;
+            var options = {
+                identity: 'teacher',
+                filter: {
+                    isFirst: false,
+                    isPage: true,
+                    page: val,
+                    size: this.listPageSize
+                }
+            }
+            this.$axios
+                .get('/api/user', {params: options})
+                .then(res => {
+                    if(res.status == 200){
+                        this.userList = res.data.data;
+                    }
+                })
+        },
+        handleSelectChange(){
+            var options = {
+                identity: 'teacher',
+                filter: {
+                    isFirst: true,
+                    isPage: true,
+                    page: 1,
+                    size: this.listPageSize,
+                    college: this.filterCollege
+                }
+            }
+            this.$axios
+                .get('/api/user', {params: options})
+                .then(res => {
+                    if(res.status == 200){
+                        this.userList = res.data.data;
+                        this.listTotal = res.data.count;
+                        this.currentPage = 1;
+                    }
+                })
+        },
+        handleEdit(button){
+            switch(button){
+                case 'edu':
+                    this.eduBackgroundShow = !this.eduBackgroundShow;
+                    break;
+                case 'title':
+                    this.professionalTitleShow = !this.professionalTitleShow;
+                    break; 
+            }
+            console.log(this.eduBackgroundShow)
+            console.log(this.professionalTitleShow)
+        },
         teacherAdd(){
             // 教师添加dialog弹出
             this.addDialogVisible = true;
@@ -390,7 +486,20 @@ export default {
             // 教师导入dialog弹出
             this.importDialogVisible = true;
         },
+        handleRowClick(row){
+			// 教师详情dialog弹出
+            this.detailDialogVisible = true;
+            this.userDetail = row;
+            if(this.userDetail.classTeacher == 'false'){
+                this.userDetail.classTeacher = '否';
+                this.userDetail.class = '无'
+            }
+            else{
+                this.userDetail.classTeacher = '是';
+            }
+		},
         submitAddForm(formName){
+            // 教师添加
 			this.$refs[formName].validate(valid => {
 				if(valid){
                     this.userAdd.identity = 'teacher';
@@ -438,6 +547,7 @@ export default {
 			})
 		},
         submitUpload() {
+            // 教师导入
             this.$refs.upload.submit();
             this.loading = this.$loading({
                 lock: true,
@@ -465,7 +575,10 @@ export default {
             var options = {
                 identity: 'teacher',
                 filter: {
-                    isPage: false
+                    isFirst: true,
+                    isPage: true,
+                    page: 1,
+                    size: this.listPageSize
                 }
             }
             // 后端采用redis+mysql，canal监听binlog，数据同步需要时间，所以这里停顿1秒后再读取数据，否则，数据任然未空
@@ -475,23 +588,13 @@ export default {
                     .get('/api/user', {params: options})
                     .then(res => {
                         if(res.status == 200){
-                            _this.userList = res.data;
+                            _this.userList = res.data.data;
+                            _this.listTotal = res.data.count;
+                            _this.currentPage = 1;
                         }
                     })
             },1000);
-        },
-        handleRowClick(row){
-			// 教师详情dialog弹出
-            this.detailDialogVisible = true;
-            this.userDetail = row;
-            if(this.userDetail.classTeacher == 'false'){
-                this.userDetail.classTeacher = '否';
-                this.userDetail.class = '无'
-            }
-            else{
-                this.userDetail.classTeacher = '是';
-            }
-		}
+        }
     },
     created() {},
     mounted() {
@@ -499,14 +602,19 @@ export default {
         var options = {
             identity: 'teacher',
             filter: {
-                isPage: false
+                isFirst: true,
+                isPage: true,
+                page: 1,
+                size: this.listPageSize
             }
         }
         this.$axios
             .get('/api/user', {params: options})
             .then(res => {
                 if(res.status == 200){
-                    this.userList = res.data;
+                    this.userList = res.data.data;
+                    this.listTotal = res.data.count;
+                    this.currentPage = 1;
                 }
             })
         this.$axios
@@ -514,6 +622,13 @@ export default {
             .then(res => {
                 if(res.status == 200){
                     this.college = res.data;
+                    var type = ['', 'success', 'info', 'danger', 'warning'];
+                    this.college.forEach((item, index) => {
+                        this.items.push({
+                            type: type[index%5],
+                            label: item.name
+                        })
+                    })
                 }
             })
         var width = $(window).width();
@@ -546,7 +661,7 @@ export default {
         margin-right: 10px;
         margin-bottom: 10px;
     }
-    .teacherManager .el-select{
+    .teacherManager .teacherAdd .el-select{
         width: 100%;
     }
     .teacherManager .el-date-editor.el-input, .el-date-editor.el-input__inner{
@@ -555,4 +670,36 @@ export default {
     .teacherManager .submit_btn{
 		width: 100%;
 	}
+    .teacherManager .teacherTop .el-select{
+        margin-left: 10px;
+    }
+    .teacherManager .teacherXsTop .el-select{
+        margin-top: 10px;
+        width: 100%;
+    }
+    .teacherManager .teacherDetail .marker {      
+        width: 10px;      
+        height: 10px;    
+        border-radius: 100px;
+        opacity: 0.5;
+        margin: 0 10px;
+    }
+    .teacherManager .teacherDetail .blue{
+        background-color: #409EFF;
+    }
+    .teacherManager .teacherDetail .green{
+        background-color: #67C23A;
+    }
+    .teacherManager .teacherDetail .yellow{
+        background-color: #E6A23C;
+    }
+    .teacherManager .teacherDetail .red{
+        background-color: #F56C6C;
+    }
+    .teacherManager .teacherDetail .el-input{
+        width: auto;
+    }
+    .teacherManager .teacherDetail .el-button{
+        padding: 0 10px;
+    }
 </style>

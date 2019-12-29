@@ -14,3 +14,13 @@
 2019-12-24 21:14:39 [error]: (user-import):格式错误，请重新检查分院信息是否符合要求！
 2019-12-25 13:42:32 [error]: (user-import):Cannot destructure property `collegeName` of 'undefined' or 'null'.
 2019-12-25 13:46:10 [error]: (user-import):格式错误，请重新检查分院信息是否符合要求！
+2019-12-29 14:05:25 [error]: (user-import):0181833用户已存在，请重新检查文件内容并修改！
+2019-12-29 14:06:03 [error]: (user-import):0181833用户已存在，请重新检查文件内容并修改！
+2019-12-29 16:34:19 [error]: (user-list):ERR One or more scores can't be converted into double
+2019-12-29 16:34:19 [error]: (user-list):ERR One or more scores can't be converted into double
+2019-12-29 16:34:25 [error]: (user-list):ERR One or more scores can't be converted into double
+2019-12-29 16:34:25 [error]: (user-list):ERR One or more scores can't be converted into double
+2019-12-29 16:34:58 [error]: (user-list):ERR One or more scores can't be converted into double
+2019-12-29 16:34:58 [error]: (user-list):ERR One or more scores can't be converted into double
+2019-12-29 16:35:35 [error]: (user-list):ERR One or more scores can't be converted into double
+2019-12-29 16:35:35 [error]: (user-list):ERR One or more scores can't be converted into double
