@@ -58,6 +58,29 @@ router.post('/user', passport.authenticate('jwt', {session: false}), (req, done)
     }
 })
 
+// @route  DELETE /api/user
+// @desc   用户删除
+// @token  true
+// @return msg
+// @access manager
+// @params { userid: Array, identity: String }
+router.delete('/user', passport.authenticate('jwt', {session: false}), (req, done) => {
+    if(req.user.identity != 'manager'){
+        done.status(500).send('没有权限！')
+    }
+    else{
+        userSeneca.act('target:server-user,module:user,if:delete', req.body,
+        (err, res) => {
+            if(err){
+                done.status(500).send(err.data.payload.details.message)
+            }
+            else{
+                done.send(res)
+            }
+        })
+    }
+})
+
 // @route  POST /api/user/import
 // @desc   用户导入
 // @token  true
@@ -155,10 +178,12 @@ router.post('/user/:id', (req, done) => {
 // @params {
 //     userid: String, identity: String, 
 //     phone: String, email: String, address: String, qq: String,
+//     eduBackground: String/null, professionalTitle: String/null,
 //     personalHonor: String/null, teachingSituation: String/null, scientificSituation: String/null}
 router.put('/user/:id', passport.authenticate('jwt', {session: false}), (req, done) => {
     var options = req.body;
     options.askerid = req.user.userid;
+    options.askeridentity = req.user.identity;
     userSeneca.act('target:server-user,module:user,if:change', options,
     (err, res) => {
         if(err){

@@ -24,3 +24,13 @@
 2019-12-29 16:34:58 [error]: (user-list):ERR One or more scores can't be converted into double
 2019-12-29 16:35:35 [error]: (user-list):ERR One or more scores can't be converted into double
 2019-12-29 16:35:35 [error]: (user-list):ERR One or more scores can't be converted into double
+2019-12-30 13:52:53 [error]: (user-change):禁止修改他人信息！
+2019-12-30 13:52:53 [error]: (user-change):ER_EMPTY_QUERY: Query was empty
+2019-12-30 13:55:39 [error]: (user-change):ER_EMPTY_QUERY: Query was empty
+2019-12-30 15:56:37 [error]: (user-delete):ER_NO_SUCH_TABLE: Table 'user.undefined' doesn't exist
+2019-12-30 15:57:12 [error]: (user-delete):ER_NO_SUCH_TABLE: Table 'user.undefined' doesn't exist
+2019-12-30 16:19:11 [error]: (user-import):Cannot read property 'indexOf' of undefined
+2019-12-30 16:20:31 [error]: (user-import):Cannot read property 'indexOf' of undefined
+2019-12-30 16:21:20 [error]: (user-import):Cannot read property 'indexOf' of undefined
+2019-12-30 16:21:52 [error]: (user-import):Cannot read property 'indexOf' of undefined
+2019-12-30 17:45:49 [error]: (user-import):格式错误，请重新检查文件内容是否符合要求！

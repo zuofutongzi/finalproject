@@ -15,6 +15,7 @@ const school = require('./api/school')
 // user
 seneca.add('target:server-user,module:user,if:list', user.list)
 seneca.add('target:server-user,module:user,if:register', user.register)
+seneca.add('target:server-user,module:user,if:delete', user.delete)
 seneca.add('target:server-user,module:user,if:detail', user.detail)
 seneca.add('target:server-user,module:user,if:login', user.login)
 seneca.add('target:server-user,module:user,if:change', user.change)

@@ -119,3 +119,48 @@
 2019-12-29 16:52:39 [info]: (user-register):用户添加成功
 2019-12-29 16:53:10 [info]: (user-register):用户添加成功
 2019-12-29 16:59:46 [info]: (user-register):用户添加成功
+2019-12-30 13:52:53 [error]: (user-change):禁止修改他人信息！
+2019-12-30 13:52:53 [error]: (user-change):ER_EMPTY_QUERY: Query was empty
+2019-12-30 13:55:39 [error]: (user-change):ER_EMPTY_QUERY: Query was empty
+2019-12-30 13:57:03 [info]: (user-change):用户信息修改成功
+2019-12-30 13:58:17 [info]: (user-change):用户信息修改成功
+2019-12-30 14:01:11 [info]: (user-change):用户信息修改成功
+2019-12-30 14:02:22 [info]: (user-change):用户信息修改成功
+2019-12-30 14:02:26 [info]: (user-change):用户信息修改成功
+2019-12-30 15:43:45 [info]: (user-register):用户添加成功
+2019-12-30 15:56:08 [info]: (user-register):用户添加成功
+2019-12-30 15:56:37 [error]: (user-delete):ER_NO_SUCH_TABLE: Table 'user.undefined' doesn't exist
+2019-12-30 15:57:12 [error]: (user-delete):ER_NO_SUCH_TABLE: Table 'user.undefined' doesn't exist
+2019-12-30 15:59:04 [info]: (user-delete):用户删除成功
+2019-12-30 16:00:07 [info]: (user-register):用户添加成功
+2019-12-30 16:16:18 [info]: (user-delete):用户删除成功
+2019-12-30 16:16:45 [info]: (user-delete):用户删除成功
+2019-12-30 16:19:11 [error]: (user-import):Cannot read property 'indexOf' of undefined
+2019-12-30 16:20:31 [error]: (user-import):Cannot read property 'indexOf' of undefined
+2019-12-30 16:21:20 [error]: (user-import):Cannot read property 'indexOf' of undefined
+2019-12-30 16:21:52 [error]: (user-import):Cannot read property 'indexOf' of undefined
+2019-12-30 16:25:05 [info]: (user-import):用户导入成功
+2019-12-30 16:25:34 [info]: (user-delete):用户删除成功
+2019-12-30 16:25:56 [info]: (user-delete):用户删除成功
+2019-12-30 16:27:10 [info]: (user-delete):用户删除成功
+2019-12-30 16:27:19 [info]: (user-delete):用户删除成功
+2019-12-30 16:27:41 [info]: (user-import):用户导入成功
+2019-12-30 16:28:35 [info]: (user-delete):用户删除成功
+2019-12-30 16:30:17 [info]: (user-delete):用户删除成功
+2019-12-30 16:30:42 [info]: (notify-add):通知添加成功
+2019-12-30 16:30:46 [info]: (notify-delete):通知删除成功
+2019-12-30 16:31:14 [info]: (user-delete):用户删除成功
+2019-12-30 16:32:20 [info]: (user-register):用户添加成功
+2019-12-30 16:32:44 [info]: (user-change):用户信息修改成功
+2019-12-30 16:32:51 [info]: (user-change):用户信息修改成功
+2019-12-30 16:35:40 [info]: (user-change):用户信息修改成功
+2019-12-30 16:35:47 [info]: (user-password):密码修改成功
+2019-12-30 16:36:23 [info]: (user-password):密码修改成功
+2019-12-30 17:43:11 [info]: (user-delete):用户删除成功
+2019-12-30 17:43:18 [info]: (user-import):用户导入成功
+2019-12-30 17:43:25 [info]: (user-delete):用户删除成功
+2019-12-30 17:43:42 [info]: (user-import):用户导入成功
+2019-12-30 17:44:06 [info]: (user-delete):用户删除成功
+2019-12-30 17:45:02 [info]: (user-import):用户导入成功
+2019-12-30 17:45:40 [info]: (user-delete):用户删除成功
+2019-12-30 17:45:49 [error]: (user-import):格式错误，请重新检查文件内容是否符合要求！

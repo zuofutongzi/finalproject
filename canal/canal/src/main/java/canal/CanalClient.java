@@ -83,12 +83,16 @@ public class CanalClient {
 
     private static void redisInsert(String table,List<Column> columns) {
         JSONObject json = new JSONObject();
-        // 学生
-        String enrol = null;
-        String myclass = null;
         String key = null;
+        // 学生
+        String myclass = null;
         // 教师
-        String college = null;
+        String tcollege = null;
+        // 专业
+        String mcollege = null;
+        // 班级
+        String cmajor = null;
+        String cenrol = null;
         
         for (Column column : columns) {
             json.put(column.getName(), column.getValue());
@@ -96,16 +100,26 @@ public class CanalClient {
             	key = column.getValue();
             }
             if (table.equals("student")) {
-            	if (column.getName().equals("enrol")) {
-            		enrol = column.getValue();
-            	}
-            	else if (column.getName().equals("classid")) {
+            	if (column.getName().equals("classid")) {
             		myclass = column.getValue();
             	}
             }
             else if (table.equals("teacher")) {
             	if (column.getName().equals("collegeid")) {
-            		college = column.getValue();
+            		tcollege = column.getValue();
+            	}
+            }
+            else if (table.equals("major")) {
+            	if (column.getName().equals("collegeid")) {
+            		mcollege = column.getValue();
+            	}
+            }
+            else if (table.equals("class")) {
+            	if (column.getName().equals("majorid")) {
+            		cmajor = column.getValue();
+            	}
+            	else if (column.getName().equals("enrol")) {
+            		cenrol = column.getValue();
             	}
             }
         }
@@ -113,11 +127,17 @@ public class CanalClient {
             RedisUtil.stringSet(table + ":" + columns.get(0).getValue(), json.toJSONString());
             RedisUtil.sadd("idx:" + table, key);
             if (table.equals("student")) {
-            	RedisUtil.sadd("idx:student:enrol:" + enrol, key);
             	RedisUtil.sadd("idx:student:class:" + myclass, key);
             }
             else if (table.equals("teacher")) {
-            	RedisUtil.sadd("idx:teacher:college:" + college, key);
+            	RedisUtil.sadd("idx:teacher:college:" + tcollege, key);
+            }
+            else if (table.equals("major")) {
+            	RedisUtil.sadd("idx:major:college:" + mcollege, key);
+            }
+            else if (table.equals("class")) {
+            	RedisUtil.sadd("idx:class:major:" + cmajor, key);
+            	RedisUtil.sadd("idx:class:enrol:" + cenrol, key);
             }
         }
     }
@@ -125,36 +145,56 @@ public class CanalClient {
     private static void redisUpdatePre(String table,List<Column> columns) {
     	String key = null;
     	// 学生
-    	String enrol = null;
     	String myclass = null;
     	// 教师
-    	String college = null;
+    	String tcollege = null;
+    	// 专业
+        String mcollege = null;
+        // 班级
+        String cmajor = null;
+        String cenrol = null;
     	
     	for (Column column : columns) {
     		if (column.getIsKey()) {
             	key = column.getValue();
             }
             if (table.equals("student")) {
-            	if (column.getName().equals("enrol")) {
-            		enrol = column.getValue();
-            	}
-            	else if (column.getName().equals("classid")) {
+            	if (column.getName().equals("classid")) {
             		myclass = column.getValue();
             	}
             }
             else if (table.equals("teacher")) {
             	if (column.getName().equals("collegeid")) {
-            		college = column.getValue();
+            		tcollege = column.getValue();
+            	}
+            }
+            else if (table.equals("major")) {
+            	if (column.getName().equals("collegeid")) {
+            		mcollege = column.getValue();
+            	}
+            }
+            else if (table.equals("class")) {
+            	if (column.getName().equals("majorid")) {
+            		cmajor = column.getValue();
+            	}
+            	else if (column.getName().equals("enrol")) {
+            		cenrol = column.getValue();
             	}
             }
     	}
     	if (columns.size() > 0) {
             if(table.equals("student")) {
-            	RedisUtil.srem("idx:student:enrol:" + enrol, key);
             	RedisUtil.srem("idx:student:class:" + myclass, key);
             }
             else if (table.equals("teacher")) {
-            	RedisUtil.srem("idx:teacher:college:" + college, key);
+            	RedisUtil.srem("idx:teacher:college:" + tcollege, key);
+            }
+            else if (table.equals("major")) {
+            	RedisUtil.srem("idx:major:college:" + mcollege, key);
+            }
+            else if (table.equals("class")) {
+            	RedisUtil.srem("idx:class:major:" + cmajor, key);
+            	RedisUtil.srem("idx:class:enrol:" + cenrol, key);
             }
         }
     }
@@ -164,10 +204,14 @@ public class CanalClient {
         
         String key = null;
     	// 学生
-    	String enrol = null;
     	String myclass = null;
     	// 教师
-    	String college = null;
+    	String tcollege = null;
+    	// 专业
+        String mcollege = null;
+        // 班级
+        String cmajor = null;
+        String cenrol = null;
         
         for (Column column : columns) {
             json.put(column.getName(), column.getValue());
@@ -175,39 +219,59 @@ public class CanalClient {
             	key = column.getValue();
             }
             if (table.equals("student")) {
-            	if (column.getName().equals("enrol")) {
-            		enrol = column.getValue();
-            	}
-            	else if (column.getName().equals("classid")) {
+            	if (column.getName().equals("classid")) {
             		myclass = column.getValue();
             	}
             }
             else if (table.equals("teacher")) {
             	if (column.getName().equals("collegeid")) {
-            		college = column.getValue();
+            		tcollege = column.getValue();
+            	}
+            }
+            else if (table.equals("major")) {
+            	if (column.getName().equals("collegeid")) {
+            		mcollege = column.getValue();
+            	}
+            }
+            else if (table.equals("class")) {
+            	if (column.getName().equals("majorid")) {
+            		cmajor = column.getValue();
+            	}
+            	else if (column.getName().equals("enrol")) {
+            		cenrol = column.getValue();
             	}
             }
         }
         if (columns.size() > 0) {
             RedisUtil.stringSet(table + ":" + columns.get(0).getValue(), json.toJSONString());
             if (table.equals("student")) {
-            	RedisUtil.sadd("idx:student:enrol:" + enrol, key);
             	RedisUtil.sadd("idx:student:class:" + myclass, key);
             }
             else if (table.equals("teacher")) {
-            	RedisUtil.sadd("idx:teacher:college:" + college, key);
+            	RedisUtil.sadd("idx:teacher:college:" + tcollege, key);
+            }
+            else if (table.equals("major")) {
+            	RedisUtil.sadd("idx:major:college:" + mcollege, key);
+            }
+            else if (table.equals("class")) {
+            	RedisUtil.sadd("idx:class:major:" + cmajor, key);
+            	RedisUtil.sadd("idx:class:enrol:" + cenrol, key);
             }
         }
     }
 
     private static void redisDelete(String table,List<Column> columns) {
         JSONObject json = new JSONObject();
-        // 学生
-        String enrol = null;
-        String myclass = null;
         String key = null;
+        // 学生
+        String myclass = null;
         // 教师
-        String college = null;
+        String tcollege = null;
+        // 专业
+        String mcollege = null;
+        // 班级
+        String cmajor = null;
+        String cenrol = null;
         
         for (Column column : columns) {
             json.put(column.getName(), column.getValue());
@@ -215,16 +279,26 @@ public class CanalClient {
             	key = column.getValue();
             }
             if (table.equals("student")) {
-            	if (column.getName().equals("enrol")) {
-            		enrol = column.getValue();
-            	}
-            	else if (column.getName().equals("classid")) {
+            	if (column.getName().equals("classid")) {
             		myclass = column.getValue();
             	}
             }
             else if (table.equals("teacher")) {
             	if (column.getName().equals("collegeid")) {
-            		college = column.getValue();
+            		tcollege = column.getValue();
+            	}
+            }
+            else if (table.equals("major")) {
+            	if (column.getName().equals("collegeid")) {
+            		mcollege = column.getValue();
+            	}
+            }
+            else if (table.equals("class")) {
+            	if (column.getName().equals("majorid")) {
+            		cmajor = column.getValue();
+            	}
+            	else if (column.getName().equals("enrol")) {
+            		cenrol = column.getValue();
             	}
             }
         }
@@ -232,11 +306,17 @@ public class CanalClient {
             RedisUtil.delKey(table + ":" + columns.get(0).getValue());
             RedisUtil.srem("idx:" + table, key);
             if(table.equals("student")) {
-            	RedisUtil.srem("idx:student:enrol:" + enrol, key);
             	RedisUtil.srem("idx:student:class:" + myclass, key);
             }
             else if (table.equals("teacher")) {
-            	RedisUtil.srem("idx:teacher:college:" + college, key);
+            	RedisUtil.srem("idx:teacher:college:" + tcollege, key);
+            }
+            else if (table.equals("major")) {
+            	RedisUtil.srem("idx:major:college:" + mcollege, key);
+            }
+            else if (table.equals("class")) {
+            	RedisUtil.srem("idx:class:major:" + cmajor, key);
+            	RedisUtil.srem("idx:class:enrol:" + cenrol, key);
             }
         }
     }

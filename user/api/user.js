@@ -51,7 +51,7 @@ function list(msg, done){
     }
     // 分页
     if(filter.isPage){
-        options = options.concat(['limit', ((filter.page-1)*10).toString(), filter.size.toString()]);
+        options = options.concat(['limit', ((filter.page-1)*filter.size).toString(), filter.size.toString()]);
     }
     redis.sort(options, async (err, keys) => {
         if(err){
@@ -128,6 +128,12 @@ function register(msg, done){
     // 密码加密
     password = bcrypt.hashSync(password, key.saltRounds);
 
+    // 账号规格
+    var reg = new RegExp("^[a-zA-Z0-9]+$"); 
+    if(!reg.test(userid)){
+        done(new Error('账号格式错误！'))
+    }
+
     // 判断账号是否已经存在
     var redisKey = identity + ':' + userid;
     redis.mget(redisKey, (err, res) => {
@@ -166,6 +172,36 @@ function register(msg, done){
                     done(null, {msg: '用户添加成功！'})
                 }
             })
+        }
+    })
+}
+
+// 用户删除
+// var options = {
+//     userid: Array,
+//     identity: String
+// }
+function mydelete(msg, done){
+    var { userid, identity } = msg;
+    var sql = 'delete from ' + identity + ' where userid in (';
+    for(var i = 0; i < userid.length; i++){
+        if(i == 0){
+            sql += ' ?';
+        }
+        else{
+            sql += ', ?';
+        }
+    }
+    sql += ')';
+    var sql_params = userid;
+    mysql.query(sql, sql_params, (err, res) => {
+        if(err){
+            logger.error('(user-delete):' + err.message);
+            done(new Error('用户删除失败！'))
+        }
+        else{
+            logger.info('(user-delete):用户删除成功');
+            done(null, {msg: '用户删除成功！'})
         }
     })
 }
@@ -260,7 +296,7 @@ router.post('/user/import', async (msg, done) => {
         // 用户获取
         var getUser = async () => {
             var user = await new Promise((resolve) => {
-                redis.sort('idx:' + identity, (err, key) => {
+                redis.sort('idx:' + identity, 'alpha', (err, key) => {
                     resolve(key);
                 })
             })
@@ -283,6 +319,11 @@ router.post('/user/import', async (msg, done) => {
             // 判断用户是否已经存在
             if(user.indexOf(item[useridIndex]) != -1){
                 throw new Error(item[useridIndex] + '用户已存在，请重新检查文件内容并修改！')
+            }
+            // 账号规格
+            var reg = new RegExp("^[a-zA-Z0-9]+$"); 
+            if(!reg.test(item[useridIndex])){
+                throw new Error('格式错误，请重新检查文件内容是否符合要求！')
             }
             // 密码加密
             item[passwordIndex] = bcrypt.hashSync(item[passwordIndex].toString(), key.saltRounds);
@@ -423,17 +464,19 @@ function login(msg, done){
 //     email: String,
 //     address: String,
 //     qq: String,
+//     eduBackground: String/null,
+//     professionalTitle: String/null,
 //     personalHonor: String/null,
 //     teachingSituation: String/null,
 //     scientificSituation: String/null
 // }
 function change(msg, done){
     // 教师、学生共有信息
-    var { askerid, userid, identity, phone, email, address, qq } = msg;
+    var { askerid, askeridentity, userid, identity, phone, email, address, qq } = msg;
     // 教师独有信息
-    var { personalHonor, teachingSituation, scientificSituation } = msg;
+    var { eduBackground, professionalTitle, personalHonor, teachingSituation, scientificSituation } = msg;
 
-    if(askerid != userid){
+    if(askeridentity != 'manager' && askerid != userid){
         logger.error('(user-change):禁止修改他人信息！');
         done(new Error('禁止修改他人信息！'))
     }
@@ -442,8 +485,8 @@ function change(msg, done){
     var update_params = [];
     switch(identity){
         case 'teacher':
-            update = 'update teacher set phone = ?, email = ?, address = ?, qq = ?, personalHonor = ?, teachingSituation = ?, scientificSituation = ? where userid = ?';
-            update_params = [phone, email, address, qq, personalHonor, teachingSituation, scientificSituation, userid];
+            update = 'update teacher set phone = ?, email = ?, address = ?, qq = ?, eduBackground = ?, professionalTitle = ?, personalHonor = ?, teachingSituation = ?, scientificSituation = ? where userid = ?';
+            update_params = [phone, email, address, qq, eduBackground, professionalTitle, personalHonor, teachingSituation, scientificSituation, userid];
             break;
         case 'student':
             update = 'update student set phone = ?, email = ?, address = ?, qq = ? where userid = ?';
@@ -532,6 +575,7 @@ function password(msg, done){
 module.exports = {
     list: list,
     register: register,
+    delete: mydelete,
     detail: detail,
     login: login,
     change: change,

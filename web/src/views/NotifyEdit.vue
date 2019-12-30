@@ -51,7 +51,7 @@
 			title="公告修改"
 			center>
 			<el-row class="notify">
-				<el-col :xs='{span: 24}' :sm='{span: 16, offset: 4}'>
+				<el-col :lg="{span:16,offset:4}" :md="{span:16,offset:4}">
 					<el-form :model="notify" ref="notifyForm" class="notifyForm">
 						<el-divider content-position="left"><span style="color: red">* </span>通知标题</el-divider>
 						<el-form-item prop="title">
@@ -157,7 +157,7 @@ export default {
 							return options.indexOf(parseInt(item.notifyid)) == -1;
 						})
 
-						this.multipleSelection = [];
+						this.$refs.multipleTable.clearSelection();
 					}
 				})
 			}

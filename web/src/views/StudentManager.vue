@@ -1,9 +1,5 @@
 <template>
-    <div class="studentManager">
-        <el-row>
-            
-        </el-row>
-    </div>
+    <div class="studentManager"></div>
 </template>
 
 <script>

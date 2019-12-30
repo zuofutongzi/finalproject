@@ -1,8 +1,9 @@
 <template>
     <div class="teacherManager">
         <el-row class="teacherTop">
-            <el-button type="primary" plain @click="teacherAdd()">教师添加</el-button>
-            <el-button type="success" plain @click="teacherImport()">教师导入</el-button>
+            <el-button type="primary" :size="buttonSize" plain @click="teacherAdd()">教师添加</el-button>
+            <el-button type="success" :size="buttonSize" plain @click="teacherImport()">教师导入</el-button>
+            <el-button type="danger" :size="buttonSize" plain @click="teacherDelete()">教师删除</el-button>
             <el-select class="hidden-xs-only" v-model="filterCollege" @change="handleSelectChange" clearable placeholder="按分院筛选">
                 <el-option
                     v-for="item in college"
@@ -25,8 +26,16 @@
         <el-table
             :data="userList"
             :row-class-name="tableRowClassName"
+            ref="multipleTable"
+            @selection-change="handleSelectionChange"
             @row-click="handleRowClick"
+            :row-key="getRowKeys"
             style="width: 100%">
+            <el-table-column
+                type="selection"
+                width="55"
+                :reserve-selection="true">
+            </el-table-column>
             <el-table-column
                 label="姓名"
                 prop="name">
@@ -53,6 +62,8 @@
         <el-pagination
             layout="prev, pager, next"
             @current-change="handleCurrentChange"
+            :small="pageSmall"
+            :hide-on-single-page="true"
             :current-page.sync="currentPage"
             :page-size="listPageSize"
             :total="listTotal">
@@ -143,6 +154,7 @@
                             {{ item.label }}
                         </el-tag>
                     </div>
+                    <p style="color: red;">教师账号必须由英文或数字组成</p>
                     <el-divider content-position="left">文件导入</el-divider>
 					<el-upload
                         class="upload-demo"
@@ -206,7 +218,7 @@
                                     <span v-show="eduBackgroundShow">
                                         {{ userDetail.eduBackground }} 
                                     </span>
-                                    <el-input v-show="!eduBackgroundShow" v-model="userDetail.eduBackground"></el-input>
+                                    <el-input v-show="!eduBackgroundShow" v-model="eduBackground"></el-input>
                                     <el-button type="text" @click="handleEdit('edu')">
                                         <i :class="{'el-icon-edit': eduBackgroundShow, 'el-icon-check': !eduBackgroundShow}"></i>
                                     </el-button>
@@ -215,7 +227,7 @@
                                     <span v-show="professionalTitleShow">
                                         {{ userDetail.professionalTitle }} 
                                     </span>
-                                    <el-input v-show="!professionalTitleShow" v-model="userDetail.professionalTitle"></el-input>
+                                    <el-input v-show="!professionalTitleShow" v-model="professionalTitle"></el-input>
                                     <el-button type="text" @click="handleEdit('title')">
                                         <i :class="{'el-icon-edit': professionalTitleShow, 'el-icon-check': !professionalTitleShow}"></i>
                                     </el-button>
@@ -289,6 +301,15 @@ export default {
                 callback(new Error('请填写18位有效身份证'));
             }
         }
+        var validateUserid = (rule, value, callback) => {
+            var reg = new RegExp("^[a-zA-Z0-9]+$"); 
+            if(reg.test(value)){
+                callback();
+            }
+            else{
+                callback(new Error('请填写由英文或数字组成的账号'))
+            }
+        }
         return {
             headers: {
                 Authorization: localStorage.eleToken
@@ -298,10 +319,14 @@ export default {
             filterCollege: '',
             user: {},
             userList: [],
+            multipleSelection: [],
             currentPage: 1,
             listTotal: 0,
             listPageSize: 20,
+            professionalTitle: '',
+            eduBackground: '',
             userDetail: {},
+            userDetailOptions: {},
             userAdd: {
                 sex: '男'
             },
@@ -312,10 +337,15 @@ export default {
             detailDialogVisible: false,
             addDialogVisible: false,
             addDialogFullScreen: false,
+            pageSmall: false,
             eduBackgroundShow: true,
             professionalTitleShow: true,
             collapse: '1',
+            buttonSize: 'medium',
             loading: null,
+            getRowKeys(row){
+                return row.userid
+            },
             addRules: {
                 userid: [
                     {
@@ -327,6 +357,10 @@ export default {
                         min: 2,
                         max: 12,
                         message: '长度在2-12个字符之间'
+                    },
+                    {
+                        validator: validateUserid,
+                        trigger: 'blur'
                     }
                 ],
                 password: [
@@ -427,6 +461,7 @@ export default {
             return '';
         },
         handleCurrentChange(val) {
+            // 分页切换
             this.currentPage = val;
             var options = {
                 identity: 'teacher',
@@ -434,7 +469,8 @@ export default {
                     isFirst: false,
                     isPage: true,
                     page: val,
-                    size: this.listPageSize
+                    size: this.listPageSize,
+                    college: this.filterCollege
                 }
             }
             this.$axios
@@ -445,7 +481,12 @@ export default {
                     }
                 })
         },
+        handleSelectionChange(val){
+            // 表格选择
+            this.multipleSelection = val;
+        },
         handleSelectChange(){
+            // 分院筛选切换
             var options = {
                 identity: 'teacher',
                 filter: {
@@ -467,16 +508,51 @@ export default {
                 })
         },
         handleEdit(button){
+            this.userDetailOptions.identity = 'teacher';
             switch(button){
                 case 'edu':
-                    this.eduBackgroundShow = !this.eduBackgroundShow;
+                    if(!this.eduBackgroundShow){
+                        this.userDetailOptions.eduBackground = this.eduBackground;
+                        this.$axios
+                            .put('/api/user/' + this.userDetailOptions.userid, this.userDetailOptions)
+                            .then(res => {
+                                if(res.status == 200){
+                                    var data = res.data;
+                                    this.$message({
+                                        message: data.msg,
+                                        type: "success"
+                                    });
+                                    this.userDetail.eduBackground = this.eduBackground;
+                                    this.eduBackgroundShow = !this.eduBackgroundShow;
+                                }
+                            })
+                    }
+                    else{
+                        this.eduBackgroundShow = !this.eduBackgroundShow;
+                    }
                     break;
                 case 'title':
-                    this.professionalTitleShow = !this.professionalTitleShow;
+                    if(!this.professionalTitleShow){
+                        this.userDetailOptions.professionalTitle = this.professionalTitle;
+                        this.$axios
+                            .put('/api/user/' + this.userDetailOptions.userid, this.userDetailOptions)
+                            .then(res => {
+                                if(res.status == 200){
+                                    var data = res.data;
+                                    this.$message({
+                                        message: data.msg,
+                                        type: "success"
+                                    });
+                                    this.userDetail.professionalTitle = this.professionalTitle;
+                                    this.professionalTitleShow = !this.professionalTitleShow;
+                                }
+                            })
+                    }
+                    else{
+                        this.professionalTitleShow = !this.professionalTitleShow;
+                    }
                     break; 
             }
-            console.log(this.eduBackgroundShow)
-            console.log(this.professionalTitleShow)
         },
         teacherAdd(){
             // 教师添加dialog弹出
@@ -486,10 +562,64 @@ export default {
             // 教师导入dialog弹出
             this.importDialogVisible = true;
         },
+        teacherDelete(){
+            // 教师删除
+            var userid = [];
+            this.multipleSelection.forEach(item => {
+                userid.push(item.userid);
+            })
+            if(this.isEmpty(userid)){
+				this.$message({
+					message: "选项不能为空",
+					type: "error"
+				});
+            }
+            var options = {
+                userid: userid,
+                identity: 'teacher'
+            }
+            this.$axios
+                .delete('/api/user', {data: options})
+                .then(res => {
+					if(res.status == 200){
+						var data = res.data;
+						this.$message({
+							message: data.msg,
+							type: "success"
+						});
+                        
+                        var options = {
+                            identity: 'teacher',
+                            filter: {
+                                isFirst: true,
+                                isPage: true,
+                                page: 1,
+                                size: this.listPageSize,
+                                college: this.filterCollege
+                            }
+                        }
+						var _this = this;
+                        setTimeout(function(){
+                            _this.$axios
+                                .get('/api/user', {params: options})
+                                .then(res => {
+                                    if(res.status == 200){
+                                        _this.userList = res.data.data;
+                                        _this.listTotal = res.data.count;
+                                        _this.currentPage = 1;
+                                    }
+                                })
+                        },1000);
+
+                        this.$refs.multipleTable.clearSelection();
+					}
+				})
+        },
         handleRowClick(row){
 			// 教师详情dialog弹出
             this.detailDialogVisible = true;
             this.userDetail = row;
+            this.userDetailOptions = JSON.parse(JSON.stringify(row));
             if(this.userDetail.classTeacher == 'false'){
                 this.userDetail.classTeacher = '否';
                 this.userDetail.class = '无'
@@ -497,6 +627,8 @@ export default {
             else{
                 this.userDetail.classTeacher = '是';
             }
+            this.professionalTitle = this.userDetail.professionalTitle;
+            this.eduBackground = this.userDetail.eduBackground;
 		},
         submitAddForm(formName){
             // 教师添加
@@ -572,6 +704,7 @@ export default {
                 message: response.msg,
                 type: "success"
             });
+            this.filterCollege = '';
             var options = {
                 identity: 'teacher',
                 filter: {
@@ -594,7 +727,15 @@ export default {
                         }
                     })
             },1000);
-        }
+        },
+        isEmpty(value){
+			return (
+				value === undefined ||
+				value === null ||
+				(typeof value === 'object' && Object.keys(value).length === 0) ||
+				(typeof value === 'string' && value.trim().length === 0)
+			)
+		}
     },
     created() {},
     mounted() {
@@ -634,6 +775,16 @@ export default {
         var width = $(window).width();
         if(width < 768){
             this.addDialogFullScreen = true;
+            this.pageSmall = true;
+            var buttonParentWidth = $('.teacherTop .el-button').parent().width() - 20;
+            var buttonWith = buttonParentWidth/3;
+            $('.teacherTop .el-button').eq(0).css({'margin-left':'0','width':buttonWith.toString(),'padding':'12px 10px'});
+            $('.teacherTop .el-button').eq(1).css({'margin-left':'10px','width':buttonWith.toString(),'padding':'12px 10px'});
+            $('.teacherTop .el-button').eq(2).css({'margin-left':'10px','width':buttonWith.toString(),'padding':'12px 10px'});
+            var buttonTextWidth = $('.teacherTop .el-button span').width();
+            if(buttonWith-20 < buttonTextWidth){
+                this.buttonSize = 'mini';
+            }
         }
     }
 };

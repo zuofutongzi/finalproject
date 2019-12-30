@@ -2,11 +2,11 @@
 	<div class="index">
 		<HeadNav class='hidden-xs-only'></HeadNav>
 		<el-container>
-		  	<el-aside class="hidden-xs-only" style='width: 186px;'>
+		  	<el-aside class="hidden-sm-and-down" style='width: 186px;'>
   				<LeftMenu :menu='menu'></LeftMenu>
   			</el-aside>
   			<el-main>
-  				<SuspensionButton class='hidden-sm-and-up' :menu='menu'></SuspensionButton>
+  				<SuspensionButton class='hidden-md-and-up' :menu='menu'></SuspensionButton>
   				<div class="main-container">
   					<router-view></router-view>
   				</div>
@@ -80,7 +80,7 @@ export default{
 					{
 						icon: 'el-icon-collection',
 						title: '班级管理',
-						path: 'classManager'
+						path: 'tclassManager'
 					},
 					{
 						icon: 'el-icon-notebook-2',
@@ -120,6 +120,10 @@ export default{
 						title: '人员管理',
 						path: 'userMenu',
 						children: [
+						{
+							title: '班级管理',
+							path: 'classManager'
+						},
 						{
 							title: '学生管理',
 							path: 'studentManager'
