@@ -34,6 +34,10 @@ app.use('/', notify.router)
 
 // school
 seneca.add('target:server-user,module:school,if:collegeList', school.collegeList)
+seneca.add('target:server-user,module:school,if:majorList', school.majorList)
+seneca.add('target:server-user,module:school,if:classList', school.classList)
+seneca.add('target:server-user,module:school,if:classAdd', school.classAdd)
+app.use('/', school.router)
 
 app.listen(8002)
 seneca.listen(8001)

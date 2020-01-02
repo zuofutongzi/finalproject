@@ -1,166 +1,25 @@
-2019-12-21 19:33:46 [error]: (user-import):ER_PARSE_ERROR: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '' at line 1
-2019-12-21 19:35:27 [info]: (user-import):用户导入成功
-2019-12-21 19:36:13 [error]: (user-import):格式错误，请重新检查文件内容是否符合要求！
-2019-12-21 19:36:30 [error]: (user-import):格式错误，请重新检查文件内容是否符合要求！
-2019-12-21 19:38:46 [info]: (user-import):用户导入成功
-2019-12-21 19:40:57 [info]: (user-import):用户导入成功
-2019-12-21 19:46:11 [info]: (user-import):用户导入成功
-2019-12-21 19:47:52 [info]: (notify-add):通知添加成功
-2019-12-21 19:47:52 [info]: (notify-appendix):文件上传成功！
-2019-12-21 19:48:08 [info]: (notify-edit):通知修改成功
-2019-12-21 19:48:17 [info]: (notify-delete):通知删除成功
-2019-12-21 19:48:52 [info]: (user-import):用户导入成功
-2019-12-22 13:40:22 [info]: (user-import):用户导入成功
-2019-12-22 13:52:37 [error]: (user-import):ER_DUP_ENTRY: Duplicate entry '8165416' for key 'PRIMARY'
-2019-12-22 14:00:20 [info]: (user-import):用户导入成功
-2019-12-22 14:01:52 [info]: (user-import):用户导入成功
-2019-12-22 14:10:30 [info]: (user-import):用户导入成功
-2019-12-22 15:42:16 [info]: (notify-add):通知添加成功
-2019-12-22 16:31:21 [info]: (user-change):用户信息修改成功
-2019-12-24 14:26:49 [info]: (user-import):用户导入成功
-2019-12-24 15:47:58 [info]: (notify-add):通知添加成功
-2019-12-24 15:47:59 [info]: (notify-appendix):文件上传成功！
-2019-12-24 15:48:27 [info]: (notify-add):通知添加成功
-2019-12-24 15:48:32 [info]: (notify-delete):通知删除成功
-2019-12-24 15:51:14 [info]: (notify-add):通知添加成功
-2019-12-24 15:51:15 [info]: (notify-appendix):文件上传成功！
-2019-12-24 15:51:23 [info]: (notify-edit):通知修改成功
-2019-12-24 15:51:24 [info]: (notify-appendix):文件上传成功！
-2019-12-24 15:51:36 [info]: (notify-delete):通知删除成功
-2019-12-24 15:51:56 [info]: (user-import):用户导入成功
-2019-12-24 15:54:04 [info]: (user-import):用户导入成功
-2019-12-24 15:57:34 [info]: (user-import):用户导入成功
-2019-12-24 15:58:26 [info]: (user-import):用户导入成功
-2019-12-24 15:59:11 [info]: (user-import):用户导入成功
-2019-12-24 15:59:45 [info]: (user-import):用户导入成功
-2019-12-24 16:00:26 [info]: (user-import):用户导入成功
-2019-12-24 16:04:08 [info]: (user-import):用户导入成功
-2019-12-24 16:06:49 [info]: (user-password):密码修改成功
-2019-12-24 16:07:13 [info]: (user-password):密码修改成功
-2019-12-24 16:08:51 [info]: (user-change):用户信息修改成功
-2019-12-24 16:19:24 [info]: (user-import):用户导入成功
-2019-12-24 16:20:10 [info]: (user-change):用户信息修改成功
-2019-12-24 16:58:08 [info]: (user-import):用户导入成功
-2019-12-24 16:58:38 [info]: (user-import):用户导入成功
-2019-12-24 17:43:17 [info]: (notify-add):通知添加成功
-2019-12-24 17:48:51 [info]: (notify-edit):通知修改成功
-2019-12-24 17:50:48 [info]: (notify-edit):通知修改成功
-2019-12-24 17:50:55 [info]: (notify-edit):通知修改成功
-2019-12-24 17:51:05 [info]: (notify-delete):通知删除成功
-2019-12-24 18:31:51 [info]: (notify-add):通知添加成功
-2019-12-24 18:32:03 [info]: (notify-delete):通知删除成功
-2019-12-24 18:32:14 [info]: (notify-add):通知添加成功
-2019-12-24 18:32:14 [info]: (notify-appendix):文件上传成功！
-2019-12-24 18:32:34 [info]: (notify-edit):通知修改成功
-2019-12-24 18:32:35 [info]: (notify-appendix):文件上传成功！
-2019-12-24 18:32:49 [info]: (notify-delete):通知删除成功
-2019-12-24 18:41:04 [error]: (user-import):格式错误，请重新检查分院信息是否符合要求！
-2019-12-24 18:42:05 [error]: (user-import):格式错误，请重新检查分院信息是否符合要求！
-2019-12-24 18:42:16 [error]: (user-import):格式错误，请重新检查分院信息是否符合要求！
-2019-12-24 18:42:51 [error]: (user-import):格式错误，请重新检查分院信息是否符合要求！
-2019-12-24 18:44:19 [info]: (user-import):用户导入成功
-2019-12-24 19:32:44 [info]: (user-import):用户导入成功
-2019-12-24 19:34:20 [info]: (user-import):用户导入成功
-2019-12-24 19:43:57 [error]: (user-import):redis.sort(...).then is not a function
-2019-12-24 20:04:25 [error]: (user-import):key.forEach is not a function
-2019-12-24 21:03:45 [error]: (user-import):redisSort(...) is not a function
-2019-12-24 21:07:59 [error]: (user-import):redis.sortAsync is not a function
-2019-12-24 21:09:30 [error]: (user-import):格式错误，请重新检查分院信息是否符合要求！
-2019-12-24 21:14:39 [error]: (user-import):格式错误，请重新检查分院信息是否符合要求！
-2019-12-24 21:15:38 [info]: (user-import):用户导入成功
-2019-12-25 13:41:17 [info]: (notify-add):通知添加成功
-2019-12-25 13:41:28 [info]: (notify-add):通知添加成功
-2019-12-25 13:41:28 [info]: (notify-appendix):文件上传成功！
-2019-12-25 13:41:58 [info]: (notify-edit):通知修改成功
-2019-12-25 13:41:58 [info]: (notify-appendix):文件上传成功！
-2019-12-25 13:42:10 [info]: (notify-delete):通知删除成功
-2019-12-25 13:42:32 [error]: (user-import):Cannot destructure property `collegeName` of 'undefined' or 'null'.
-2019-12-25 13:43:06 [info]: (user-import):用户导入成功
-2019-12-25 13:46:10 [error]: (user-import):格式错误，请重新检查分院信息是否符合要求！
-2019-12-25 14:19:26 [info]: (notify-add):通知添加成功
-2019-12-25 14:19:31 [info]: (notify-delete):通知删除成功
-2019-12-25 14:19:42 [info]: (user-import):用户导入成功
-2019-12-25 14:21:27 [info]: (user-change):用户信息修改成功
-2019-12-25 18:01:59 [info]: (notify-add):通知添加成功
-2019-12-25 18:02:00 [info]: (notify-appendix):文件上传成功！
-2019-12-25 18:03:06 [info]: (notify-edit):通知修改成功
-2019-12-25 18:03:07 [info]: (notify-appendix):文件上传成功！
-2019-12-25 18:03:41 [info]: (notify-delete):通知删除成功
-2019-12-25 18:05:25 [info]: (user-import):用户导入成功
-2019-12-25 18:06:10 [info]: (user-import):用户导入成功
-2019-12-25 18:13:03 [info]: (user-import):用户导入成功
-2019-12-25 18:42:02 [info]: (user-register):用户添加成功
-2019-12-25 18:46:22 [info]: (user-register):用户添加成功
-2019-12-25 18:54:09 [info]: (user-register):用户添加成功
-2019-12-29 13:45:17 [info]: (user-change):用户信息修改成功
-2019-12-29 14:05:25 [error]: (user-import):0181833用户已存在，请重新检查文件内容并修改！
-2019-12-29 14:06:03 [error]: (user-import):0181833用户已存在，请重新检查文件内容并修改！
-2019-12-29 14:06:31 [info]: (user-import):用户导入成功
-2019-12-29 14:10:45 [info]: (user-register):用户添加成功
-2019-12-29 14:12:56 [info]: (user-change):用户信息修改成功
-2019-12-29 16:34:18 [info]: (user-import):用户导入成功
-2019-12-29 16:34:19 [error]: (user-list):ERR One or more scores can't be converted into double
-2019-12-29 16:34:19 [error]: (user-list):ERR One or more scores can't be converted into double
-2019-12-29 16:34:25 [error]: (user-list):ERR One or more scores can't be converted into double
-2019-12-29 16:34:25 [error]: (user-list):ERR One or more scores can't be converted into double
-2019-12-29 16:34:58 [error]: (user-list):ERR One or more scores can't be converted into double
-2019-12-29 16:34:58 [error]: (user-list):ERR One or more scores can't be converted into double
-2019-12-29 16:35:35 [error]: (user-list):ERR One or more scores can't be converted into double
-2019-12-29 16:35:35 [error]: (user-list):ERR One or more scores can't be converted into double
-2019-12-29 16:42:27 [info]: (user-import):用户导入成功
-2019-12-29 16:45:24 [info]: (user-import):用户导入成功
-2019-12-29 16:48:11 [info]: (user-register):用户添加成功
-2019-12-29 16:48:50 [info]: (user-register):用户添加成功
-2019-12-29 16:49:26 [info]: (user-register):用户添加成功
-2019-12-29 16:50:08 [info]: (user-register):用户添加成功
-2019-12-29 16:50:37 [info]: (user-register):用户添加成功
-2019-12-29 16:51:11 [info]: (user-register):用户添加成功
-2019-12-29 16:51:54 [info]: (user-register):用户添加成功
-2019-12-29 16:52:39 [info]: (user-register):用户添加成功
-2019-12-29 16:53:10 [info]: (user-register):用户添加成功
-2019-12-29 16:59:46 [info]: (user-register):用户添加成功
-2019-12-30 13:52:53 [error]: (user-change):禁止修改他人信息！
-2019-12-30 13:52:53 [error]: (user-change):ER_EMPTY_QUERY: Query was empty
-2019-12-30 13:55:39 [error]: (user-change):ER_EMPTY_QUERY: Query was empty
-2019-12-30 13:57:03 [info]: (user-change):用户信息修改成功
-2019-12-30 13:58:17 [info]: (user-change):用户信息修改成功
-2019-12-30 14:01:11 [info]: (user-change):用户信息修改成功
-2019-12-30 14:02:22 [info]: (user-change):用户信息修改成功
-2019-12-30 14:02:26 [info]: (user-change):用户信息修改成功
-2019-12-30 15:43:45 [info]: (user-register):用户添加成功
-2019-12-30 15:56:08 [info]: (user-register):用户添加成功
-2019-12-30 15:56:37 [error]: (user-delete):ER_NO_SUCH_TABLE: Table 'user.undefined' doesn't exist
-2019-12-30 15:57:12 [error]: (user-delete):ER_NO_SUCH_TABLE: Table 'user.undefined' doesn't exist
-2019-12-30 15:59:04 [info]: (user-delete):用户删除成功
-2019-12-30 16:00:07 [info]: (user-register):用户添加成功
-2019-12-30 16:16:18 [info]: (user-delete):用户删除成功
-2019-12-30 16:16:45 [info]: (user-delete):用户删除成功
-2019-12-30 16:19:11 [error]: (user-import):Cannot read property 'indexOf' of undefined
-2019-12-30 16:20:31 [error]: (user-import):Cannot read property 'indexOf' of undefined
-2019-12-30 16:21:20 [error]: (user-import):Cannot read property 'indexOf' of undefined
-2019-12-30 16:21:52 [error]: (user-import):Cannot read property 'indexOf' of undefined
-2019-12-30 16:25:05 [info]: (user-import):用户导入成功
-2019-12-30 16:25:34 [info]: (user-delete):用户删除成功
-2019-12-30 16:25:56 [info]: (user-delete):用户删除成功
-2019-12-30 16:27:10 [info]: (user-delete):用户删除成功
-2019-12-30 16:27:19 [info]: (user-delete):用户删除成功
-2019-12-30 16:27:41 [info]: (user-import):用户导入成功
-2019-12-30 16:28:35 [info]: (user-delete):用户删除成功
-2019-12-30 16:30:17 [info]: (user-delete):用户删除成功
-2019-12-30 16:30:42 [info]: (notify-add):通知添加成功
-2019-12-30 16:30:46 [info]: (notify-delete):通知删除成功
-2019-12-30 16:31:14 [info]: (user-delete):用户删除成功
-2019-12-30 16:32:20 [info]: (user-register):用户添加成功
-2019-12-30 16:32:44 [info]: (user-change):用户信息修改成功
-2019-12-30 16:32:51 [info]: (user-change):用户信息修改成功
-2019-12-30 16:35:40 [info]: (user-change):用户信息修改成功
-2019-12-30 16:35:47 [info]: (user-password):密码修改成功
-2019-12-30 16:36:23 [info]: (user-password):密码修改成功
-2019-12-30 17:43:11 [info]: (user-delete):用户删除成功
-2019-12-30 17:43:18 [info]: (user-import):用户导入成功
-2019-12-30 17:43:25 [info]: (user-delete):用户删除成功
-2019-12-30 17:43:42 [info]: (user-import):用户导入成功
-2019-12-30 17:44:06 [info]: (user-delete):用户删除成功
-2019-12-30 17:45:02 [info]: (user-import):用户导入成功
-2019-12-30 17:45:40 [info]: (user-delete):用户删除成功
-2019-12-30 17:45:49 [error]: (user-import):格式错误，请重新检查文件内容是否符合要求！
+2020-01-02 18:47:13 [error]: (school-classImport):ER_PARSE_ERROR: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'J02039,"J02005,"J05007)' at line 1
+2020-01-02 18:57:31 [error]: (school-classImport):ER_PARSE_ERROR: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'J02039,"J02005,"J05007)' at line 1
+2020-01-02 19:06:01 [info]: (notify-add):通知添加成功
+2020-01-02 19:06:12 [info]: (notify-edit):通知修改成功
+2020-01-02 19:06:26 [info]: (notify-edit):通知修改成功
+2020-01-02 19:18:39 [info]: (user-import):用户导入成功
+2020-01-02 19:19:02 [error]: (user-import):格式错误，请重新检查文件内容是否符合要求！
+2020-01-02 19:19:45 [info]: (user-import):用户导入成功
+2020-01-02 19:20:43 [info]: (user-import):用户导入成功
+2020-01-02 19:20:55 [info]: (user-import):用户导入成功
+2020-01-02 19:27:52 [error]: (user-password):ER_PARSE_ERROR: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'updat teacher set password = '$2a$10$5pLRBdb7J3hfPcEZ651mH.hRf7bpg1XjbHmTvLkNXKt' at line 1
+2020-01-02 19:28:23 [error]: (user-password):myfunction is not defined
+2020-01-02 19:28:23 [info]: (user-password):密码修改成功
+2020-01-02 19:29:10 [info]: (user-password):密码修改成功
+2020-01-02 19:29:35 [error]: (user-password):myfunction is not defined
+2020-01-02 19:29:36 [info]: (user-password):密码修改成功
+2020-01-02 19:33:58 [info]: (notify-add):通知添加成功
+2020-01-02 19:34:10 [info]: (notify-edit):通知修改成功
+2020-01-02 19:34:32 [info]: (notify-add):通知添加成功
+2020-01-02 19:34:40 [info]: (notify-delete):通知删除成功
+2020-01-02 19:35:20 [info]: (user-import):用户导入成功
+2020-01-02 19:35:58 [info]: (user-import):用户导入成功
+2020-01-02 19:36:19 [info]: (user-delete):用户删除成功
+2020-01-02 19:45:43 [info]: (user-password):密码修改成功
+2020-01-02 19:46:04 [info]: (user-password):密码修改成功

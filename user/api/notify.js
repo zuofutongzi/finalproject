@@ -4,7 +4,8 @@ const fs = require('fs')
 const logger = require('../logger')
 const key = require('../key')
 
-const mysql = key.mysql
+//const mysql = key.mysql
+const connectHandler = key.mysql
 const redis = key.redis
 
 // 获取通知列表
@@ -41,7 +42,9 @@ function list(msg, done){
 //     important: bool, 
 //     time: String
 // }
-function add(msg, done){
+async function add(msg, done){
+    const mysql = await connectHandler();
+
     var { title, content, appendix, top, important, time } = msg;
     var insert = 'insert into notify(title,content,appendix,top,important,time) values(?,?,?,?,?,?)';
     var insert_params = [title, content, appendix, top.toString(), important.toString(), time];
@@ -55,6 +58,9 @@ function add(msg, done){
             done(null, {msg: '通知添加成功！'})
         }
     })
+
+    // 释放连接
+    mysql.release();
 }
 
 // 修改通知
@@ -67,7 +73,9 @@ function add(msg, done){
 //     important: bool, 
 //     time: String
 // }
-function edit(msg, done){
+async function edit(msg, done){
+    const mysql = await connectHandler();
+
     var { notifyid, title, content, appendix, top, important, time } = msg;
     var insert = 'update notify set title = ?, content = ?, appendix = ?, top = ?, important = ?, time = ? where notifyid = ?';
     var insert_params = [title, content, appendix, top.toString(), important.toString(), time, notifyid];
@@ -81,13 +89,18 @@ function edit(msg, done){
             done(null, {msg: '通知修改成功！'})
         }
     })
+
+    // 释放连接
+    mysql.release();
 }
 
 //删除通知
 // var options = {
 //     notifyid: Array
 // }
-function mydelete(msg, done){
+async function mydelete(msg, done){
+    const mysql = await connectHandler();
+
     var { notifyid } = msg;
     var sql = 'delete from notify where notifyid in (';
     for(var i = 0; i < notifyid.length; i++){
@@ -110,6 +123,9 @@ function mydelete(msg, done){
             done(null, {msg: '通知删除成功！'})
         }
     })
+
+    // 释放连接
+    mysql.release()
 }
 
 // 未找到使用seneca实现文件上传下载的方法，另增加express接口

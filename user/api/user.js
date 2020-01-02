@@ -5,7 +5,8 @@ const xlsx = require('node-xlsx').default;
 const logger = require('../logger')
 const key = require('../key')
 
-const mysql = key.mysql
+//const mysql = key.mysql
+const connectHandler = key.mysql
 const redis = key.redis
 
 // 用户列表
@@ -13,8 +14,8 @@ const redis = key.redis
 // var options = {
 //     identity: String,
 //     filter: {
-//         isFirst: bool,
-//         isPage: bool,
+//         isFirst: Boolean,
+//         isPage: Boolean,
 //         page: number/null,
 //         size: number/null,
 //         college: String/null
@@ -59,7 +60,7 @@ function list(msg, done){
             done(new Error('数据库访问失败，请稍后再试...'))
         }
         else if(keys[0] == null){
-            done(new Error('当前没用用户！'))
+            done(new Error('当前没有用户！'))
         }
         else{
             var college = async (value) => {
@@ -113,7 +114,9 @@ function list(msg, done){
 //     enrol: String,
 //     identity: String
 // }
-function register(msg, done){
+async function register(msg, done){
+    const mysql = await connectHandler();
+
     // 共有信息
     var { identity, userid, password, name, sex, nation, politicalStatus, IDcard, enrol } = msg;
     // 教师专有信息
@@ -174,6 +177,8 @@ function register(msg, done){
             })
         }
     })
+
+    mysql.release();
 }
 
 // 用户删除
@@ -181,7 +186,9 @@ function register(msg, done){
 //     userid: Array,
 //     identity: String
 // }
-function mydelete(msg, done){
+async function mydelete(msg, done){
+    const mysql = await connectHandler();
+
     var { userid, identity } = msg;
     var sql = 'delete from ' + identity + ' where userid in (';
     for(var i = 0; i < userid.length; i++){
@@ -204,6 +211,8 @@ function mydelete(msg, done){
             done(null, {msg: '用户删除成功！'})
         }
     })
+
+    mysql.release();
 }
 
 // 未找到使用seneca实现文件上传下载的方法，另增加express接口
@@ -213,6 +222,8 @@ function mydelete(msg, done){
 // }
 router.post('/user/import', async (msg, done) => {
     try{
+        const mysql = await connectHandler();
+
         var file = msg.body.file;
         var identity = msg.body.options.identity;
         var rule = [];
@@ -361,6 +372,8 @@ router.post('/user/import', async (msg, done) => {
                 done.send({msg: '用户导入成功！'})
             }
         })
+
+        mysql.release();
     }
     catch(err){
         logger.error('(user-import):' + err.message);
@@ -397,7 +410,18 @@ function detail(msg, done){
                     })
                     return name;
                 }
+                var myclass = async (value) => {
+                    var name = await new Promise((resolve) => {
+                        redis.mget('class:' + value.classid, (err, res) => {
+                            resolve(JSON.parse(res[0]).name);
+                        })
+                    })
+                    return name;
+                }
                 data.college = await college(data);
+                if(data.classTeacher == 'true'){
+                    data.class = await myclass(data);
+                }
             }
             // 请求自己信息，将密码去除返回
             // 请求他人信息，将隐私信息去除返回
@@ -470,7 +494,9 @@ function login(msg, done){
 //     teachingSituation: String/null,
 //     scientificSituation: String/null
 // }
-function change(msg, done){
+async function change(msg, done){
+    const mysql = await connectHandler();
+
     // 教师、学生共有信息
     var { askerid, askeridentity, userid, identity, phone, email, address, qq } = msg;
     // 教师独有信息
@@ -506,6 +532,8 @@ function change(msg, done){
             done(null, {msg: '用户信息修改成功！'})
         }
     })
+
+    mysql.release();
 }
 
 // 密码修改
@@ -516,7 +544,9 @@ function change(msg, done){
 //     oldPassword: String,
 //     newPassword: String
 // }
-function password(msg, done){
+async function password(msg, done){
+    const mysql = await connectHandler();
+
     var { askerid, userid, identity, oldPassword, newPassword } = msg;
 
     if(askerid != userid){
@@ -570,6 +600,8 @@ function password(msg, done){
             });
         }
     })
+
+    mysql.release();
 }
 
 module.exports = {

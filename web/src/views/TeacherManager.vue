@@ -117,7 +117,6 @@
                             <el-input v-model="userAdd.professionalTitle"></el-input>
                         </el-form-item>
                         <el-form-item label="入职年份" prop="enrol">
-                            <!-- <el-input v-model="userAdd.enrol"></el-input> -->
                             <el-date-picker
                                 v-model="userAdd.enrol"
                                 :editable="false"

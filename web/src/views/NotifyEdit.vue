@@ -1,7 +1,7 @@
 <template>
     <div class="notifyEdit">
         <el-row>
-            <el-button type="danger" plain @click="deleteSelection()">删除已选通知</el-button>
+            <el-button type="danger" plain @click="deleteSelection()">通知删除</el-button>
         </el-row>
         <el-table
 			class="hidden-xs-only"
