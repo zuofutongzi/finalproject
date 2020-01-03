@@ -163,6 +163,7 @@
                         :headers="headers"
                         :data="uploadOption"
                         :on-error="handleError"
+                        :on-change="handleChange"
                         :on-success="handleSuccess"
                         :limit="1"
                         :auto-upload="false">
@@ -324,6 +325,7 @@ export default {
             listPageSize: 20,
             professionalTitle: '',
             eduBackground: '',
+            file: '',
             userDetail: {},
             userDetailOptions: {},
             userAdd: {
@@ -505,6 +507,11 @@ export default {
                         this.currentPage = 1;
                     }
                 })
+                .catch(err => {
+                    this.userList.splice(0, this.userList.length);
+                    this.listTotal = 0;
+                    this.currentPage = 1;
+                })
         },
         handleEdit(button){
             this.userDetailOptions.identity = 'teacher';
@@ -608,6 +615,11 @@ export default {
                                         _this.currentPage = 1;
                                     }
                                 })
+                                .catch(err => {
+                                    _this.userList.splice(0, _this.userList.length);
+                                    _this.listTotal = 0;
+                                    _this.currentPage = 1;
+                                })
                         },1000);
 
                         this.$refs.multipleTable.clearSelection();
@@ -679,12 +691,26 @@ export default {
 		},
         submitUpload() {
             // 教师导入
-            this.$refs.upload.submit();
-            this.loading = this.$loading({
-                lock: true,
-                text: "数据较大，请耐性等待",
-                background: 'rgba(0,0,0,0.7)'
-            });
+            if(this.isEmpty(this.file)){
+                this.$message({
+                    message: '文件不能为空',
+                    type: "error"
+                });
+            }
+            else{
+                this.$refs.upload.submit();
+                this.loading = this.$loading({
+                    lock: true,
+                    text: "数据较大，请耐性等待",
+                    background: 'rgba(0,0,0,0.7)'
+                });
+            }
+        },
+        handleChange(file,fileList){
+			// 文件添加
+            if(!this.isEmpty(file) && file.status == 'ready'){
+				this.file = file.name;
+            }
         },
         handleError(err, file, fileList){
             // 文件上传失败
@@ -698,6 +724,7 @@ export default {
             // 文件上传成功
             this.loading.close();
             this.importDialogVisible = false;
+            this.file = '';
             this.$refs.upload.clearFiles();
             this.$message({
                 message: response.msg,

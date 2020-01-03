@@ -4,3 +4,20 @@
 2020-01-02 19:27:52 [error]: (user-password):ER_PARSE_ERROR: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'updat teacher set password = '$2a$10$5pLRBdb7J3hfPcEZ651mH.hRf7bpg1XjbHmTvLkNXKt' at line 1
 2020-01-02 19:28:23 [error]: (user-password):myfunction is not defined
 2020-01-02 19:29:35 [error]: (user-password):myfunction is not defined
+2020-01-03 13:37:06 [error]: (school-classAdd):班级编号已存在
+2020-01-03 13:37:11 [error]: (school-classAdd):ER_DUP_ENTRY: Duplicate entry 'RG1601' for key 'PRIMARY'
+2020-01-03 13:40:16 [error]: (school-classAdd):班级编号已存在
+2020-01-03 14:17:38 [error]: (school-classImport):ERR One or more scores can't be converted into double
+2020-01-03 14:19:14 [error]: (school-classImport):ERR One or more scores can't be converted into double
+2020-01-03 14:22:11 [error]: (school-classImport):编号为J06012的教师已为其他班级班主任，请重新检查文件内容！
+2020-01-03 14:22:48 [error]: (school-classImport):JS1601班级编号已存在，请重新检查文件内容！
+2020-01-03 14:23:19 [error]: (school-classImport):专业错误，请重新检查文件内容是否符合要求！
+2020-01-03 14:25:27 [error]: (school-classImport):专业错误，请重新检查文件内容是否符合要求！
+2020-01-03 14:26:50 [error]: (school-classImport):专业错误，请重新检查文件内容是否符合要求！
+2020-01-03 14:29:04 [error]: (user-import):格式错误，请重新检查分院信息是否符合要求！
+2020-01-03 14:40:44 [error]: (school-classImport):格式错误，请重新检查文件内容是否符合要求！
+2020-01-03 14:41:03 [error]: (school-classImport):JS1601班级编号已存在，请重新检查文件内容！
+2020-01-03 14:43:11 [error]: (school-classImport):有教师编号重复出现，请重新检查文件内容！
+2020-01-03 16:50:26 [error]: (user-import):T10001用户已存在，请重新检查文件内容并修改！
+2020-01-03 17:11:24 [error]: (school-classDelete):ER_ROW_IS_REFERENCED_2: Cannot delete or update a parent row: a foreign key constraint fails (`user`.`teacher`, CONSTRAINT `teaclassid` FOREIGN KEY (`classid`) REFERENCES `class` (`classid`))
+2020-01-03 17:27:30 [error]: (school-classAdd):班级编号已存在

@@ -82,6 +82,29 @@ router.post('/school/class', passport.authenticate('jwt', {session: false}), (re
     }
 })
 
+// @route  Delete /api/school/class
+// @desc   班级删除
+// @token  true
+// @return msg
+// @access manager
+// @params {myclass: Array}
+router.delete('/school/class', passport.authenticate('jwt', {session: false}), (req, done) => {
+    if(req.user.identity != 'manager'){
+        done.status(500).send('没有权限！')
+    }
+    else{
+        userSeneca.act('target:server-user,module:school,if:classDelete', req.body,
+        (err, res) => {
+            if(err){
+                done.status(500).send(err.data.payload.details.message)
+            }
+            else{
+                done.send(res)
+            }
+        })
+    }
+})
+
 // @route  POST /api/school/class/import
 // @desc   用户导入
 // @token  true

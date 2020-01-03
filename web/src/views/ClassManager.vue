@@ -4,11 +4,23 @@
             <el-button type="primary" :size="buttonSize" plain @click="classAdd()">班级添加</el-button>
             <el-button type="success" :size="buttonSize" plain @click="classImport()">班级导入</el-button>
             <el-button type="danger" :size="buttonSize" plain @click="classDelete()">班级删除</el-button>
+            <el-cascader class="hidden-xs-only" :props="{ checkStrictly: true }" v-model="filterCollege" :options="majorList" @change="handleSelectChange" :show-all-levels="false" clearable placeholder="根据分院专业筛选"></el-cascader>
+        </el-row>
+        <el-row class="classXsTop">
+            <el-cascader class="hidden-sm-and-up" :props="{ checkStrictly: true }" v-model="filterCollege" :options="majorList" @change="handleSelectChange" :show-all-levels="false" clearable placeholder="根据分院专业筛选"></el-cascader>
         </el-row>
         <el-table
             :data="classList"
             :row-class-name="tableRowClassName"
+            :row-key="getRowKeys"
+            @selection-change="handleSelectionChange"
+            ref="multipleTable"
             style="width: 100%">
+            <el-table-column
+                type="selection"
+                width="55"
+                :reserve-selection="true">
+            </el-table-column>
             <el-table-column
                 label="班级"
                 prop="name"
@@ -32,6 +44,15 @@
                 min-width="50">
             </el-table-column>
         </el-table>
+        <el-pagination
+            layout="prev, pager, next"
+            @current-change="handleCurrentChange"
+            :small="pageSmall"
+            :hide-on-single-page="true"
+            :current-page.sync="currentPage"
+            :page-size="listPageSize"
+            :total="listTotal">
+        </el-pagination>
 
         <!-- 班级添加 -->
         <el-dialog
@@ -100,6 +121,7 @@
                         accept=".xls,.xlsx"
                         :headers="headers"
                         :on-error="handleError"
+                        :on-change="handleChange"
                         :on-success="handleSuccess"
                         :limit="1"
                         :auto-upload="false">
@@ -130,6 +152,7 @@ export default {
             }
         }
         return {
+            options: [],
             headers: {
                 Authorization: localStorage.eleToken
             },
@@ -139,12 +162,20 @@ export default {
             majorList: [],
             teacherList: [],
             classAddForm: {},
+            file: '',
+            filterCollege: [],
+            multipleSelection: [],
             buttonSize: 'medium',
+            currentPage: 1,
             listTotal: 0,
-            listPageSize: 20,
+            listPageSize: 10,
             addDialogVisible: false,
             addDialogFullScreen: false,
             importDialogVisible: false,
+            pageSmall: false,
+            getRowKeys(row){
+                return row.classid
+            },
             addRules: {
                 classid: [
                     {
@@ -206,6 +237,56 @@ export default {
                 return 'success-row';
             }
             return '';
+        },
+        handleCurrentChange(val) {
+            // 分页切换
+            this.currentPage = val;
+            var options = {
+                filter: {
+                    isFirst: false,
+                    isPage: true,
+                    page: val,
+                    size: this.listPageSize,
+                    college: this.filterCollege
+                }
+            }
+            this.$axios
+                .get('/api/school/class', {params: options})
+                .then(res => {
+                    if(res.status == 200){
+                        this.classList = res.data.data;
+                    }
+                })
+        },
+        handleSelectChange(){
+            // 分院筛选切换
+            var options = {
+                filter: {
+                    isFirst: true,
+                    isPage: true,
+                    page: 1,
+                    size: this.listPageSize,
+                    college: this.filterCollege
+                }
+            }
+            this.$axios
+                .get('/api/school/class', {params: options})
+                .then(res => {
+                    if(res.status == 200){
+                        this.classList = res.data.data;
+                        this.listTotal = res.data.count;
+                        this.currentPage = 1;
+                    }
+                })
+                .catch(err => {
+                    this.classList.splice(0, this.classList.length);
+                    this.listTotal = 0;
+                    this.currentPage = 1;
+                })
+        },
+        handleSelectionChange(val){
+            // 表格选择
+            this.multipleSelection = val;
         },
         classAdd(){
             // 班级添加dialog
@@ -297,12 +378,26 @@ export default {
         },
         submitUpload() {
             // 班级导入
-            this.$refs.upload.submit();
-            this.loading = this.$loading({
-                lock: true,
-                text: "数据较大，请耐性等待",
-                background: 'rgba(0,0,0,0.7)'
-            });
+            if(this.isEmpty(this.file)){
+                this.$message({
+                    message: '文件不能为空',
+                    type: "error"
+                });
+            }
+            else{
+                this.$refs.upload.submit();
+                this.loading = this.$loading({
+                    lock: true,
+                    text: "数据较大，请耐性等待",
+                    background: 'rgba(0,0,0,0.7)'
+                });
+            }
+        },
+        handleChange(file,fileList){
+			// 文件添加
+            if(!this.isEmpty(file) && file.status == 'ready'){
+				this.file = file.name;
+            }
         },
         handleError(err, file, fileList){
             // 文件上传失败
@@ -343,6 +438,62 @@ export default {
                     })
             },1000);
         },
+        classDelete(){
+            // 班级删除
+            var myclass = [];
+            this.multipleSelection.forEach(item => {
+                myclass.push(item);
+            })
+            if(this.isEmpty(myclass)){
+				this.$message({
+					message: "选项不能为空",
+					type: "error"
+				});
+            }
+            var options = {
+                myclass: myclass
+            }
+            this.$axios
+                .delete('/api/school/class', {data: options})
+                .then(res => {
+					if(res.status == 200){
+						var data = res.data;
+						this.$message({
+							message: data.msg,
+							type: "success"
+						});
+                        
+                        var options = {
+                            filter: {
+                                isFirst: true,
+                                isPage: true,
+                                page: 1,
+                                size: this.listPageSize,
+                                college: this.filterCollege
+                            }
+                        }
+						var _this = this;
+                        setTimeout(function(){
+                            _this.$axios
+                                .get('/api/school/class', {params: options})
+                                .then(res => {
+                                    if(res.status == 200){
+                                        _this.classList = res.data.data;
+                                        _this.listTotal = res.data.count;
+                                        _this.currentPage = 1;
+                                    }
+                                })
+                                .catch(err => {
+                                    _this.classList.splice(0, _this.classList.length);
+                                    _this.listTotal = 0;
+                                    _this.currentPage = 1;
+                                })
+                        },1000);
+
+                        this.$refs.multipleTable.clearSelection();
+					}
+				})
+        },
         isEmpty(value){
 			return (
 				value === undefined ||
@@ -378,13 +529,13 @@ export default {
                 if(res.status == 200){
                     var data = res.data;
                     var temp = [];
-                    data.forEach((item, index) => {
-                        this.majorList[index] = {
+                    data.forEach(item => {
+                        var index = this.majorList.push({
                             value: item.collegeid,
                             label: item.name,
                             children: []
-                        }
-                        temp[item.collegeid] = index;
+                        })
+                        temp[item.collegeid] = index - 1;
                     })
                     this.$axios
                         .get('/api/school/major')
@@ -396,7 +547,7 @@ export default {
                                         value: item.majorid,
                                         label: item.name
                                     }
-                                    this.majorList[temp[item.collegeid]].children.push(child)
+                                    this.majorList[temp[item.collegeid]].children.push(child);
                                 })
                             }
                         })
@@ -406,7 +557,7 @@ export default {
         var width = $(window).width();
         if(width < 768){
             this.addDialogFullScreen = true;
-            // this.pageSmall = true;
+            this.pageSmall = true;
             var buttonParentWidth = $('.classTop .el-button').parent().width() - 20;
             var buttonWith = buttonParentWidth/3;
             $('.classTop .el-button').eq(0).css({'margin-left':'0','width':buttonWith.toString(),'padding':'12px 10px'});
@@ -455,10 +606,10 @@ export default {
     .classManager .submit_btn{
 		width: 100%;
 	}
-    .classManager .classTop .el-select{
+    .classManager .classTop .el-cascader{
         margin-left: 10px;
     }
-    .classManager .classXsTop .el-select{
+    .classManager .classXsTop .el-cascader{
         margin-top: 10px;
         width: 100%;
     }

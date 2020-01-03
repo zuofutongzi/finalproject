@@ -138,6 +138,7 @@ public class CanalClient {
             else if (table.equals("class")) {
             	RedisUtil.sadd("idx:class:major:" + cmajor, key);
             	RedisUtil.sadd("idx:class:enrol:" + cenrol, key);
+            	RedisUtil.sadd("idx:enrol", cenrol);
             }
         }
     }
@@ -195,6 +196,7 @@ public class CanalClient {
             else if (table.equals("class")) {
             	RedisUtil.srem("idx:class:major:" + cmajor, key);
             	RedisUtil.srem("idx:class:enrol:" + cenrol, key);
+            	RedisUtil.srem("idx:enrol", cenrol);
             }
         }
     }
@@ -256,6 +258,7 @@ public class CanalClient {
             else if (table.equals("class")) {
             	RedisUtil.sadd("idx:class:major:" + cmajor, key);
             	RedisUtil.sadd("idx:class:enrol:" + cenrol, key);
+            	RedisUtil.sadd("idx:enrol", cenrol);
             }
         }
     }
@@ -317,6 +320,7 @@ public class CanalClient {
             else if (table.equals("class")) {
             	RedisUtil.srem("idx:class:major:" + cmajor, key);
             	RedisUtil.srem("idx:class:enrol:" + cenrol, key);
+            	RedisUtil.srem("idx:enrol", cenrol);
             }
         }
     }

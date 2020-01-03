@@ -23,3 +23,36 @@
 2020-01-02 19:36:19 [info]: (user-delete):用户删除成功
 2020-01-02 19:45:43 [info]: (user-password):密码修改成功
 2020-01-02 19:46:04 [info]: (user-password):密码修改成功
+2020-01-03 13:27:01 [info]: (user-delete):用户删除成功
+2020-01-03 13:27:19 [info]: (user-delete):用户删除成功
+2020-01-03 13:27:34 [info]: (user-delete):用户删除成功
+2020-01-03 13:30:28 [info]: (user-import):用户导入成功
+2020-01-03 13:30:37 [info]: (user-delete):用户删除成功
+2020-01-03 13:34:27 [info]: (user-delete):用户删除成功
+2020-01-03 13:34:31 [info]: (user-delete):用户删除成功
+2020-01-03 13:35:03 [info]: (user-import):用户导入成功
+2020-01-03 13:35:12 [info]: (user-delete):用户删除成功
+2020-01-03 13:36:42 [info]: (user-import):用户导入成功
+2020-01-03 13:37:06 [error]: (school-classAdd):班级编号已存在
+2020-01-03 13:37:11 [error]: (school-classAdd):ER_DUP_ENTRY: Duplicate entry 'RG1601' for key 'PRIMARY'
+2020-01-03 13:40:16 [error]: (school-classAdd):班级编号已存在
+2020-01-03 14:17:38 [error]: (school-classImport):ERR One or more scores can't be converted into double
+2020-01-03 14:19:14 [error]: (school-classImport):ERR One or more scores can't be converted into double
+2020-01-03 14:22:11 [error]: (school-classImport):编号为J06012的教师已为其他班级班主任，请重新检查文件内容！
+2020-01-03 14:22:48 [error]: (school-classImport):JS1601班级编号已存在，请重新检查文件内容！
+2020-01-03 14:23:19 [error]: (school-classImport):专业错误，请重新检查文件内容是否符合要求！
+2020-01-03 14:25:27 [error]: (school-classImport):专业错误，请重新检查文件内容是否符合要求！
+2020-01-03 14:26:50 [error]: (school-classImport):专业错误，请重新检查文件内容是否符合要求！
+2020-01-03 14:29:04 [error]: (user-import):格式错误，请重新检查分院信息是否符合要求！
+2020-01-03 14:31:44 [info]: (user-import):用户导入成功
+2020-01-03 14:31:51 [info]: (user-import):用户导入成功
+2020-01-03 14:34:30 [info]: (user-delete):用户删除成功
+2020-01-03 14:34:40 [info]: (user-import):用户导入成功
+2020-01-03 14:39:44 [info]: (user-delete):用户删除成功
+2020-01-03 14:39:55 [info]: (user-import):用户导入成功
+2020-01-03 14:40:44 [error]: (school-classImport):格式错误，请重新检查文件内容是否符合要求！
+2020-01-03 14:41:03 [error]: (school-classImport):JS1601班级编号已存在，请重新检查文件内容！
+2020-01-03 14:43:11 [error]: (school-classImport):有教师编号重复出现，请重新检查文件内容！
+2020-01-03 16:50:26 [error]: (user-import):T10001用户已存在，请重新检查文件内容并修改！
+2020-01-03 17:11:24 [error]: (school-classDelete):ER_ROW_IS_REFERENCED_2: Cannot delete or update a parent row: a foreign key constraint fails (`user`.`teacher`, CONSTRAINT `teaclassid` FOREIGN KEY (`classid`) REFERENCES `class` (`classid`))
+2020-01-03 17:27:30 [error]: (school-classAdd):班级编号已存在

@@ -48,14 +48,41 @@ function majorList(msg, done){
 //         isFirst: Boolean,
 //         isPage: Boolean,
 //         page: Number/null,
-//         size: Number/null
+//         size: Number/null,
+//         college: Array
 //     }
 // }
-function classList(msg, done){
+async function classList(msg, done){
     var filter = JSON.parse(msg.filter);
     var res = {count: 0, data: []};
     var options = [];
+    var tempKey =  'temp:class:' + (new Date()).getTime()
     options = options.concat(['idx:class','alpha','get','class:*'])
+    // 将分院下的班级并集
+    var union = async () => {
+        var options = await new Promise((resolve) => {
+            redis.sort('idx:major:college:' + filter.college[0], (err, keys) => {
+                var temp = [];
+                keys.forEach(item => {
+                    temp.push('idx:class:major:' + item);
+                })
+                // 建立临时表
+                redis.sunionstore(tempKey, temp, (err, keys) => {
+                    resolve([tempKey, 'alpha', 'get', 'class:*'])
+                })
+            })
+        })
+        return options;
+    }
+    // 分院专业筛选
+    if(filter.college && filter.college.length != 0){
+        if(filter.college.length == 1){
+            options = await union();
+        }
+        else if(filter.college.length == 2){
+            options = ['idx:class:major:' + filter.college[1], 'alpha', 'get', 'class:*'];
+        }
+    }
     // 第一次访问接口获取列表总条数
     if(filter.isFirst){
         redis.sort(options, (err, keys) => {
@@ -119,6 +146,9 @@ function classList(msg, done){
             done(null, res)
         }
     })
+
+    // 临时表删除
+    redis.del(tempKey)
 }
 
 // 班级添加
@@ -210,12 +240,87 @@ async function classAdd(msg, done){
     mysql.release();
 }
 
+// 班级删除
+// var options = {
+//     myclass: Array
+// }
+async function classDelete(msg, done){
+    var { myclass } = msg;
+
+    var deletesql = 'delete from class where classid in (';
+    var delete_params = [];
+    var updatesql = 'update teacher set '
+    var classTeacher = '';
+    var classid = '';
+    var userid = '(';
+    for(var i = 0; i < myclass.length; i++){
+        if(i == 0){
+            deletesql += ' ?';
+        }
+        else{
+            deletesql += ', ?';
+        }
+        delete_params.push(myclass[i].classid);
+        classTeacher += 'when "' + myclass[i].teacherid + '" then "false" ';
+        classid += 'when "' + myclass[i].teacherid + '" then NULL ';
+        userid += '"' + myclass[i].teacherid + '",';
+    }
+    deletesql += ')';
+    updatesql += 'classTeacher = case userid ' + classTeacher + ' end, classid = case userid ' + classid + ' end ';
+    userid = userid.slice(0, userid.length - 1);
+    userid += ')';
+    updatesql += 'where userid in' + userid;
+
+    const mysql = await connectHandler();
+
+    mysql.beginTransaction(err => {
+        if(err){
+            logger.error('(school-classDelete):' + err.message);
+            done(new Error('班级删除失败！'))
+        }
+        else{
+            mysql.query(updatesql, (err, result) => {
+                if(err){
+                    //回滚事务
+                    mysql.rollback(() => {
+                        logger.error('(school-classDelete):' + err.message);
+                        done(new Error('班级删除失败！'))
+                    });
+                }
+                else{
+                    mysql.query(deletesql, delete_params, (err, result) => {
+                        if(err){
+                            //回滚事务
+                            mysql.rollback(() => {
+                                logger.error('(school-classDelete):' + err.message);
+                                done(new Error('班级删除失败！'))
+                            });
+                        }
+                        else{
+                            //提交事务
+                            mysql.commit(function(err) {
+                                if(err){
+                                    mysql.rollback(() => {
+                                        logger.error('(school-classDelete):' + err.message);
+                                        done(new Error('班级删除失败！'))
+                                    });
+                                }
+                            });
+                            done(null, {msg: '班级删除成功！'})
+                        }
+                    })
+                }
+            })
+        }
+    })
+
+    mysql.release();
+}
+
 // 未找到使用seneca实现文件上传下载的方法，另增加express接口
 // 班级导入
 router.post('/school/class/import', async (msg, done) => {
     try{
-        const mysql = await connectHandler();
-
         var classIndex = 0; // 对应班级下标
         var majorIndex = 2; // 对应专业下标
         var teacherIndex = 3; // 对应教师下标
@@ -268,13 +373,55 @@ router.post('/school/class/import', async (msg, done) => {
             return list;
         }
         var majorList = await major();
+
+        // 获取班主任列表
+        var teacher = async () => {
+            var list = await new Promise((resolve) => {
+                redis.sort('idx:teacher', 'alpha', 'get', 'teacher:*', (err, keys) => {
+                    var list = [];
+                    keys.forEach(item => {
+                        item = JSON.parse(item);
+                        if(item.classTeacher == 'true'){
+                            list.push(item.userid);
+                        }
+                    })
+                    resolve(list);
+                })
+            })
+            return list;
+        }
+        var teacherId = await teacher();
+
+        // 获取班级列表
+        var myclass = async () => {
+            var list = await new Promise((resolve) => {
+                redis.sort('idx:class', 'alpha', (err, keys) => {
+                    resolve(keys);
+                })
+            })
+            return list;
+        }
+        var classList = await myclass();
         
         insert = 'insert into class(classid, name, majorid, teacherid, enrol) values ';
         update = 'update teacher set ';
         var classTeacher = '';
         var classid = '';
         var userid = '(';
+        var newTeacher = [];
         data.forEach(item => {
+            // 数据不能有空项
+            item = item.filter((value) => {    
+                return !(
+                    value === undefined ||
+                    value === null ||
+                    (typeof value === 'object' && Object.keys(value).length === 0) ||
+                    (typeof value === 'string' && value.trim().length === 0)
+                )
+            })
+            if(item.length != rule.length){
+                throw new Error('格式错误，请重新检查文件内容是否符合要求！')
+            }
             // 判断数据中的专业信息是否正确
             var index = majorList.findIndex(value => {
                 return value.name == item[majorIndex];
@@ -285,6 +432,19 @@ router.post('/school/class/import', async (msg, done) => {
             else{
                 // 专业替换成专业编号
                 item[majorIndex] = majorList[index].majorid;
+
+                // 判断教师编号是否重复，判断教师是否已经为班主任
+                if(teacherId.indexOf(item[teacherIndex]) != -1){
+                    throw new Error('编号为' + item[teacherIndex] + '的教师已为其他班级班主任，请重新检查文件内容！')
+                }
+                if(newTeacher.indexOf(item[teacherIndex]) == -1){
+                    newTeacher.push(item[teacherIndex])
+                }
+
+                // 判断班级编号是否存在
+                if(classList.indexOf(item[classIndex]) != -1){
+                    throw new Error(item[classIndex] + '班级编号已存在，请重新检查文件内容！')
+                }
 
                 insert += '('
                 for(var i = 0; i < item.length; i++){
@@ -307,9 +467,13 @@ router.post('/school/class/import', async (msg, done) => {
         userid = userid.slice(0, userid.length - 1);
         userid += ')';
         update += 'where userid in' + userid;
-
         insert = insert.slice(0, insert.length - 1);
 
+        if(newTeacher.length != data.length){
+            throw new Error('有教师编号重复出现，请重新检查文件内容！')
+        }
+
+        const mysql = await connectHandler();
         mysql.beginTransaction(err => {
             if(err){
                 logger.error('(school-classImport):' + err.message);
@@ -343,7 +507,6 @@ router.post('/school/class/import', async (msg, done) => {
                                         });
                                     }
                                 });
-                                //释放连接
                                 done.send({msg: '班级导入成功！'})
                             }
                         })
@@ -366,5 +529,6 @@ module.exports = {
     majorList: majorList,
     classList: classList,
     classAdd: classAdd,
+    classDelete: classDelete,
     router: router
 }
