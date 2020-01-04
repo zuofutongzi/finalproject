@@ -4,7 +4,7 @@
             <el-button type="primary" :size="buttonSize" plain @click="teacherAdd()">教师添加</el-button>
             <el-button type="success" :size="buttonSize" plain @click="teacherImport()">教师导入</el-button>
             <el-button type="danger" :size="buttonSize" plain @click="teacherDelete()">教师删除</el-button>
-            <el-select class="hidden-xs-only" v-model="filterCollege" @change="handleSelectChange" clearable placeholder="按分院筛选">
+            <el-select class="hidden-xs-only" v-model="filterCollege" @change="handleSelectChange" clearable placeholder="根据分院筛选">
                 <el-option
                     v-for="item in college"
                     :key="item.collegeid"
@@ -14,7 +14,7 @@
             </el-select>
         </el-row>
         <el-row class="teacherXsTop">
-            <el-select class="hidden-sm-and-up" v-model="filterCollege" @change="handleSelectChange" clearable placeholder="按分院筛选">
+            <el-select class="hidden-sm-and-up" v-model="filterCollege" @change="handleSelectChange" clearable placeholder="根据分院筛选">
                 <el-option
                     v-for="item in college"
                     :key="item.collegeid"

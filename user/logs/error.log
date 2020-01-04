@@ -21,3 +21,15 @@
 2020-01-03 16:50:26 [error]: (user-import):T10001用户已存在，请重新检查文件内容并修改！
 2020-01-03 17:11:24 [error]: (school-classDelete):ER_ROW_IS_REFERENCED_2: Cannot delete or update a parent row: a foreign key constraint fails (`user`.`teacher`, CONSTRAINT `teaclassid` FOREIGN KEY (`classid`) REFERENCES `class` (`classid`))
 2020-01-03 17:27:30 [error]: (school-classAdd):班级编号已存在
+2020-01-04 13:20:43 [error]: (user-delete):ER_ROW_IS_REFERENCED_2: Cannot delete or update a parent row: a foreign key constraint fails (`user`.`class`, CONSTRAINT `clteacherid` FOREIGN KEY (`teacherid`) REFERENCES `teacher` (`userid`))
+2020-01-04 15:42:29 [error]: (user-import):classList.index is not a function
+2020-01-04 15:43:21 [error]: (user-import):classList.index is not a function
+2020-01-04 15:43:51 [error]: (user-import):Cannot read property 'indexOf' of undefined
+2020-01-04 15:45:52 [error]: (user-import):Cannot read property 'indexOf' of undefined
+2020-01-04 15:46:12 [error]: (user-import):Cannot read property 'indexOf' of undefined
+2020-01-04 15:46:27 [error]: (user-import):Cannot read property 'indexOf' of undefined
+2020-01-04 15:47:30 [error]: (user-import):格式错误，请重新检查班级信息是否符合要求！
+2020-01-04 15:49:01 [error]: (user-import):Cannot read property 'indexOf' of undefined
+2020-01-04 15:49:51 [error]: (user-import):Cannot read property 'indexOf' of undefined
+2020-01-04 15:52:22 [error]: (user-import):ER_PARSE_ERROR: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '31401366,'$2a$10$n0OcdY8uvgS1iZ.M.M9jX.H6ivzU9N4gNjRHi0Rl5B/jrriJARy.i','雷震'' at line 1
+2020-01-04 15:54:51 [error]: (user-import):ER_BAD_FIELD_ERROR: Unknown column 'uerid' in 'field list'

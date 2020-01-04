@@ -77,16 +77,49 @@ function list(msg, done){
                 })
                 return name;
             }
+            var detail = async (value) => {
+                var myclass = await new Promise((resolve) => {
+                    redis.mget('class:' + value.classid, (err, res) => {
+                        if(err){
+                            logger.error('(user-list):' + err.message);
+                            done(new Error('数据库访问失败，请稍后再试...'))
+                        }
+                        else{
+                            resolve(JSON.parse(res[0]))
+                        }
+                    })
+                })
+                var major = await new Promise((resolve) => {
+                    redis.mget('major:' + myclass.majorid, (err, res) => {
+                        if(err){
+                            logger.error('(user-list):' + err.message);
+                            done(new Error('数据库访问失败，请稍后再试...'))
+                        }
+                        else{
+                            resolve(JSON.parse(res[0]))
+                        }
+                    })
+                })
+                var collegeName = await college({collegeid: major.collegeid});
+                return {
+                    enrol: myclass.enrol,
+                    className: myclass.name,
+                    majorName: major.name,
+                    collegeName: collegeName
+                }
+            }
             for(var i = 0; i < keys.length; i++){
                 var item = JSON.parse(keys[i]);
-                // if(identity == 'teacher'){
-                //     item.college = await college(item);
-                // }
                 switch(identity){
                     case 'teacher':
                         item.college = await college(item);
                         break;
                     case 'student':
+                        var userDetail = await detail(item);
+                        item.enrol = userDetail.enrol;
+                        item.class = userDetail.className;
+                        item.major = userDetail.majorName;
+                        item.college = userDetail.collegeName;
                         break;
                 }
                 delete item.password;
@@ -107,20 +140,23 @@ function list(msg, done){
 //     sex: String, 
 //     nation: String, 
 //     politicalStatus: String, 
-//     IDcard: String, 
+//     IDcard: String,
+//     classid: String/null,
 //     collegeid: String/null, 
 //     eduBackground: String/null, 
 //     professionalTitle: String/null, 
-//     enrol: String,
+//     enrol: String/null,
 //     identity: String
 // }
 async function register(msg, done){
     const mysql = await connectHandler();
 
     // 共有信息
-    var { identity, userid, password, name, sex, nation, politicalStatus, IDcard, enrol } = msg;
+    var { identity, userid, password, name, sex, nation, politicalStatus, IDcard } = msg;
     // 教师专有信息
-    var { collegeid, eduBackground, professionalTitle } = msg;
+    var { collegeid, eduBackground, professionalTitle, enrol } = msg;
+    // 学生专有信息
+    var { classid } = msg;
 
     // 生日生成
     var year = IDcard.slice(6,10);
@@ -160,6 +196,9 @@ async function register(msg, done){
                     insert_params = [userid,password,name,sex,nation,politicalStatus,IDcard,enrol,collegeid,eduBackground,professionalTitle,birthday];
                     break;
                 case 'student':
+                    insert = 'insert into student(userid,password,name,sex,nation,politicalStatus,IDcard,birthday,classid) ';
+                    insert += 'values(?,?,?,?,?,?,?,?,?)';
+                    insert_params = [userid,password,name,sex,nation,politicalStatus,IDcard,birthday,classid];
                     break;
                 default:
                     done(new Error('添加对象身份类型错误！'))
@@ -258,6 +297,13 @@ router.post('/user/import', async (msg, done) => {
                 rule = [ '教师账号', '密码', '姓名', '性别', '民族', '政治面貌', '身份证', '学院', '教育背景', '职称', '入职年份' ];
                 break;
             case 'student':
+                idcardIndex = 6;
+                useridIndex = 0;
+                passwordIndex = 1;
+                collegeClassIndex = 7;
+                arrLength = 8;
+                insert = 'insert ignore into student(userid, password, name, sex, nation, politicalStatus, IDcard, classid, birthday) values ';
+                rule = ['学生账号', '密码', '姓名', '性别', '民族', '政治面貌', '身份证', '班级编号'];
                 break;
             default:
                 throw new Error('添加对象身份类型错误！')
@@ -296,14 +342,40 @@ router.post('/user/import', async (msg, done) => {
             })
             return college;
         }
-        var { collegeName, collegeId } = await getCollege();
-        // 判断分院是否正确
-        var incollege = data.filter((value) => {
-            return collegeName.indexOf(value[collegeClassIndex]) != -1
-        })
-        if(incollege.length != data.length){
-            throw new Error("格式错误，请重新检查分院信息是否符合要求！")
+        // 班级获取
+        var getClass = async () => {
+            var myclass = await new Promise((resolve) => {
+                redis.sort('idx:class', 'alpha', (err, key) => {
+                    resolve(key);
+                })
+            })
+            return myclass;
         }
+        switch(identity){
+            case 'teacher':
+                var { collegeName, collegeId } = await getCollege();
+                // 判断分院是否正确
+                var incollege = data.filter((value) => {
+                    return collegeName.indexOf(value[collegeClassIndex].toString()) != -1
+                })
+                if(incollege.length != data.length){
+                    throw new Error("格式错误，请重新检查分院信息是否符合要求！")
+                }
+                break;
+            case 'student':
+                var classList = await getClass();
+                // 判断班级是否存在
+                var inclass = data.filter((value) => {
+                    return classList.indexOf(value[collegeClassIndex].toString()) != -1
+                })
+                if(inclass.length != data.length){
+                    throw new Error("格式错误，请重新检查班级信息是否符合要求！")
+                }
+                break;
+            default:
+                throw new Error('添加对象身份类型错误！')
+        }
+        
         // 用户获取
         var getUser = async () => {
             var user = await new Promise((resolve) => {
@@ -339,8 +411,10 @@ router.post('/user/import', async (msg, done) => {
             // 密码加密
             item[passwordIndex] = bcrypt.hashSync(item[passwordIndex].toString(), key.saltRounds);
             // 分院编号
-            var index = collegeName.indexOf(item[collegeClassIndex]);
-            item[collegeClassIndex] = collegeId[index];
+            if(identity == 'teacher'){
+                var index = collegeName.indexOf(item[collegeClassIndex].toString());
+                item[collegeClassIndex] = collegeId[index];
+            }
             // 生日生成
             var year = item[idcardIndex].slice(6,10);
             var month = item[idcardIndex].slice(10,12);

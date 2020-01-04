@@ -39,8 +39,8 @@ router.get('/user', passport.authenticate('jwt', {session: false}), (req, done) 
 // @return msg
 // @access manager
 // @params { userid: String, password: String, name: String, sex: String, nation: String, 
-//           politicalStatus: String, IDcard: String, collegeid: String/null, eduBackground: String/null, 
-//           professionalTitle: String/null, enrol: String, identity: String }
+//           politicalStatus: String, IDcard: String, classid: String/null, collegeid: String/null, eduBackground: String/null, 
+//           professionalTitle: String/null, enrol: String/null, identity: String }
 router.post('/user', passport.authenticate('jwt', {session: false}), (req, done) => {
     if(req.user.identity != 'manager'){
         done.status(500).send('没有权限！')

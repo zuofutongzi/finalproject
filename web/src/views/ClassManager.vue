@@ -22,17 +22,24 @@
                 :reserve-selection="true">
             </el-table-column>
             <el-table-column
+                label="编号"
+                prop="classid"
+                min-width="60">
+            </el-table-column>
+            <el-table-column
                 label="班级"
                 prop="name"
-                min-width="100">
+                min-width="60">
             </el-table-column>
             <el-table-column
                 label="年级"
-                prop="enrol">
+                prop="enrol"
+                min-width="60">
             </el-table-column>
             <el-table-column
                 label="班主任"
-                prop="teacher">
+                prop="teacher"
+                min-width="60">
             </el-table-column>
             <el-table-column
                 label="专业"
@@ -345,7 +352,8 @@ export default {
                                         isFirst: true,
                                         isPage: true,
                                         page: 1,
-                                        size: this.listPageSize
+                                        size: this.listPageSize,
+                                        college: this.filterCollege
                                     }
                                 }
                                 var _this = this;
