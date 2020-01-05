@@ -21,23 +21,131 @@ const redis = key.redis
 //         college: String/null
 //     }
 // }
-// 当前筛选仅包含教师
-function list(msg, done){
+async function list(msg, done){
     var { identity } = msg;
     var filter = JSON.parse(msg.filter);
     var res = {count: 0, data: []};
-    var options = [];
-    var redisKey = 'idx:' + identity;
+    var options = ['idx:' + identity, 'alpha', 'get', identity + ':*'];
+    var tempClassKey =  'temp:class:' + (new Date()).getTime() // 临时表
+    var tempStudentKey =  'temp:student:' + (new Date()).getTime() // 临时表
+    // 将分院下的学生并集
+    var unionCollege = async (college) => {
+        var options = await new Promise((resolve) => {
+            redis.sort('idx:major:college:' + college[0], (err, keys) => {
+                if(err){
+                    logger.error('(user-list):' + err.message);
+                    done(new Error('数据库访问失败，请稍后再试...'))
+                }
+                else if(keys.length == 0){
+                    done(new Error('当前分院下没有学生'))
+                }
+                else{
+                    var temp = [];
+                    keys.forEach(item => {
+                        temp.push('idx:class:major:' + item);
+                    })
+                    // 建立临时表
+                    redis.sunionstore(tempClassKey, temp, (err, keys) => {
+                        if(err){
+                            logger.error('(user-list):' + err.message);
+                            done(new Error('数据库访问失败，请稍后再试...'))
+                        }
+                        else if(keys == 0){
+                            done(new Error('当前分院下没有学生'))
+                        }
+                        else{
+                            redis.sort(tempClassKey, 'alpha', (err, keys) => {
+                                if(err){
+                                    logger.error('(user-list):' + err.message);
+                                    done(new Error('数据库访问失败，请稍后再试...'))
+                                }
+                                else if(keys.length == 0){
+                                    done(new Error('当前分院下没有学生'))
+                                }
+                                else{
+                                    var tempClass = [];
+                                    keys.forEach(item => {
+                                        tempClass.push('idx:student:class:' + item)
+                                    })
+                                    redis.sunionstore(tempStudentKey, tempClass, (err, keys) => {
+                                        if(err){
+                                            logger.error('(user-list):' + err.message);
+                                            done(new Error('数据库访问失败，请稍后再试...'))
+                                        }
+                                        else if(keys == 0){
+                                            done(new Error('当前分院下没有学生'))
+                                        }
+                                        else{
+                                            resolve([tempStudentKey, 'alpha', 'get', 'student:*'])
+                                        }
+                                    })
+                                }
+                            })
+                        }
+                        
+                    })
+                }
+                
+            })
+        })
+        return options;
+    }
+    // 将专业下的班级并集
+    var unionMajor = async (college) => {
+        var options = await new Promise((resolve) => {
+            redis.sort('idx:class:major:' + college[1], 'alpha', (err, keys) => {
+                if(err){
+                    logger.error('(user-list):' + err.message);
+                    done(new Error('数据库访问失败，请稍后再试...'))
+                }
+                else if(keys.length == 0){
+                    done(new Error('当前专业下没有学生'))
+                }
+                else{
+                    var temp = [];
+                    keys.forEach(item => {
+                        temp.push('idx:student:class:' + item);
+                    })
+                    // 建立临时表
+                    redis.sunionstore(tempClassKey, temp, (err, keys) => {
+                        if(err){
+                            logger.error('(user-list):' + err.message);
+                            done(new Error('数据库访问失败，请稍后再试...'))
+                        }
+                        else if(keys == 0){
+                            done(new Error('当前专业下没有学生'))
+                        }
+                        else{
+                            resolve([tempClassKey, 'alpha', 'get', 'student:*'])
+                        }
+                    })
+                }
+            })
+        })
+        return options;
+    }
+    // 分院过滤
     if(filter.college){
         switch(identity){
             case 'teacher':
-                redisKey += ':college:' + filter.college;
+                options = ['idx:teacher:college:' + filter.college, 'alpha', 'get', identity + ':*'];
                 break;
             case 'student':
+                if(filter.college.length == 1){
+                    options = await unionCollege(filter.college);
+                }
+                else if(filter.college.length == 2){
+                    options = await unionMajor(filter.college);
+                }
+                else if(filter.college.length == 3){
+                    options = ['idx:student:class:' + filter.college[2], 'alpha', 'get', 'student:*'];
+                }
+                break;
+            default:
+                done(new Error('添加对象身份类型错误！'))
                 break;
         }
     }
-    options = options.concat([redisKey, 'alpha', 'get', identity + ':*']);
     // 第一次访问接口获取列表总条数
     if(filter.isFirst){
         redis.sort(options, (err, keys) => {
@@ -77,7 +185,7 @@ function list(msg, done){
                 })
                 return name;
             }
-            var detail = async (value) => {
+            var getclass = async (value) => {
                 var myclass = await new Promise((resolve) => {
                     redis.mget('class:' + value.classid, (err, res) => {
                         if(err){
@@ -86,6 +194,21 @@ function list(msg, done){
                         }
                         else{
                             resolve(JSON.parse(res[0]))
+                        }
+                    })
+                })
+                return myclass
+            }
+            var studentDetail = async (value) => {
+                var myclass = await getclass(value);
+                var classTeacher = await new Promise((resolve) => {
+                    redis.mget('teacher:' + myclass.teacherid, (err, res) => {
+                        if(err){
+                            logger.error('(user-list):' + err.message);
+                            done(new Error('数据库访问失败，请稍后再试...'))
+                        }
+                        else{
+                            resolve(JSON.parse(res[0]).name)
                         }
                     })
                 })
@@ -105,7 +228,8 @@ function list(msg, done){
                     enrol: myclass.enrol,
                     className: myclass.name,
                     majorName: major.name,
-                    collegeName: collegeName
+                    collegeName: collegeName,
+                    classTeacher: classTeacher
                 }
             }
             for(var i = 0; i < keys.length; i++){
@@ -113,13 +237,18 @@ function list(msg, done){
                 switch(identity){
                     case 'teacher':
                         item.college = await college(item);
+                        if(item.classTeacher == 'true'){
+                            var myclass = await getclass(item);
+                            item.class = myclass.name;
+                        }
                         break;
                     case 'student':
-                        var userDetail = await detail(item);
+                        var userDetail = await studentDetail(item);
                         item.enrol = userDetail.enrol;
                         item.class = userDetail.className;
                         item.major = userDetail.majorName;
                         item.college = userDetail.collegeName;
+                        item.classTeacher = userDetail.classTeacher;
                         break;
                 }
                 delete item.password;
@@ -130,6 +259,10 @@ function list(msg, done){
             done(null, res)
         }
     })
+
+    // 删除临时表
+    redis.del(tempClassKey)
+    redis.del(tempStudentKey)
 }
 
 // 用户注册(单条)
@@ -400,7 +533,7 @@ router.post('/user/import', async (msg, done) => {
                 throw new Error('格式错误，请重新检查文件内容是否符合要求！')
             }
             // 判断用户是否已经存在
-            if(user.indexOf(item[useridIndex]) != -1){
+            if(user.indexOf(item[useridIndex].toString()) != -1){
                 throw new Error(item[useridIndex] + '用户已存在，请重新检查文件内容并修改！')
             }
             // 账号规格
@@ -409,6 +542,7 @@ router.post('/user/import', async (msg, done) => {
                 throw new Error('格式错误，请重新检查文件内容是否符合要求！')
             }
             // 密码加密
+            // 加密速度很慢
             item[passwordIndex] = bcrypt.hashSync(item[passwordIndex].toString(), key.saltRounds);
             // 分院编号
             if(identity == 'teacher'){
@@ -474,28 +608,84 @@ function detail(msg, done){
         }
         else{
             var data = JSON.parse(res);
-            // 教师信息：将分院号转换成分院名称
-            if(identity == 'teacher'){
-                var college = async (value) => {
-                    var name = await new Promise((resolve) => {
-                        redis.mget('college:' + value.collegeid, (err, res) => {
+            var college = async (value) => {
+                var name = await new Promise((resolve) => {
+                    redis.mget('college:' + value.collegeid, (err, res) => {
+                        if(err){
+                            logger.error('(user-detail):' + err.message);
+                            done(new Error('数据库访问失败，请稍后再试...'))
+                        }
+                        else{
                             resolve(JSON.parse(res[0]).name);
-                        })
+                        }
                     })
-                    return name;
-                }
-                var myclass = async (value) => {
-                    var name = await new Promise((resolve) => {
-                        redis.mget('class:' + value.classid, (err, res) => {
-                            resolve(JSON.parse(res[0]).name);
-                        })
+                })
+                return name;
+            }
+            var getclass = async (value) => {
+                var myclass = await new Promise((resolve) => {
+                    redis.mget('class:' + value.classid, (err, res) => {
+                        if(err){
+                            logger.error('(user-detail):' + err.message);
+                            done(new Error('数据库访问失败，请稍后再试...'))
+                        }
+                        else{
+                            resolve(JSON.parse(res[0]))
+                        }
                     })
-                    return name;
+                })
+                return myclass
+            }
+            var studentDetail = async (value) => {
+                var myclass = await getclass(value);
+                var classTeacher = await new Promise((resolve) => {
+                    redis.mget('teacher:' + myclass.teacherid, (err, res) => {
+                        if(err){
+                            logger.error('(user-list):' + err.message);
+                            done(new Error('数据库访问失败，请稍后再试...'))
+                        }
+                        else{
+                            resolve(JSON.parse(res[0]).name)
+                        }
+                    })
+                })
+                var major = await new Promise((resolve) => {
+                    redis.mget('major:' + myclass.majorid, (err, res) => {
+                        if(err){
+                            logger.error('(user-list):' + err.message);
+                            done(new Error('数据库访问失败，请稍后再试...'))
+                        }
+                        else{
+                            resolve(JSON.parse(res[0]))
+                        }
+                    })
+                })
+                var collegeName = await college({collegeid: major.collegeid});
+                return {
+                    enrol: myclass.enrol,
+                    className: myclass.name,
+                    majorName: major.name,
+                    collegeName: collegeName,
+                    classTeacher: classTeacher
                 }
-                data.college = await college(data);
-                if(data.classTeacher == 'true'){
-                    data.class = await myclass(data);
-                }
+            }
+            switch(identity){
+                case 'teacher':
+                    data.college = await college(data);
+                    if(data.classTeacher == 'true'){
+                        data.class = (await getclass(data)).name;
+                    }
+                    break;
+                case 'student':
+                    var userDetail = await studentDetail(data);
+                    data.enrol = userDetail.enrol;
+                    data.class = userDetail.className;
+                    data.major = userDetail.majorName;
+                    data.college = userDetail.collegeName;
+                    data.classTeacher = userDetail.classTeacher;
+                    break;
+                default:
+                    done(new Error('添加对象身份类型错误！'))
             }
             // 请求自己信息，将密码去除返回
             // 请求他人信息，将隐私信息去除返回

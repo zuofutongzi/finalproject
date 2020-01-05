@@ -49,7 +49,7 @@ function majorList(msg, done){
 //         isPage: Boolean,
 //         page: Number/null,
 //         size: Number/null,
-//         college: Array
+//         college: Array/null
 //     }
 // }
 async function classList(msg, done){

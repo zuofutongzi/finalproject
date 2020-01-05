@@ -458,49 +458,51 @@ export default {
 					type: "error"
 				});
             }
-            var options = {
-                myclass: myclass
-            }
-            this.$axios
-                .delete('/api/school/class', {data: options})
-                .then(res => {
-					if(res.status == 200){
-						var data = res.data;
-						this.$message({
-							message: data.msg,
-							type: "success"
-						});
-                        
-                        var options = {
-                            filter: {
-                                isFirst: true,
-                                isPage: true,
-                                page: 1,
-                                size: this.listPageSize,
-                                college: this.filterCollege
+            else{
+                var options = {
+                    myclass: myclass
+                }
+                this.$axios
+                    .delete('/api/school/class', {data: options})
+                    .then(res => {
+                        if(res.status == 200){
+                            var data = res.data;
+                            this.$message({
+                                message: data.msg,
+                                type: "success"
+                            });
+                            
+                            var options = {
+                                filter: {
+                                    isFirst: true,
+                                    isPage: true,
+                                    page: 1,
+                                    size: this.listPageSize,
+                                    college: this.filterCollege
+                                }
                             }
-                        }
-						var _this = this;
-                        setTimeout(function(){
-                            _this.$axios
-                                .get('/api/school/class', {params: options})
-                                .then(res => {
-                                    if(res.status == 200){
-                                        _this.classList = res.data.data;
-                                        _this.listTotal = res.data.count;
+                            var _this = this;
+                            setTimeout(function(){
+                                _this.$axios
+                                    .get('/api/school/class', {params: options})
+                                    .then(res => {
+                                        if(res.status == 200){
+                                            _this.classList = res.data.data;
+                                            _this.listTotal = res.data.count;
+                                            _this.currentPage = 1;
+                                        }
+                                    })
+                                    .catch(err => {
+                                        _this.classList.splice(0, _this.classList.length);
+                                        _this.listTotal = 0;
                                         _this.currentPage = 1;
-                                    }
-                                })
-                                .catch(err => {
-                                    _this.classList.splice(0, _this.classList.length);
-                                    _this.listTotal = 0;
-                                    _this.currentPage = 1;
-                                })
-                        },1000);
+                                    })
+                            },1000);
 
-                        this.$refs.multipleTable.clearSelection();
-					}
-				})
+                            this.$refs.multipleTable.clearSelection();
+                        }
+                    })
+            }
         },
         isEmpty(value){
 			return (

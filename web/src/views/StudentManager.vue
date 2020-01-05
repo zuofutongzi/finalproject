@@ -4,11 +4,24 @@
             <el-button type="primary" :size="buttonSize" plain @click="studentAdd()">学生添加</el-button>
             <el-button type="success" :size="buttonSize" plain @click="studentImport()">学生导入</el-button>
             <el-button type="danger" :size="buttonSize" plain @click="studentDelete()">学生删除</el-button>
+            <el-cascader class="hidden-xs-only" :props="{ checkStrictly: true }" v-model="filterCollege" :options="majorList" @change="handleSelectChange" :show-all-levels="false" clearable placeholder="根据分院专业班级筛选"></el-cascader>
+        </el-row>
+        <el-row class="studentXsTop">
+            <el-cascader class="hidden-sm-and-up" :props="{ checkStrictly: true }" v-model="filterCollege" :options="majorList" @change="handleSelectChange" :show-all-levels="false" clearable placeholder="根据分院专业班级筛选"></el-cascader>
         </el-row>
         <el-table
             :data="userList"
             :row-class-name="tableRowClassName"
+            ref="multipleTable"
+            @selection-change="handleSelectionChange"
+            @row-click="handleRowClick"
+            :row-key="getRowKeys"
             style="width: 100%">
+            <el-table-column
+                type="selection"
+                width="55"
+                :reserve-selection="true">
+            </el-table-column>
             <el-table-column
                 label="姓名"
                 prop="name"
@@ -76,18 +89,8 @@
                         <el-form-item label="身份证" prop="IDcard">
                             <el-input v-model="userAdd.IDcard"></el-input>
                         </el-form-item>
-                        <el-form-item label="专业" prop="major">
-                            <el-cascader v-model="userAdd.major" :options="majorList" @change="studentAddMajorChange" :show-all-levels="false"></el-cascader>
-                        </el-form-item>
                         <el-form-item label="班级" prop="classid">
-                            <el-select v-model="userAdd.classid" placeholder="请先选择专业">
-                                <el-option
-                                    v-for="item in classList"
-                                    :key="item.value"
-                                    :label="item.label"
-                                    :value="item.value">
-                                </el-option>
-                            </el-select>
+                            <el-cascader v-model="userAdd.classid" :options="majorList" @change="studentAddMajorChange" :show-all-levels="false"></el-cascader>
                         </el-form-item>
                         <el-form-item>
 					    	<el-button type="primary" class="submit_btn" @click="submitAddForm('addForm')">添加</el-button>
@@ -129,6 +132,83 @@
 				</el-col>
 			</el-row>
 		</el-dialog>
+
+        <!-- 学生信息 -->
+        <el-dialog
+			:visible.sync="detailDialogVisible"
+            :fullscreen="true"
+			title="学生信息"
+			center>
+			<el-row class="studentDetail">
+				<el-col :xs='{span: 24}' :sm='{span: 16, offset: 4}'>
+                    <el-collapse v-model="collapse" accordion>
+                        <el-collapse-item name="1">
+                            <template slot="title">
+                                <div class="marker blue"></div>个人信息
+                            </template>
+                            <el-form :model="userDetail" label-position="left" label-width="100px" class="userDetailForm">
+                                <el-form-item label="学生编号">
+                                    {{ userDetail.userid }}
+                                </el-form-item>
+                                <el-form-item label="姓名">
+                                    {{ userDetail.name }}
+                                </el-form-item>
+                                <el-form-item label="性别">
+                                    {{ userDetail.sex }}
+                                </el-form-item>
+                                <el-form-item label="民族">
+                                    {{ userDetail.nation }}
+                                </el-form-item>
+                                <el-form-item label="政治面貌">
+                                    {{ userDetail.politicalStatus }}
+                                </el-form-item>
+                            </el-form>
+                        </el-collapse-item>
+                        <el-collapse-item name="2">
+                            <template slot="title">
+                                <div class="marker green"></div>专业信息
+                            </template>
+                            <el-form :model="userDetail" label-position="left" label-width="100px" class="userDetailForm">
+                                <el-form-item label="学院">
+                                    {{ userDetail.college }}
+                                </el-form-item>
+                                <el-form-item label="专业">
+                                    {{ userDetail.major }}
+                                </el-form-item>
+                                <el-form-item label="入学年份">
+                                    {{ userDetail.enrol }}
+                                </el-form-item>
+                                <el-form-item label="班主任">
+                                    {{ userDetail.classTeacher }}
+                                </el-form-item>
+                                <el-form-item label="班级">
+                                    {{ userDetail.class }}
+                                </el-form-item>
+                            </el-form>
+                        </el-collapse-item>
+                        <el-collapse-item name="3">
+                            <template slot="title">
+                                <div class="marker red"></div>联系方式
+                            </template>
+                            <el-form :model="userDetail" label-position="left" label-width="100px" class="userDetailForm">
+                                <el-form-item label="电话">
+                                    {{ userDetail.phone }}
+                                </el-form-item>
+                                <el-form-item label="邮箱">
+                                    {{ userDetail.email }}
+                                </el-form-item>
+                                <el-form-item label="qq">
+                                    {{ userDetail.qq }}
+                                </el-form-item>
+                                <el-form-item label="家庭地址">
+                                    {{ userDetail.address }}
+                                </el-form-item>
+                            </el-form>
+                        </el-collapse-item>
+                    </el-collapse>
+				</el-col>
+			</el-row>
+		</el-dialog>
     </div>
 </template>
 
@@ -164,23 +244,30 @@ export default {
             uploadOption:{
                 identity: 'student'
             },
+            getRowKeys(row){
+                return row.userid
+            },
             user: {},
             userList: [],
+            userDetail: [],
             majorList: [],
             classList: [],
+            multipleSelection: [],
             userAdd: {
                 sex: '男'
             },
             currentPage: 1,
             listTotal: 0,
             listPageSize: 20,
+            collapse: '1',
             buttonSize: 'medium',
             file: '',
-            filterCollege: '',
+            filterCollege: [],
             pageSmall: false,
             addDialogVisible: false,
             addDialogFullScreen: false,
             importDialogVisible: false,
+            detailDialogVisible: false,
             addRules: {
                 userid: [
                     {
@@ -263,11 +350,6 @@ export default {
                         trigger: 'blur'
                     }
                 ],
-                major: [{
-                    required: true,
-                    message: '专业不能为空',
-                    trigger: 'blur'
-                }],
                 classid: [{
                     required: true,
                     message: '班级不能为空',
@@ -306,6 +388,42 @@ export default {
                     }
                 })
         },
+        handleSelectChange(){
+            // 筛选切换
+             var options = {
+                identity: 'student',
+                filter: {
+                    isFirst: true,
+                    isPage: true,
+                    page: 1,
+                    size: this.listPageSize,
+                    college: this.filterCollege
+                }
+            }
+            this.$axios
+                .get('/api/user', {params: options})
+                .then(res => {
+                    if(res.status == 200){
+                        this.userList = res.data.data;
+                        this.listTotal = res.data.count;
+                        this.currentPage = 1;
+                    }
+                })
+                .catch(err => {
+                    this.userList.splice(0, this.userList.length);
+                    this.listTotal = 0;
+                    this.currentPage = 1;
+                })
+        },
+        handleSelectionChange(val){
+            // 表格选择
+            this.multipleSelection = val;
+        },
+        handleRowClick(row){
+            // 学生详情dialog弹出
+            this.detailDialogVisible = true;
+            this.userDetail = row;
+		},
         studentAdd(){
             // 学生添加
             this.addDialogVisible = true;
@@ -339,6 +457,7 @@ export default {
 			this.$refs[formName].validate(valid => {
 				if(valid){
                     this.userAdd.identity = 'student';
+                    this.userAdd.classid = this.userAdd.classid[2];
                     this.$axios
                         .post('/api/user', this.userAdd)
                         .then(res => {
@@ -358,8 +477,7 @@ export default {
                                     nation: '',
                                     politicalStatus: '',
                                     IDcard: '',
-                                    classid: '',
-                                    major: []
+                                    classid: []
                                 }
 
                                 var options = {
@@ -368,7 +486,8 @@ export default {
                                         isFirst: true,
                                         isPage: true,
                                         page: 1,
-                                        size: this.listPageSize
+                                        size: this.listPageSize,
+                                        college: this.filterCollege
                                     }
                                 }
                                 var _this = this;
@@ -440,7 +559,7 @@ export default {
                 message: response.msg,
                 type: "success"
             });
-            this.filterCollege = '';
+            this.filterCollege = [];
             var options = {
                 identity: 'student',
                 filter: {
@@ -463,6 +582,66 @@ export default {
                         }
                     })
             },1000);
+        },
+        studentDelete(){
+            // 学生删除
+            var userid = [];
+            this.multipleSelection.forEach(item => {
+                userid.push(item.userid);
+            })
+            if(this.isEmpty(userid)){
+				this.$message({
+					message: "选项不能为空",
+					type: "error"
+				});
+            }
+            else{
+                var options = {
+                    userid: userid,
+                    identity: 'student'
+                }
+                this.$axios
+                    .delete('/api/user', {data: options})
+                    .then(res => {
+                        if(res.status == 200){
+                            var data = res.data;
+                            this.$message({
+                                message: data.msg,
+                                type: "success"
+                            });
+                            
+                            var options = {
+                                identity: 'student',
+                                filter: {
+                                    isFirst: true,
+                                    isPage: true,
+                                    page: 1,
+                                    size: this.listPageSize,
+                                    college: this.filterCollege
+                                }
+                            }
+                            var _this = this;
+                            setTimeout(function(){
+                                _this.$axios
+                                    .get('/api/user', {params: options})
+                                    .then(res => {
+                                        if(res.status == 200){
+                                            _this.userList = res.data.data;
+                                            _this.listTotal = res.data.count;
+                                            _this.currentPage = 1;
+                                        }
+                                    })
+                                    .catch(err => {
+                                        _this.userList.splice(0, _this.userList.length);
+                                        _this.listTotal = 0;
+                                        _this.currentPage = 1;
+                                    })
+                            },1000);
+
+                            this.$refs.multipleTable.clearSelection();
+                        }
+                    })
+            }
         },
         isEmpty(value){
 			return (
@@ -520,6 +699,38 @@ export default {
                                     }
                                     this.majorList[temp[item.collegeid]].children.push(child);
                                 })
+
+                                var options = {
+                                    filter: {
+                                        isFirst: false,
+                                        isPage: false
+                                    }
+                                }
+                                this.$axios
+                                    .get('/api/school/class', {params: options})
+                                    .then(res => {
+                                        if(res.status == 200){
+                                            var myclass = res.data.data;
+                                            myclass.forEach(item => {
+                                                this.majorList = this.majorList.map(value => {
+                                                    value.children = value.children.map(childvalue => {
+                                                        if(!childvalue['children']){
+                                                            childvalue.children = [];
+                                                        }
+                                                        if(childvalue.value == item.majorid){
+                                                            var child = {
+                                                                value: item.classid,
+                                                                label: item.name
+                                                            }
+                                                            childvalue.children.push(child)
+                                                        }
+                                                        return childvalue
+                                                    })
+                                                    return value
+                                                })
+                                            })
+                                        }
+                                    })
                             }
                         })
                 }
@@ -577,10 +788,10 @@ export default {
     .studentManager .submit_btn{
 		width: 100%;
 	}
-    .studentManager .studentTop .el-select{
+    .studentManager .studentTop .el-cascader{
         margin-left: 10px;
     }
-    .studentManager .studentXsTop .el-select{
+    .studentManager .studentXsTop .el-cascader{
         margin-top: 10px;
         width: 100%;
     }

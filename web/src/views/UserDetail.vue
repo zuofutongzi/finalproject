@@ -32,10 +32,13 @@
                     <el-form-item label="专业">
                         {{ userDetail.major }}
                     </el-form-item>
+                    <el-form-item label="班主任">
+                        {{ userDetail.classTeacher }}
+                    </el-form-item>
                     <el-form-item label="行政班">
                         {{ userDetail.class }}
                     </el-form-item>
-                    <el-form-item label="所在级">
+                    <el-form-item label="入学年份">
                         {{ userDetail.enrol }}
                     </el-form-item>
                     <el-divider content-position="left">联系信息</el-divider>

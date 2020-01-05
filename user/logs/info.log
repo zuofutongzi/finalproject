@@ -89,3 +89,64 @@
 2020-01-04 15:55:15 [info]: (user-import):用户导入成功
 2020-01-04 15:56:57 [info]: (user-import):用户导入成功
 2020-01-04 16:02:19 [info]: (user-register):用户添加成功
+2020-01-05 13:37:34 [error]: (school-classDelete):ER_PARSE_ERROR: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'end, classid = case userid  end where userid in)' at line 1
+2020-01-05 13:37:49 [error]: (user-delete):ER_PARSE_ERROR: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near ')' at line 1
+2020-01-05 13:42:11 [info]: (user-delete):用户删除成功
+2020-01-05 13:43:15 [info]: (user-delete):用户删除成功
+2020-01-05 13:43:28 [info]: (user-delete):用户删除成功
+2020-01-05 13:43:39 [info]: (user-import):用户导入成功
+2020-01-05 13:44:42 [info]: (user-delete):用户删除成功
+2020-01-05 13:44:45 [info]: (user-delete):用户删除成功
+2020-01-05 13:44:52 [info]: (user-import):用户导入成功
+2020-01-05 13:45:28 [info]: (user-delete):用户删除成功
+2020-01-05 13:45:31 [info]: (user-delete):用户删除成功
+2020-01-05 13:45:40 [info]: (user-import):用户导入成功
+2020-01-05 13:45:52 [info]: (user-delete):用户删除成功
+2020-01-05 13:46:06 [info]: (user-import):用户导入成功
+2020-01-05 13:48:19 [info]: (user-delete):用户删除成功
+2020-01-05 13:48:30 [info]: (user-import):用户导入成功
+2020-01-05 13:49:33 [info]: (user-delete):用户删除成功
+2020-01-05 13:49:53 [info]: (user-import):用户导入成功
+2020-01-05 13:51:00 [info]: (user-delete):用户删除成功
+2020-01-05 13:51:08 [info]: (user-import):用户导入成功
+2020-01-05 13:51:45 [info]: (user-delete):用户删除成功
+2020-01-05 13:51:53 [info]: (user-import):用户导入成功
+2020-01-05 13:52:03 [error]: (user-import):C10014用户已存在，请重新检查文件内容并修改！
+2020-01-05 13:52:43 [info]: (user-delete):用户删除成功
+2020-01-05 13:52:57 [error]: (user-import):31601092用户已存在，请重新检查文件内容并修改！
+2020-01-05 13:53:04 [info]: (user-delete):用户删除成功
+2020-01-05 13:53:12 [info]: (user-import):用户导入成功
+2020-01-05 13:53:25 [error]: (user-import):格式错误，请重新检查表头是否符合要求！
+2020-01-05 13:53:35 [error]: (user-import):C10014用户已存在，请重新检查文件内容并修改！
+2020-01-05 15:04:10 [info]: (user-register):用户添加成功
+2020-01-05 15:19:30 [error]: (user-list):ERR syntax error
+2020-01-05 15:19:30 [error]: (user-list):ERR syntax error
+2020-01-05 15:20:49 [error]: (user-list):ERR syntax error
+2020-01-05 15:20:49 [error]: (user-list):ERR syntax error
+2020-01-05 15:22:35 [error]: (user-list):ERR syntax error
+2020-01-05 15:22:35 [error]: (user-list):ERR syntax error
+2020-01-05 15:38:05 [error]: (user-list):ERR One or more scores can't be converted into double
+2020-01-05 15:38:07 [error]: (user-list):ERR One or more scores can't be converted into double
+2020-01-05 15:39:26 [error]: (user-list):ERR One or more scores can't be converted into double
+2020-01-05 15:39:45 [error]: (user-list):ERR wrong number of arguments for 'sunionstore' command
+2020-01-05 15:39:46 [error]: (user-list):ERR One or more scores can't be converted into double
+2020-01-05 15:40:38 [error]: (user-list):ERR wrong number of arguments for 'sunionstore' command
+2020-01-05 15:41:34 [error]: (user-list):ERR One or more scores can't be converted into double
+2020-01-05 15:42:04 [error]: (user-list):ERR One or more scores can't be converted into double
+2020-01-05 15:43:01 [error]: (user-list):ERR One or more scores can't be converted into double
+2020-01-05 15:43:58 [error]: (user-list):ERR One or more scores can't be converted into double
+2020-01-05 15:45:12 [error]: (user-list):ERR wrong number of arguments for 'sunionstore' command
+2020-01-05 15:45:22 [error]: (user-list):ERR wrong number of arguments for 'sunionstore' command
+2020-01-05 15:45:24 [error]: (user-list):ERR wrong number of arguments for 'sunionstore' command
+2020-01-05 15:51:19 [error]: (user-list):ERR wrong number of arguments for 'sunionstore' command
+2020-01-05 15:51:21 [error]: (user-list):ERR wrong number of arguments for 'sunionstore' command
+2020-01-05 15:55:35 [info]: (user-register):用户添加成功
+2020-01-05 15:55:40 [info]: (user-delete):用户删除成功
+2020-01-05 15:56:03 [info]: (user-register):用户添加成功
+2020-01-05 15:56:25 [info]: (user-register):用户添加成功
+2020-01-05 15:59:23 [info]: (user-register):用户添加成功
+2020-01-05 16:30:17 [info]: (user-change):用户信息修改成功
+2020-01-05 16:30:35 [info]: (user-change):用户信息修改成功
+2020-01-05 16:30:42 [info]: (user-change):用户信息修改成功
+2020-01-05 16:32:04 [info]: (user-change):用户信息修改成功
+2020-01-05 16:46:27 [info]: (user-change):用户信息修改成功
