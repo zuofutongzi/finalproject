@@ -52,7 +52,7 @@ router.post('/notify', passport.authenticate('jwt', {session: false}), (req, don
 // @token  true
 // @return msg
 // @access manager
-// @params {notifyid: Number, title: String, content: String, appendix: String, top: bool, important: bool, time: String}
+// @params {notifyid: int, title: String, content: String, appendix: String, top: bool, important: bool, time: String}
 router.put('/notify', passport.authenticate('jwt', {session: false}), (req, done) => {
     if(req.user.identity !== 'manager'){
         done.status(500).send('没有权限！')

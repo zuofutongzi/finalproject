@@ -19,6 +19,7 @@ const logger = require('./logger')
 // 连接池
 const pool = mysql.createPool({
     host: '192.168.99.100',
+    port: '3306',
     user: 'root',
     password: '123456',
     database: 'user'

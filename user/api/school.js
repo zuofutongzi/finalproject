@@ -47,8 +47,8 @@ function majorList(msg, done){
 //     filter: {
 //         isFirst: Boolean,
 //         isPage: Boolean,
-//         page: Number/null,
-//         size: Number/null,
+//         page: int/null,
+//         size: int/null,
 //         college: Array/null
 //     }
 // }

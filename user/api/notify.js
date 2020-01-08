@@ -65,7 +65,7 @@ async function add(msg, done){
 
 // 修改通知
 // var options = {
-//     notifyid: Number, 
+//     notifyid: int, 
 //     title: String, 
 //     content: String, 
 //     appendix: String, 

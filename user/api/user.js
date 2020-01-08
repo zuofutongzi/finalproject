@@ -16,8 +16,8 @@ const redis = key.redis
 //     filter: {
 //         isFirst: Boolean,
 //         isPage: Boolean,
-//         page: number/null,
-//         size: number/null,
+//         page: int/null,
+//         size: int/null,
 //         college: String/null
 //     }
 // }

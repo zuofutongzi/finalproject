@@ -110,7 +110,6 @@ router.delete('/school/class', passport.authenticate('jwt', {session: false}), (
 // @token  true
 // @return msg
 // @access manager
-// @params {identity: String}
 router.post('/school/class/import', passport.authenticate('jwt', {session: false}), upload.single('file'), (req, done) => {
     if(req.user.identity != 'manager'){
         done.status(500).send('没有权限！')

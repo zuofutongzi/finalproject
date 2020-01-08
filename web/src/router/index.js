@@ -10,6 +10,7 @@ import TeacherDetail from '../views/TeacherDetail.vue'
 import StudentManager from '../views/StudentManager.vue'
 import TeacherManager from '../views/TeacherManager.vue'
 import ClassManager from '../views/ClassManager.vue'
+import CourseManager from '../views/CourseManager.vue'
 import NotFound from '../views/404.vue'
 
 Vue.use(VueRouter)
@@ -72,6 +73,11 @@ const routes = [
 				path: '/classManager',
 				name: 'classManager',
 				component: ClassManager
+			},
+			{
+				path: '/courseManager',
+				name: 'courseManager',
+				component: CourseManager
 			}
 		]
 	},

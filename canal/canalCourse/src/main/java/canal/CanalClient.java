@@ -18,7 +18,7 @@ public class CanalClient {
             connector.connect();
             connector.subscribe(".*\\..*");
             connector.rollback();
-            System.out.println("================>start");
+            System.out.println("================>course start");
             while (true) {
                 // 获取指定数量的数据
                 Message message = connector.getWithoutAck(batchSize);
@@ -84,6 +84,8 @@ public class CanalClient {
     private static void redisInsert(String table,List<Column> columns) {
         JSONObject json = new JSONObject();
         String key = null;
+        // course
+        String ccollege = null;
         // class
         String ccourse = null;
         String cteacher = null;
@@ -91,13 +93,22 @@ public class CanalClient {
         String csstudent = null;
         String csclass = null;
         String csteacher = null;
+        // courseSchedule
+        String csmajor = null;
+        String cscourse = null;
+        String cstype = null;
         
         for (Column column : columns) {
             json.put(column.getName(), column.getValue());
             if (column.getIsKey()) {
             	key = column.getValue();
             }
-            if(table.equals("class")) {
+            if(table.equals("course")) {
+            	if(column.getName().equals("collegeid")) {
+            		ccollege = column.getValue();
+            	}
+            }
+            else if(table.equals("class")) {
             	if(column.getName().equals("courseid")) {
             		ccourse = column.getValue();
             	}
@@ -116,11 +127,25 @@ public class CanalClient {
             		csteacher = column.getValue();
             	}
             }
+            else if(table.equals("courseSchedule")) {
+            	if(column.getName().equals("majorid")) {
+            		csmajor = column.getValue();
+            	}
+            	else if(column.getName().equals("courseid")) {
+            		cscourse = column.getValue();
+            	}
+            	else if(column.getName().equals("type")) {
+            		cstype = column.getValue();
+            	}
+            }
         }
         if (columns.size() > 0) {
             RedisUtil.stringSet(table + ":" + columns.get(0).getValue(), json.toJSONString());
             RedisUtil.sadd("idx:" + table, key);
-            if(table.equals("class")) {
+            if(table.equals("course")) {
+            	RedisUtil.sadd("idx:course:college:" + ccollege, key);
+            }
+            else if(table.equals("class")) {
             	RedisUtil.sadd("idx:class:course:" + ccourse, key);
             	RedisUtil.sadd("idx:class:teacher:" + cteacher, key);
             }
@@ -129,11 +154,17 @@ public class CanalClient {
             	RedisUtil.sadd("idx:classSelect:class:" + csclass, key);
             	RedisUtil.sadd("idx:classSelect:teacher:" + csteacher, key);
             }
+            else if(table.equals("courseSchedule")) {
+            	RedisUtil.sadd("idx:courseSchedule:course:major:" + csmajor, cscourse);
+            	RedisUtil.sadd("idx:courseSchedule:course:major:" + csmajor + ":type:" + cstype, cscourse);
+            }
         }
     }
     
     private static void redisUpdatePre(String table,List<Column> columns) {
     	String key = null;
+    	// course
+        String ccollege = null;
     	// class
         String ccourse = null;
         String cteacher = null;
@@ -141,12 +172,21 @@ public class CanalClient {
         String csstudent = null;
         String csclass = null;
         String csteacher = null;
+        // courseSchedule
+        String csmajor = null;
+        String cscourse = null;
+        String cstype = null;
     	
     	for (Column column : columns) {
     		if (column.getIsKey()) {
             	key = column.getValue();
             }
-    		if(table.equals("class")) {
+    		if(table.equals("course")) {
+            	if(column.getName().equals("collegeid")) {
+            		ccollege = column.getValue();
+            	}
+            }
+    		else if(table.equals("class")) {
             	if(column.getName().equals("courseid")) {
             		ccourse = column.getValue();
             	}
@@ -165,9 +205,23 @@ public class CanalClient {
             		csteacher = column.getValue();
             	}
             }
+            else if(table.equals("courseSchedule")) {
+            	if(column.getName().equals("majorid")) {
+            		csmajor = column.getValue();
+            	}
+            	else if(column.getName().equals("courseid")) {
+            		cscourse = column.getValue();
+            	}
+            	else if(column.getName().equals("type")) {
+            		cstype = column.getValue();
+            	}
+            }
     	}
     	if (columns.size() > 0) {
-    		if(table.equals("class")) {
+    		if(table.equals("course")) {
+            	RedisUtil.srem("idx:course:college:" + ccollege, key);
+            }
+    		else if(table.equals("class")) {
             	RedisUtil.srem("idx:class:course:" + ccourse, key);
             	RedisUtil.srem("idx:class:teacher:" + cteacher, key);
             }
@@ -176,12 +230,18 @@ public class CanalClient {
             	RedisUtil.srem("idx:classSelect:class:" + csclass, key);
             	RedisUtil.srem("idx:classSelect:teacher:" + csteacher, key);
             }
+            else if(table.equals("courseSchedule")) {
+            	RedisUtil.srem("idx:courseSchedule:course:major:" + csmajor, cscourse);
+            	RedisUtil.srem("idx:courseSchedule:course:major:" + csmajor + ":type:" + cstype, cscourse);
+            }
         }
     }
 
     private static void redisUpdate(String table,List<Column> columns) {
         JSONObject json = new JSONObject();
         String key = null;
+        // course
+        String ccollege = null;
         // class
         String ccourse = null;
         String cteacher = null;
@@ -189,13 +249,22 @@ public class CanalClient {
         String csstudent = null;
         String csclass = null;
         String csteacher = null;
+        // courseSchedule
+        String csmajor = null;
+        String cscourse = null;
+        String cstype = null;
         
         for (Column column : columns) {
             json.put(column.getName(), column.getValue());
             if (column.getIsKey()) {
             	key = column.getValue();
             }
-            if(table.equals("class")) {
+            if(table.equals("course")) {
+            	if(column.getName().equals("collegeid")) {
+            		ccollege = column.getValue();
+            	}
+            }
+            else if(table.equals("class")) {
             	if(column.getName().equals("courseid")) {
             		ccourse = column.getValue();
             	}
@@ -214,10 +283,24 @@ public class CanalClient {
             		csteacher = column.getValue();
             	}
             }
+            else if(table.equals("courseSchedule")) {
+            	if(column.getName().equals("majorid")) {
+            		csmajor = column.getValue();
+            	}
+            	else if(column.getName().equals("courseid")) {
+            		cscourse = column.getValue();
+            	}
+            	else if(column.getName().equals("type")) {
+            		cstype = column.getValue();
+            	}
+            }
         }
         if (columns.size() > 0) {
             RedisUtil.stringSet(table + ":" + columns.get(0).getValue(), json.toJSONString());
-            if(table.equals("class")) {
+            if(table.equals("course")) {
+            	RedisUtil.sadd("idx:course:college:" + ccollege, key);
+            }
+            else if(table.equals("class")) {
             	RedisUtil.sadd("idx:class:course:" + ccourse, key);
             	RedisUtil.sadd("idx:class:teacher:" + cteacher, key);
             }
@@ -226,12 +309,18 @@ public class CanalClient {
             	RedisUtil.sadd("idx:classSelect:class:" + csclass, key);
             	RedisUtil.sadd("idx:classSelect:teacher:" + csteacher, key);
             }
+            else if(table.equals("courseSchedule")) {
+            	RedisUtil.sadd("idx:courseSchedule:course:major:" + csmajor, cscourse);
+            	RedisUtil.sadd("idx:courseSchedule:course:major:" + csmajor + ":type:" + cstype, cscourse);
+            }
         }
     }
 
     private static void redisDelete(String table,List<Column> columns) {
         JSONObject json = new JSONObject();
         String key = null;
+        // course
+        String ccollege = null;
         // class
         String ccourse = null;
         String cteacher = null;
@@ -239,13 +328,22 @@ public class CanalClient {
         String csstudent = null;
         String csclass = null;
         String csteacher = null;
+        // courseSchedule
+        String csmajor = null;
+        String cscourse = null;
+        String cstype = null;
         
         for (Column column : columns) {
             json.put(column.getName(), column.getValue());
             if (column.getIsKey()) {
             	key = column.getValue();
             }
-            if(table.equals("class")) {
+            if(table.equals("course")) {
+            	if(column.getName().equals("collegeid")) {
+            		ccollege = column.getValue();
+            	}
+            }
+            else if(table.equals("class")) {
             	if(column.getName().equals("courseid")) {
             		ccourse = column.getValue();
             	}
@@ -268,7 +366,10 @@ public class CanalClient {
         if (columns.size() > 0) {
             RedisUtil.delKey(table + ":" + columns.get(0).getValue());
             RedisUtil.srem("idx:" + table, key);
-            if(table.equals("class")) {
+            if(table.equals("course")) {
+            	RedisUtil.srem("idx:course:college:" + ccollege, key);
+            }
+            else if(table.equals("class")) {
             	RedisUtil.srem("idx:class:course:" + ccourse, key);
             	RedisUtil.srem("idx:class:teacher:" + cteacher, key);
             }
@@ -276,6 +377,10 @@ public class CanalClient {
             	RedisUtil.srem("idx:classSelect:student:" + csstudent, key);
             	RedisUtil.srem("idx:classSelect:class:" + csclass, key);
             	RedisUtil.srem("idx:classSelect:teacher:" + csteacher, key);
+            }
+            else if(table.equals("courseSchedule")) {
+            	RedisUtil.srem("idx:courseSchedule:course:major:" + csmajor, cscourse);
+            	RedisUtil.srem("idx:courseSchedule:course:major:" + csmajor + ":type:" + cstype, cscourse);
             }
         }
     }

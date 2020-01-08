@@ -18,7 +18,7 @@ public class CanalClient {
             connector.connect();
             connector.subscribe(".*\\..*");
             connector.rollback();
-            System.out.println("================>start");
+            System.out.println("================>user start");
             while (true) {
                 // 获取指定数量的数据
                 Message message = connector.getWithoutAck(batchSize);
