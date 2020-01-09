@@ -4,31 +4,72 @@
             <el-button type="primary" :size="buttonSize" plain @click="courseAdd()">课程添加</el-button>
             <el-button type="success" :size="buttonSize" plain @click="courseImport()">课程导入</el-button>
             <el-button type="danger" :size="buttonSize" plain @click="courseDelete()">课程删除</el-button>
+            <el-select class="hidden-xs-only" v-model="filterCollege" @change="handleSelectChange" clearable placeholder="根据分院筛选">
+                <el-option
+                    v-for="item in college"
+                    :key="item.collegeid"
+                    :label="item.name"
+                    :value="item.collegeid">
+                </el-option>
+            </el-select>
+        </el-row>
+        <el-row class="courseXsTop">
+            <el-select class="hidden-sm-and-up" v-model="filterCollege" @change="handleSelectChange" clearable placeholder="根据分院筛选">
+                <el-option
+                    v-for="item in college"
+                    :key="item.collegeid"
+                    :label="item.name"
+                    :value="item.collegeid">
+                </el-option>
+            </el-select>
         </el-row>
         <el-table
             :data="courseList"
             :row-class-name="tableRowClassName"
+            :row-key="getRowKeys"
+            @selection-change="handleSelectionChange"
+            ref="multipleTable"
             style="width: 100%">
             <el-table-column
+                type="selection"
+                width="55"
+                :reserve-selection="true">
+            </el-table-column>
+            <el-table-column
                 label="课程号"
-                prop="courseid">
+                prop="courseid"
+                min-width="100">
             </el-table-column>
             <el-table-column
                 label="课程名"
                 prop="name"
-                min-width="100">
+                min-width="140">
+            </el-table-column>
+            <el-table-column
+                label="开设分院"
+                prop="college"
+                min-width="120">
             </el-table-column>
             <el-table-column
                 label="学分"
                 prop="credit"
-                min-width="50">
+                min-width="70">
             </el-table-column>
             <el-table-column
                 label="学时"
                 prop="classHour"
-                min-width="50">
+                min-width="90">
             </el-table-column>
         </el-table>
+        <el-pagination
+            layout="prev, pager, next"
+            @current-change="handleCurrentChange"
+            :small="pageSmall"
+            :hide-on-single-page="true"
+            :current-page.sync="currentPage"
+            :page-size="listPageSize"
+            :total="listTotal">
+        </el-pagination>
 
         <!-- 课程添加 -->
         <el-dialog
@@ -146,15 +187,21 @@ export default {
             courseList: [],
             college: [],
             items: [],
+            multipleSelection: [],
+            filterCollege: '',
             currentPage: 1,
             listTotal: 0,
             listPageSize: 20,
             file: '',
             buttonSize: 'medium',
             loading: null,
+            pageSmall: false,
             addDialogVisible: false,
             addDialogFullScreen: false,
             importDialogVisible: false,
+            getRowKeys(row){
+                return row.courseid
+            },
             addRules: {
                 collegeid: [
                     {
@@ -226,7 +273,58 @@ export default {
             }
             return '';
         },
+        handleCurrentChange(val) {
+            // 分页切换
+            this.currentPage = val;
+            var options = {
+                filter: {
+                    isFirst: false,
+                    isPage: true,
+                    page: val,
+                    size: this.listPageSize,
+                    college: this.filterCollege
+                }
+            }
+            this.$axios
+                .get('/api/course', {params: options})
+                .then(res => {
+                    if(res.status == 200){
+                        this.courseList = res.data.data;
+                    }
+                })
+        },
+        handleSelectChange(){
+            // 分院筛选切换
+            var options = {
+                filter: {
+                    isFirst: true,
+                    isPage: true,
+                    page: 1,
+                    size: this.listPageSize,
+                    college: this.filterCollege
+                }
+            }
+            this.$axios
+                .get('/api/course', {params: options})
+                .then(res => {
+                    if(res.status == 200){
+                        this.courseList = res.data.data;
+                        this.listTotal = res.data.count;
+                        this.currentPage = 1;
+                    }
+                })
+                .catch(err => {
+                    this.courseList.splice(0, this.courseList.length);
+                    this.listTotal = 0;
+                    this.currentPage = 1;
+                })
+        },
+        handleSelectionChange(val){
+            // 表格选择
+            this.multipleSelection = val;
+        },
         courseAdd(){
+            // 课程添加
             this.addDialogVisible = true;
         },
         submitAddForm(formName){
@@ -256,7 +354,8 @@ export default {
                                         isFirst: true,
                                         isPage: true,
                                         page: 1,
-                                        size: this.listPageSize
+                                        size: this.listPageSize,
+                                        college: this.filterCollege
                                     }
                                 }
                                 var _this = this;
@@ -345,9 +444,68 @@ export default {
                             var data = res.data;
                             _this.courseList = data.data;
                             _this.listTotal = data.count;
+                            _this.filterCollege = '';
                         }
                     })
             },1000)
+        },
+        courseDelete(){
+            // 课程删除
+            var course = [];
+            this.multipleSelection.forEach(item => {
+                course.push(item.courseid);
+            })
+            if(this.isEmpty(course)){
+				this.$message({
+					message: "选项不能为空",
+					type: "error"
+				});
+            }
+            else{
+                var options = {
+                    course: course
+                }
+                this.$axios
+                    .delete('/api/course', {data: options})
+                    .then(res => {
+                        if(res.status == 200){
+                            var data = res.data;
+                            this.$message({
+                                message: data.msg,
+                                type: "success"
+                            });
+                            
+                            var options = {
+                                filter: {
+                                    isFirst: true,
+                                    isPage: true,
+                                    page: 1,
+                                    size: this.listPageSize,
+                                    college: this.filterCollege
+                                }
+                            }
+                            var _this = this;
+                            setTimeout(function(){
+                                _this.$axios
+                                    .get('/api/course', {params: options})
+                                    .then(res => {
+                                        if(res.status == 200){
+                                            _this.courseList = res.data.data;
+                                            _this.listTotal = res.data.count;
+                                            _this.currentPage = 1;
+                                        }
+                                    })
+                                    .catch(err => {
+                                        _this.courseList.splice(0, _this.courseList.length);
+                                        _this.listTotal = 0;
+                                        _this.currentPage = 1;
+                                    })
+                            },1000);
+
+                            this.$refs.multipleTable.clearSelection();
+                        }
+                    })
+            }
         },
         isEmpty(value){
 			return (
@@ -395,7 +553,7 @@ export default {
         var width = $(window).width();
         if(width < 768){
             this.addDialogFullScreen = true;
-            // this.pageSmall = true;
+            this.pageSmall = true;
             var buttonParentWidth = $('.courseTop .el-button').parent().width() - 20;
             var buttonWith = buttonParentWidth/3;
             $('.courseTop .el-button').eq(0).css({'margin-left':'0','width':buttonWith.toString(),'padding':'12px 10px'});

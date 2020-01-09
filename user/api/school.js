@@ -49,7 +49,7 @@ function majorList(msg, done){
 //         isPage: Boolean,
 //         page: int/null,
 //         size: int/null,
-//         college: Array/null
+//         college: Array/null [分院，专业]
 //     }
 // }
 async function classList(msg, done){
@@ -246,13 +246,19 @@ async function classAdd(msg, done){
 // }
 async function classDelete(msg, done){
     var { myclass } = msg;
+    var tempStudent = 'temp:delete:student:' + (new Date()).getTime();
 
+    // 班级删除sql
     var deletesql = 'delete from class where classid in (';
     var delete_params = [];
+    // 教师更新sql
     var updatesql = 'update teacher set '
     var classTeacher = '';
     var classid = '';
     var userid = '(';
+    // 学生删除sql
+    var deleteStudentSql = 'delete from student where userid in (';
+    var deleteStudentClass = [];
     for(var i = 0; i < myclass.length; i++){
         if(i == 0){
             deletesql += ' ?';
@@ -261,6 +267,7 @@ async function classDelete(msg, done){
             deletesql += ', ?';
         }
         delete_params.push(myclass[i].classid);
+        deleteStudentClass.push('idx:student:class:' + myclass[i].classid);
         classTeacher += 'when "' + myclass[i].teacherid + '" then "false" ';
         classid += 'when "' + myclass[i].teacherid + '" then NULL ';
         userid += '"' + myclass[i].teacherid + '",';
@@ -271,14 +278,52 @@ async function classDelete(msg, done){
     userid += ')';
     updatesql += 'where userid in' + userid;
 
-    const mysql = await connectHandler();
+    // 将班级下的学生并集,并获取学生id
+    var union = async () => {
+        var options = await new Promise((resolve) => {
+            // 建立临时表
+            redis.sunionstore(tempStudent, deleteStudentClass, (err, keys) => {
+                if(err){
+                    logger.error('(school-classDelete):' + err.message);
+                    done(new Error('数据库访问失败，请稍后再试...'))
+                }
+                else{
+                    resolve([tempStudent, 'alpha'])
+                }
+            })
+        })
+        var params = await new Promise((resolve) => {
+            redis.sort(options, (err, keys) => {
+                if(err){
+                    logger.error('(school-classDelete):' + err.message);
+                    done(new Error('数据库访问失败，请稍后再试...'))
+                }
+                else{
+                    resolve(keys)
+                }
+            })
+        })
+        return params;
+    }
+    var deleteStudentSql_params = await union();
+    for(var i = 0; i < deleteStudentSql_params.length; i++){
+        if(i == 0){
+            deleteStudentSql += ' ?';
+        }
+        else{
+            deleteStudentSql += ', ?';
+        }
+    }
+    deleteStudentSql += ')';
 
+    const mysql = await connectHandler();
     mysql.beginTransaction(err => {
         if(err){
             logger.error('(school-classDelete):' + err.message);
             done(new Error('班级删除失败！'))
         }
         else{
+            // 更改教师的班主任信息
             mysql.query(updatesql, (err, result) => {
                 if(err){
                     //回滚事务
@@ -288,32 +333,74 @@ async function classDelete(msg, done){
                     });
                 }
                 else{
-                    mysql.query(deletesql, delete_params, (err, result) => {
-                        if(err){
-                            //回滚事务
-                            mysql.rollback(() => {
-                                logger.error('(school-classDelete):' + err.message);
-                                done(new Error('班级删除失败！'))
-                            });
-                        }
-                        else{
-                            //提交事务
-                            mysql.commit(function(err) {
-                                if(err){
-                                    mysql.rollback(() => {
-                                        logger.error('(school-classDelete):' + err.message);
-                                        done(new Error('班级删除失败！'))
-                                    });
-                                }
-                            });
-                            done(null, {msg: '班级删除成功！'})
-                        }
-                    })
+                    // 若班级下有学生，删除班级下学生
+                    if(deleteStudentSql_params.length != 0){
+                        mysql.query(deleteStudentSql, deleteStudentSql_params, (err, result) => {
+                            if(err){
+                                //回滚事务
+                                mysql.rollback(() => {
+                                    logger.error('(school-classDelete):' + err.message);
+                                    done(new Error('班级删除失败！'))
+                                });
+                            }
+                            else{
+                                // 删除班级
+                                mysql.query(deletesql, delete_params, (err, result) => {
+                                    if(err){
+                                        //回滚事务
+                                        mysql.rollback(() => {
+                                            logger.error('(school-classDelete):' + err.message);
+                                            done(new Error('班级删除失败！'))
+                                        });
+                                    }
+                                    else{
+                                        //提交事务
+                                        mysql.commit(function(err) {
+                                            if(err){
+                                                mysql.rollback(() => {
+                                                    logger.error('(school-classDelete):' + err.message);
+                                                    done(new Error('班级删除失败！'))
+                                                });
+                                            }
+                                        });
+                                        done(null, {msg: '班级删除成功！'})
+                                    }
+                                })
+                            }
+                        })
+                    }
+                    // 班级下没有学生则直接删除班级
+                    else{
+                        // 删除班级
+                        mysql.query(deletesql, delete_params, (err, result) => {
+                            if(err){
+                                //回滚事务
+                                mysql.rollback(() => {
+                                    logger.error('(school-classDelete):' + err.message);
+                                    done(new Error('班级删除失败！'))
+                                });
+                            }
+                            else{
+                                //提交事务
+                                mysql.commit(function(err) {
+                                    if(err){
+                                        mysql.rollback(() => {
+                                            logger.error('(school-classDelete):' + err.message);
+                                            done(new Error('班级删除失败！'))
+                                        });
+                                    }
+                                });
+                                done(null, {msg: '班级删除成功！'})
+                            }
+                        })
+                    }
                 }
             })
         }
     })
 
+    // 删除临时表
+    redis.del(tempStudent)
     mysql.release();
 }
 
@@ -409,6 +496,7 @@ router.post('/school/class/import', async (msg, done) => {
         var classid = '';
         var userid = '(';
         var newTeacher = [];
+        var newData = [];
         data.forEach(item => {
             // 数据不能有空项
             item = item.filter((value) => {    
@@ -441,6 +529,11 @@ router.post('/school/class/import', async (msg, done) => {
                     newTeacher.push(item[teacherIndex])
                 }
 
+                // 判断班级编号是否重复出现
+                if(newData.indexOf(item[classIndex]) == -1){
+                    newData.push(item[classIndex])
+                }
+
                 // 判断班级编号是否存在
                 if(classList.indexOf(item[classIndex]) != -1){
                     throw new Error(item[classIndex] + '班级编号已存在，请重新检查文件内容！')
@@ -471,6 +564,9 @@ router.post('/school/class/import', async (msg, done) => {
 
         if(newTeacher.length != data.length){
             throw new Error('有教师编号重复出现，请重新检查文件内容！')
+        }
+        if(newData.length != data.length){
+            throw new Error('有班级编号重复出现，请重新检查文件内容！')
         }
 
         const mysql = await connectHandler();

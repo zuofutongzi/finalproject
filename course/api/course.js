@@ -14,14 +14,19 @@ const userSeneca = key.userSeneca
 //         isFirst: Boolean,
 //         isPage: Boolean,
 //         page: int/null,
-//         size: int/null
+//         size: int/null,
+//         college: String/null
 //     }
 // }
-function list(msg, done){
+async function list(msg, done){
     var filter = JSON.parse(msg.filter);
     var res = {count: 0, data: []};
     var options = ['idx:course', 'alpha', 'get', 'course:*'];
 
+    // 分院过滤
+    if(filter.college){
+        options = ['idx:course:college:' + filter.college, 'alpha', 'get', 'course:*'];
+    }
     // 第一次访问接口获取列表总条数
     if(filter.isFirst){
         redis.sort(options, (err, keys) => {
@@ -38,6 +43,32 @@ function list(msg, done){
     if(filter.isPage){
         options = options.concat(['limit', ((filter.page-1)*filter.size).toString(), filter.size.toString()]);
     }
+
+    // 获取分院列表
+    var getCollegeList = async () => {
+        return await new Promise((resolve) => {
+            userSeneca.act('target:server-user,module:school,if:collegeList',
+            (err, res) => {
+                if(err){
+                    done.send({status: 500, msg: err.message})
+                }
+                else{
+                    var collegeName = [];
+                    var collegeId = [];
+                    res.forEach((item, index) => {
+                        collegeName[index] = item.name;
+                        collegeId[index] = item.collegeid;
+                    })
+                    resolve({
+                        collegeName: collegeName,
+                        collegeId: collegeId
+                    })
+                }
+            })
+        })
+    }
+    var { collegeName, collegeId } = await getCollegeList();
+
     redis.sort(options, (err, keys) => {
         if(err){
             logger.error('(course-list):' + err.message);
@@ -48,7 +79,9 @@ function list(msg, done){
         }
         else{
             keys.forEach(item => {
-                res.data.push(JSON.parse(item))
+                item = JSON.parse(item);
+                item.college = collegeName[collegeId.indexOf(item.collegeid)];
+                res.data.push(item)
             })
             done(null, res);
         }
@@ -92,10 +125,63 @@ function add(msg, done){
     })
 }
 
+// 课程删除
+async function mydelete(msg, done){
+    var { course } = msg;
+    var tempClass = 'temp:delete:class:' + (new Date()).getTime();
+    
+    var deleteCourseSql = 'delete from course where courseid in (';
+    // 课程班级并集
+    var tempClass_params = [];
+    for(var i = 0; i < course.length; i++){
+        tempClass_params.push('idx:class:course:' + course[i]);
+        if(i == 0){
+            deleteCourseSql += ' ?';
+        }
+        else{
+            deleteCourseSql += ', ?';
+        }
+    }
+    var union = async () => {
+        return await new Promise((resolve) => {
+            // 建立临时表
+            redis.sunionstore(tempClass, tempClass_params, (err, keys) => {
+                if(err){
+                    logger.error('(course-delete):' + err.message);
+                    done(new Error('数据库访问失败，请稍后再试...'))
+                }
+                else{
+                    resolve(keys)
+                }
+            })
+        })
+    }
+    if((await union()) != 0){
+        done(new Error('当前课程有开课记录，无法删除'))
+    }
+
+    deleteCourseSql += ')';
+    const mysql = await connectHandler();
+    mysql.query(deleteCourseSql, course, (err, result) => {
+        if(err){
+            logger.error('(course-delete):' + err.message);
+            done(new Error('课程删除失败！'))
+        }
+        else{
+            done(null, {msg: '课程删除成功'})
+        }
+    })
+
+    // 删除临时表
+    redis.del(tempClass)
+    mysql.release()
+}
+
 // 课程导入
 router.post('/course/import', async (msg, done) => {
     try{
         var collegeIndex = 0;
+        var courseIndex = 1;
 
         var file = msg.body.file;
         // 数组转buffer
@@ -155,6 +241,7 @@ router.post('/course/import', async (msg, done) => {
 
         var insert = 'insert into course(collegeid, courseid, name, credit, classHour) values';
         var insert_params = [];
+        var newData = [];
         data.forEach(item => {
             // 数据不能有空项
             item = item.filter((value) => {    
@@ -167,6 +254,11 @@ router.post('/course/import', async (msg, done) => {
             })
             if(item.length != rule.length){
                 throw new Error('格式错误，请重新检查文件内容是否符合要求！')
+            }
+
+            // 判断课程编号是否有重复
+            if(newData.indexOf(item[courseIndex]) == -1){
+                newData.push(item[courseIndex]);
             }
 
             // 分院名替换为编号
@@ -182,6 +274,10 @@ router.post('/course/import', async (msg, done) => {
             insert_params = insert_params.concat(item);
         })
         insert = insert.slice(0, insert.length - 1);
+
+        if(newData.length !== data.length){
+            throw new Error('有课程号重复出现，请重新检查文件内容！')
+        }
 
         const mysql = await connectHandler();
         mysql.query(insert, insert_params, (err, result) => {
@@ -204,5 +300,6 @@ router.post('/course/import', async (msg, done) => {
 module.exports = {
     list: list,
     add: add,
+    delete: mydelete,
     router: router
 }

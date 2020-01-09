@@ -106,7 +106,7 @@
 			</el-row>
 		</el-dialog>
 
-        <!-- 班级导入dialog -->
+        <!-- 班级导入 -->
         <el-dialog
 			:visible.sync="importDialogVisible"
 			:fullscreen="true"
@@ -139,6 +139,17 @@
 				</el-col>
 			</el-row>
 		</el-dialog>
+
+        <!-- 班级删除 -->
+        <el-dialog
+            title="删除提醒"
+            :visible.sync="deleteDialogVisible">
+            <span>班级删除将会同时删除班级下学生，是否确认删除</span>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="dialogVisible = false">取 消</el-button>
+                <el-button type="primary" @click="classDeleteSure">确 定</el-button>
+            </span>
+        </el-dialog>
     </div>
 </template>
 
@@ -179,6 +190,7 @@ export default {
             addDialogVisible: false,
             addDialogFullScreen: false,
             importDialogVisible: false,
+            deleteDialogVisible: false,
             pageSmall: false,
             getRowKeys(row){
                 return row.classid
@@ -448,6 +460,11 @@ export default {
         },
         classDelete(){
             // 班级删除
+            this.deleteDialogVisible = true;
+        },
+        classDeleteSure(){
+            // 班级删除确认
+            this.deleteDialogVisible = false;
             var myclass = [];
             this.multipleSelection.forEach(item => {
                 myclass.push(item);
@@ -540,12 +557,14 @@ export default {
                     var data = res.data;
                     var temp = [];
                     data.forEach(item => {
-                        var index = this.majorList.push({
-                            value: item.collegeid,
-                            label: item.name,
-                            children: []
-                        })
-                        temp[item.collegeid] = index - 1;
+                        if(parseInt(item.collegeid) <= 10){
+                            var index = this.majorList.push({
+                                value: item.collegeid,
+                                label: item.name,
+                                children: []
+                            })
+                            temp[item.collegeid] = index - 1;
+                        }
                     })
                     this.$axios
                         .get('/api/school/major')

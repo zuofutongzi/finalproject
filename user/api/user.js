@@ -18,7 +18,7 @@ const redis = key.redis
 //         isPage: Boolean,
 //         page: int/null,
 //         size: int/null,
-//         college: String/null
+//         college: String/Array/null // 教师是String分院编号,学生是Array[分院，专业，班级]
 //     }
 // }
 async function list(msg, done){
@@ -373,6 +373,7 @@ async function mydelete(msg, done){
     }
     sql += ')';
     var sql_params = userid;
+
     mysql.query(sql, sql_params, (err, res) => {
         if(err){
             logger.error('(user-delete):' + err.message);
@@ -394,8 +395,6 @@ async function mydelete(msg, done){
 // }
 router.post('/user/import', async (msg, done) => {
     try{
-        const mysql = await connectHandler();
-
         var file = msg.body.file;
         var identity = msg.body.options.identity;
         var rule = [];
@@ -519,6 +518,7 @@ router.post('/user/import', async (msg, done) => {
             return user;
         }
         var user = await getUser();
+        var newData = [];
         data.forEach((item) => {
             // 数据不能有空项
             item = item.filter((value) => {    
@@ -535,6 +535,10 @@ router.post('/user/import', async (msg, done) => {
             // 判断用户是否已经存在
             if(user.indexOf(item[useridIndex].toString()) != -1){
                 throw new Error(item[useridIndex] + '用户已存在，请重新检查文件内容并修改！')
+            }
+            // 判断用户是否重复
+            if(newData.indexOf(item[useridIndex]) == -1){
+                newData.push(item[useridIndex]);
             }
             // 账号规格
             var reg = new RegExp("^[a-zA-Z0-9]+$"); 
@@ -569,6 +573,11 @@ router.post('/user/import', async (msg, done) => {
             insert_params = insert_params.concat(item);
         })
 
+        if(newData.length != data.length){
+            throw new Error('有用户编号重复出现，请重新检查文件内容！')
+        }
+
+        const mysql = await connectHandler();
         insert = insert.slice(0, insert.length - 1)
         mysql.query(insert, insert_params, (err, res) => {
             if(err){

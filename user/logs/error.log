@@ -60,3 +60,8 @@
 2020-01-05 15:45:24 [error]: (user-list):ERR wrong number of arguments for 'sunionstore' command
 2020-01-05 15:51:19 [error]: (user-list):ERR wrong number of arguments for 'sunionstore' command
 2020-01-05 15:51:21 [error]: (user-list):ERR wrong number of arguments for 'sunionstore' command
+2020-01-09 14:24:41 [error]: (school-classImport):编号为J06012的教师已为其他班级班主任，请重新检查文件内容！
+2020-01-09 14:26:05 [error]: (school-classImport):有教师编号重复出现，请重新检查文件内容！
+2020-01-09 14:29:49 [error]: (user-import):有用户编号重复出现，请重新检查文件内容！
+2020-01-09 16:40:08 [error]: (school-classDelete):ER_PARSE_ERROR: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '?, ?)' at line 1
+2020-01-09 16:54:04 [error]: (user-delete):ER_ROW_IS_REFERENCED_2: Cannot delete or update a parent row: a foreign key constraint fails (`user`.`class`, CONSTRAINT `clteacherid` FOREIGN KEY (`teacherid`) REFERENCES `teacher` (`userid`))

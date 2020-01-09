@@ -680,12 +680,14 @@ export default {
                     var data = res.data;
                     var temp = [];
                     data.forEach(item => {
-                        var index = this.majorList.push({
-                            value: item.collegeid,
-                            label: item.name,
-                            children: []
-                        })
-                        temp[item.collegeid] = index - 1;
+                        if(parseInt(item.collegeid) <= 10){
+                            var index = this.majorList.push({
+                                value: item.collegeid,
+                                label: item.name,
+                                children: []
+                            })
+                            temp[item.collegeid] = index - 1;
+                        }
                     })
                     this.$axios
                         .get('/api/school/major')

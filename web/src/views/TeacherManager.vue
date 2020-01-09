@@ -791,6 +791,9 @@ export default {
             .then(res => {
                 if(res.status == 200){
                     this.college = res.data;
+                    this.college = this.college.filter(item => {
+                        return parseInt(item.collegeid) <= 10;
+                    })
                     var type = ['', 'success', 'info', 'danger', 'warning'];
                     this.college.forEach((item, index) => {
                         this.items.push({

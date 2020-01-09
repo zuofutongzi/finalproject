@@ -139,6 +139,11 @@ export default{
 						path: 'courseManager'
 					},
 					{
+						icon: 'el-icon-collection',
+						title: '课程计划',
+						path: 'courseScheduleManager'
+					},
+					{
 						icon: 'el-icon-edit-outline',
 						title: '选课管理',
 						path: 'courseSelectManager'

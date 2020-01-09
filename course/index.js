@@ -12,6 +12,7 @@ const course = require('./api/course')
 // course
 seneca.add('target:server-course,module:course,if:list', course.list)
 seneca.add('target:server-course,module:course,if:add', course.add)
+seneca.add('target:server-course,module:course,if:delete', course.delete)
 app.use('/', course.router)
 
 app.listen(8004)
