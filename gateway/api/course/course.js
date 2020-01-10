@@ -3,7 +3,7 @@ const router = express.Router()
 const passport = require('passport')
 const multer  = require('multer')
 const request = require('request-promise-native')
-const key = require('../config/key.js')
+const key = require('../../config/key.js')
 const courseSeneca = key.courseSeneca
 const upload = multer()
 
@@ -84,6 +84,58 @@ router.post('/course/import', passport.authenticate('jwt', {session: false}), up
     else{
         var file = req.file;
         var uri = key.courseServerRequest + '/course/import';
+        request.post({
+            url: uri,
+            json: {file: file},
+            gzip: true
+        }).then((response) => {
+            if(response.status == 500){
+                done.status(500).send(response.msg)
+            }
+            else{
+                done.send(response)
+            }
+        }).catch((err) => {
+            done.status(500).send('文件上传失败！')
+        })
+    }
+})
+
+// @route  POST /api/course/schedule
+// @desc   添加课程计划
+// @token  true
+// @return msg
+// @access manager
+// @params {major: String, course: String, type: String}
+router.post('/course/schedule', passport.authenticate('jwt', {session: false}), (req, done) => {
+    if(req.user.identity !== 'manager'){
+        done.status(500).send("没有权限！")
+    }
+    else{
+        courseSeneca.act('target:server-course,module:course,if:scheduleAdd', req.body,
+        (err,res) => {
+            if(err){
+                done.status(500).send(err.data.payload.details.message)
+            }
+            else{
+                done.send(res)
+            }
+        })
+    }
+})
+
+// @route  POST /api/course/schedule/import
+// @desc   用户导入
+// @token  true
+// @return msg
+// @access manager
+router.post('/course/schedule/import', passport.authenticate('jwt', {session: false}), upload.single('file'), (req, done) => {
+    if(req.user.identity != 'manager'){
+        done.status(500).send('没有权限！')
+    }
+    else{
+        var file = req.file;
+        var uri = key.courseServerRequest + '/course/schedule/import';
         request.post({
             url: uri,
             json: {file: file},

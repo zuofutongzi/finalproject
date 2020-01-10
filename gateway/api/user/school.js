@@ -3,7 +3,7 @@ const router = express.Router();
 const passport = require('passport')
 const multer  = require('multer')
 const request = require('request-promise-native')
-const key = require('../config/key.js')
+const key = require('../../config/key.js')
 const userSeneca = key.userSeneca
 const upload = multer()
 

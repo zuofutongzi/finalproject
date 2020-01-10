@@ -6,3 +6,19 @@
 2020-01-09 15:40:59 [error]: (course-import):有课程号重复出现，请重新检查文件内容！
 2020-01-09 15:42:57 [error]: (course-import):有课程号重复出现，请重新检查文件内容！
 2020-01-09 15:43:20 [error]: (course-import):有课程号重复出现，请重新检查文件内容！
+2020-01-10 17:23:49 [error]: (course-import):majorList.findeIndex is not a function
+2020-01-10 17:24:19 [error]: (course-import):专业错误，请重新检查文件内容是否符合要求！
+2020-01-10 17:30:33 [error]: (course-import):格式错误，请重新检查表头是否符合要求！
+2020-01-10 17:30:51 [error]: (course-import):专业错误，请重新检查文件内容是否符合要求！
+2020-01-10 17:31:21 [error]: (course-import):专业错误，请重新检查文件内容是否符合要求！
+2020-01-10 17:33:32 [error]: (course-import):编号为109007的课程不存在，请重新检查文件内容是否符合要求！
+2020-01-10 17:35:16 [error]: (course-import):编号为109007的课程不存在，请重新检查文件内容是否符合要求！
+2020-01-10 17:35:36 [error]: (course-import):编号为109007的课程不存在，请重新检查文件内容是否符合要求！
+2020-01-10 17:36:06 [error]: (course-import):格式错误，请重新检查文件内容是否符合要求！
+2020-01-10 17:36:20 [error]: (course-import):编号为C01109的课程不存在，请重新检查文件内容是否符合要求！
+2020-01-10 17:38:48 [error]: (course-import):编号为C01109的课程不存在，请重新检查文件内容是否符合要求！
+2020-01-10 18:23:23 [error]: (course-import):通识必修课程类型不存在，请重新检查文件内容是否符合要求！
+2020-01-10 18:24:55 [error]: (course-import):编号为C01109的课程不存在，请重新检查文件内容是否符合要求！
+2020-01-10 18:27:34 [error]: (course-import):有课程号重复出现，请重新检查文件内容！
+2020-01-10 18:32:50 [error]: (course-scheduleImport):paarms is not defined
+2020-01-10 18:33:15 [error]: (course-scheduleImport):parms is not defined

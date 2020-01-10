@@ -297,9 +297,190 @@ router.post('/course/import', async (msg, done) => {
     }
 })
 
+// 课程计划添加
+// var options = {
+//     major: String,
+//     course: String,
+//     type: String
+// }
+async function scheduleAdd(msg, done){
+    var { major, course, type } = msg;
+    var insert = 'insert into courseSchedule(majorid, courseid, type) values(?, ?, ?)';
+    var params = [major, course, type];
+
+    const mysql = await connectHandler();
+    mysql.query(insert, params, (err, result) => {
+        if(err){
+            logger.error('(course-scheduleAdd):' + err.message);
+            done(new Error('课程计划添加失败！'))
+        }
+        else{
+            done(null, {msg: '课程计划添加成功'})
+        }
+    })
+    mysql.release();
+}
+
+// 课程计划导入
+router.post('/course/schedule/import', async (msg, done) => {
+    try{
+        var majorIndex = 0;
+        var courseIndex = 1;
+        var typeIndex = 2;
+
+        var file = msg.body.file;
+        // 数组转buffer
+        var copy = Buffer.from(file.buffer.data)
+        // 解析文件
+        var obj = xlsx.parse(copy);
+        // 数据需要在第一个表中
+        if(obj[0].data.length == 0){
+            throw new Error('格式错误，请重新检查文件内容是否符合要求！')
+        }
+
+        var data = obj[0].data;
+        var navigation = data[0];
+        var rule = ['专业', '课程号', '课程类型'];
+        // 确认表格头部是否正确
+        for(var i = 0; i < rule.length; i++){
+            if(navigation[i] != rule[i]){
+                throw new Error('格式错误，请重新检查表头是否符合要求！')
+            }
+        }
+
+        data = data.slice(1,data.length);
+        // 过滤空的数据
+        data = data.filter((value) => {    
+            return !(
+                value === undefined ||
+                value === null ||
+                (typeof value === 'object' && Object.keys(value).length === 0) ||
+                (typeof value === 'string' && value.trim().length === 0)
+            )
+        })
+
+        // 获取专业列表
+        var getMajorList = async () => {
+            return await new Promise((resolve) => {
+                userSeneca.act('target:server-user,module:school,if:majorList',
+                (err, res) => {
+                    if(err){
+                        done.send({status: 500, msg: err.message})
+                    }
+                    else{
+                        resolve(res)
+                    }
+                })
+            })
+        }
+        var majorList = await getMajorList();
+
+        // 获取课程列表
+        var getCourseList = async () => {
+            return await new Promise((resolve) => {
+                redis.sort('idx:course', 'alpha', (err, keys) => {
+                    if(err){
+                        logger.error('(course-scheduleImport):' + err.message);
+                        done(new Error('数据库访问失败，请稍后再试...'))
+                    }
+                    else{
+                        resolve(keys)
+                    }
+                })
+            })
+        }
+        var courseList = await getCourseList();
+
+        // 获取课程类型
+        var getType = async () => {
+            return await new Promise((resolve) => {
+                redis.sort('idx:type', 'alpha', (err, keys) => {
+                    if(err){
+                        logger.error('(course-scheduleImport):' + err.message);
+                        done(new Error('数据库访问失败，请稍后再试...'))
+                    }
+                    else{
+                        resolve(keys)
+                    }
+                })
+            })
+        }
+        var typeList = await getType();
+
+        var insert = 'insert into courseSchedule(majorid, courseid, type) values';
+        var params = [];
+        var newData = [];
+        data.forEach(item => {
+            // 数据不能有空项
+            item = item.filter((value) => {    
+                return !(
+                    value === undefined ||
+                    value === null ||
+                    (typeof value === 'object' && Object.keys(value).length === 0) ||
+                    (typeof value === 'string' && value.trim().length === 0)
+                )
+            })
+            if(item.length != rule.length){
+                throw new Error('格式错误，请重新检查文件内容是否符合要求！')
+            }
+
+            // 判断课程号是否有重复
+            if(newData.indexOf(item[courseIndex]) == -1){
+                newData.push(item[courseIndex]);
+            }
+
+            // 替换专业为专业编号
+            var index = majorList.findIndex(value => {
+                return value.name == item[majorIndex];
+            })
+            if(index == -1){
+                throw new Error('专业错误，请重新检查文件内容是否符合要求！')
+            }
+            else{
+                item[majorIndex] = majorList[index].majorid;
+            }
+            
+            // 判断课程是否存在
+            if(courseList.indexOf(item[courseIndex].toString()) == -1){
+                throw new Error('编号为' + item[courseIndex] + '的课程不存在，请重新检查文件内容是否符合要求！')
+            }
+
+            // 判断课程类型是否正确
+            if(typeList.indexOf(item[typeIndex]) == -1){
+                throw new Error(item[typeIndex] + '类型不存在，请重新检查文件内容是否符合要求！')
+            }
+
+            insert += '(?, ?, ?),';
+            params = params.concat(item);
+        })
+        insert = insert.slice(0, insert.length - 1);
+
+        if(newData.length != data.length){
+            throw new Error('有课程号重复出现，请重新检查文件内容！')
+        }
+
+        const mysql = await connectHandler();
+        mysql.query(insert, params, (err, result) => {
+            if(err){
+                logger.error('(course-import):' + err.message);
+                done.send({status: 500, msg: '课程计划导入失败！'})
+            }
+            else{
+                done.send({msg: '课程计划导入成功'})
+            }
+        })
+        mysql.release();
+    }
+    catch(err){
+        logger.error('(course-scheduleImport):' + err.message);
+        done.send({status: 500, msg: err.message})
+    }
+})
+
 module.exports = {
     list: list,
     add: add,
     delete: mydelete,
+    scheduleAdd: scheduleAdd,
     router: router
 }

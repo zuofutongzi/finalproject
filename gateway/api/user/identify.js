@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const key = require('../config/key.js')
+const key = require('../../config/key.js')
 const userSeneca = key.userSeneca
 
 // @route  GET /api/identify

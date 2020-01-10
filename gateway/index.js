@@ -22,18 +22,24 @@ app.use(passport.initialize());
 require('./config/passport')(passport);
 
 // 引入接口
-const identify = require('./api/identify')
-const user = require('./api/user')
-const notify = require('./api/notify')
-const school = require('./api/school')
-const course = require('./api/course')
+// user
+const identify = require('./api/user/identify')
+const user = require('./api/user/user')
+const notify = require('./api/user/notify')
+const school = require('./api/user/school')
+// course
+const course = require('./api/course/course')
+const type = require('./api/course/type')
 
 // 使用api
+// user
 app.use('/api', identify)
 app.use('/api', user)
 app.use('/api', notify)
 app.use('/api', school)
+// course
 app.use('/api', course)
+app.use('/api', type)
 
 const port = process.env.PORT || 5000;
 app.listen(port,() => {

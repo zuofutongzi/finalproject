@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken')
 const passport = require('passport')
 const request = require('request-promise-native')
 const multer  = require('multer')
-const key = require('../config/key.js')
+const key = require('../../config/key.js')
 const userSeneca = key.userSeneca
 const upload = multer()
 

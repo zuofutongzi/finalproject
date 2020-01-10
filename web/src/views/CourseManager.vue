@@ -367,6 +367,7 @@ export default {
                                                 var data = res.data;
                                                 _this.courseList = data.data;
                                                 _this.listTotal = data.count;
+                                                _this.currentPage = 1;
                                             }
                                         })
                                 },1000)
