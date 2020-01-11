@@ -14,8 +14,10 @@ userSeneca.client(userServer)
 const courseServer = {
     port: '8003',
     pin: 'target:server-course',
+    //host: '192.168.99.100' // docker启动
     host: '127.0.0.1'
 }
+//const courseServerRequest = 'http://192.168.99.100:8004' // docker启动
 const courseServerRequest = 'http://127.0.0.1:8004'
 courseSeneca.client(courseServer)
 

@@ -4,46 +4,29 @@
             <el-button type="primary" :size="buttonSize" plain @click="scheduleAdd()">计划添加</el-button>
             <el-button type="success" :size="buttonSize" plain @click="scheduleImport()">计划导入</el-button>
             <el-button type="danger" :size="buttonSize" plain @click="scheduleDelete()">计划删除</el-button>
+            <el-cascader class="hidden-xs-only" v-model="filterMajor" :options="majorList" @change="handleSelectChange" :show-all-levels="false" placeholder="专业选择"></el-cascader>
         </el-row>
-        <el-row style="margin-top: 20px;">
+        <el-row class="scheduleXsTop">
+            <el-cascader class="hidden-sm-and-up" v-model="filterMajor" :options="majorList" @change="handleSelectChange" :show-all-levels="false" placeholder="专业选择"></el-cascader>
+        </el-row>
+        <el-row class="scheduleDetail" style="margin-top: 20px;">
             <el-timeline>
-                <el-timeline-item color="#a0cfff" timestamp="通识必修课程" placement="top">
-                    <el-card>
-                        <h4>更新 Github 模板</h4>
-                        <p>王小虎 提交于 2018/4/12 20:46</p>
-                    </el-card>
+                <el-timeline-item v-for="item in items" :key="item.label" :color="item.color" :timestamp="item.label" placement="top">
+                    <el-collapse-transition>
+                        <el-card v-show="pointShow">
+                            <h4>课程计划</h4>
+                            <p>选择专业查看专业课程计划</p>
+                        </el-card>
+                    </el-collapse-transition>
+                    <el-collapse-transition>
+                        <el-card v-show="detailShow">
+                            <template v-for="child in item.children">
+                                <el-tag :key="child.courseid" :type="item.tagType" class="hidden-xs-only tag-courseid">{{ child.courseid }}</el-tag>
+                                <el-tag :key="'d' + child.courseid" :type="item.tagType" class="tag-course">{{ child.name }}</el-tag>
+                            </template>
+                        </el-card>
+                    </el-collapse-transition>
                 </el-timeline-item>
-                <el-timeline-item color="#b3e19d" timestamp="通识选修课程" placement="top">
-                    <el-card>
-                        <h4>更新 Github 模板</h4>
-                        <p>王小虎 提交于 2018/4/3 20:46</p>
-                    </el-card>
-                </el-timeline-item>
-                <el-timeline-item color="#f3d19e" timestamp="大类基础课程" placement="top">
-                    <el-card>
-                        <h4>更新 Github 模板</h4>
-                        <p>王小虎 提交于 2018/4/2 20:46</p>
-                    </el-card>
-                </el-timeline-item>
-                <el-timeline-item color="#fab6b6" timestamp="学科基础课程" placement="top">
-                    <el-card>
-                        <h4>更新 Github 模板</h4>
-                        <p>王小虎 提交于 2018/4/2 20:46</p>
-                    </el-card>
-                </el-timeline-item>
-                <el-timeline-item color="#a0cfff" timestamp="专业必修课程" placement="top">
-                    <el-card>
-                        <h4>更新 Github 模板</h4>
-                        <p>王小虎 提交于 2018/4/2 20:46</p>
-                    </el-card>
-                </el-timeline-item>
-                <el-timeline-item color="#b3e19d" timestamp="专业选修课程" placement="top">
-                    <el-card>
-                        <h4>更新 Github 模板</h4>
-                        <p>王小虎 提交于 2018/4/2 20:46</p>
-                    </el-card>
-                </el-timeline-item>
-                <!-- <el-timeline-item color="#f3d19e" placement="top"></el-timeline-item> -->
             </el-timeline>
         </el-row>
 
@@ -143,8 +126,11 @@ export default {
             typeList: [],
             scheduleAddForm: {},
             loading: null,
+            filterMajor: [],
             file: '',
             buttonSize: 'medium',
+            pointShow: true,
+            detailShow: false,
             addDialogFullScreen: false,
             addDialogVisible: false,
             importDialogVisible: false,
@@ -170,6 +156,44 @@ export default {
     watch: {},
     computed: {},
     methods: {
+        handleSelectChange(){
+            // 专业筛选切换
+            this.detailShow = false;
+            this.pointShow = false;
+            var options = {
+                major: this.filterMajor[1],
+                isAll: true
+            }
+            this.$axios
+                .get('/api/course/schedule', {headers: {'showLoading': false}, params: options})
+                .then(res => {
+                    if(res.status == 200){
+                        var data = res.data;
+                        // 设置延时，让动画显示更自然
+                        setTimeout(() => {
+                            Promise.all(this.items.map(item => {
+                                return new Promise((resolve) => {
+                                    item.children.splice(0, item.children.length);
+                                    resolve(item)
+                                })
+                            }))
+                            .then(result => {
+                                data.forEach(item => {
+                                    var index = result.findIndex(value => {
+                                        return value.label == item.type;
+                                    })
+                                    if(index != -1){
+                                        result[index].children.push(item);
+                                    }
+                                })
+                                setTimeout(() => {
+                                    this.detailShow = true;
+                                },500)
+                            })
+                        },500)
+                    }
+                })
+        },
         scheduleAdd(){
             // 计划添加
             this.addDialogVisible = true;
@@ -178,10 +202,13 @@ export default {
             // 计划添加
 			this.$refs[formName].validate(valid => {
 				if(valid){
-                    this.scheduleAddForm.major = this.scheduleAddForm.major[1];
-                    this.scheduleAddForm.course = this.scheduleAddForm.course[1];
+                    var options = {
+                        major: this.scheduleAddForm.major[1],
+                        course: this.scheduleAddForm.course[1],
+                        type: this.scheduleAddForm.type
+                    }
                     this.$axios
-                        .post('/api/course/schedule', this.scheduleAddForm)
+                        .post('/api/course/schedule', options)
                         .then(res => {
                             if(res.status == 200){
                                 var data = res.data;
@@ -252,27 +279,6 @@ export default {
                 message: response.msg,
                 type: "success"
             });
-
-            // var options = {
-            //     filter: {
-            //         isFirst: true,
-            //         isPage: true,
-            //         page: 1,
-            //         size: this.listPageSize
-            //     }
-            // }
-            // var _this = this;
-            // setTimeout(function(){
-            //     _this.$axios
-            //         .get('/api/school/class', {params: options})
-            //         .then(res => {
-            //             if(res.status == 200){
-            //                 var data = res.data;
-            //                 _this.listTotal = data.count;
-            //                 _this.classList = data.data;
-            //             }
-            //         })
-            // },1000);
         },
         isEmpty(value){
 			return (
@@ -354,10 +360,16 @@ export default {
                 if(res.status == 200){
                     this.typeList = res.data;
                     var type = ['', 'success', 'info', 'danger', 'warning'];
+                    var tagType = ['', 'success', 'danger', 'warning'];
+                    var color = ['#a0cfff', '#b3e19d', '#f3d19e', '#fab6b6'];
                     this.typeList.forEach((item, index) => {
                         this.items.push({
+                            color: color[index%4],
                             type: type[index%5],
-                            label: item
+                            tagType: tagType[index%4],
+                            label: item,
+                            children: [],
+                            major: -1
                         })
                     })
                 }
@@ -366,7 +378,6 @@ export default {
         var width = $(window).width();
         if(width < 768){
             this.addDialogFullScreen = true;
-            // this.pageSmall = true;
             var buttonParentWidth = $('.scheduleTop .el-button').parent().width() - 20;
             var buttonWith = buttonParentWidth/3;
             $('.scheduleTop .el-button').eq(0).css({'margin-left':'0','width':buttonWith.toString(),'padding':'12px 10px'});
@@ -392,6 +403,21 @@ export default {
     }
     .el-timeline{
         padding-left: 0;
+    }
+    .scheduleTop .el-cascader{
+        margin-left: 10px;
+    }
+    .scheduleXsTop .el-cascader{
+        margin-top: 10px;
+        width: 100%;
+    }
+    .scheduleDetail .tag-courseid{
+        width: 130px;
+    }
+    .scheduleDetail .tag-course{
+        margin-bottom: 10px;
+        margin-left: 10px;
+        width: calc(100% - 140px);
     }
     .scheduleAddForm .el-cascader{
         width: 100%;

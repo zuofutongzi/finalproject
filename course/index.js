@@ -14,6 +14,7 @@ const type = require('./api/type')
 seneca.add('target:server-course,module:course,if:list', course.list)
 seneca.add('target:server-course,module:course,if:add', course.add)
 seneca.add('target:server-course,module:course,if:delete', course.delete)
+seneca.add('target:server-course,module:course,if:scheduleList', course.scheduleList)
 seneca.add('target:server-course,module:course,if:scheduleAdd', course.scheduleAdd)
 app.use('/', course.router)
 
@@ -22,6 +23,3 @@ seneca.add('target:server-course,module:type,if:list', type.list)
 
 app.listen(8004)
 seneca.listen(8003)
-// docker启动
-// app.listen(8002)
-// seneca.listen(8001)

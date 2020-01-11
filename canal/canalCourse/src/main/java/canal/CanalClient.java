@@ -140,8 +140,16 @@ public class CanalClient {
             }
         }
         if (columns.size() > 0) {
-            RedisUtil.stringSet(table + ":" + columns.get(0).getValue(), json.toJSONString());
-            RedisUtil.sadd("idx:" + table, key);
+//        	RedisUtil.stringSet(table + ":" + columns.get(0).getValue(), json.toJSONString());
+//        	RedisUtil.sadd("idx:" + table, key);
+            if(!table.equals("courseSchedule")) {
+            	RedisUtil.stringSet(table + ":" + columns.get(0).getValue(), json.toJSONString());
+            	RedisUtil.sadd("idx:" + table, key);
+            }
+            else {
+            	RedisUtil.stringSet(table + ":" + csmajor + ':' + cscourse, json.toJSONString());
+            }
+            
             if(table.equals("course")) {
             	RedisUtil.sadd("idx:course:college:" + ccollege, key);
             }
@@ -155,6 +163,7 @@ public class CanalClient {
             	RedisUtil.sadd("idx:classSelect:teacher:" + csteacher, key);
             }
             else if(table.equals("courseSchedule")) {
+            	//RedisUtil.sadd("idx:courseSchedule:major:" + csmajor, key);
             	RedisUtil.sadd("idx:courseSchedule:course:major:" + csmajor, cscourse);
             	RedisUtil.sadd("idx:courseSchedule:course:major:" + csmajor + ":type:" + cstype, cscourse);
             }
@@ -231,6 +240,7 @@ public class CanalClient {
             	RedisUtil.srem("idx:classSelect:teacher:" + csteacher, key);
             }
             else if(table.equals("courseSchedule")) {
+            	//RedisUtil.srem("idx:courseSchedule:major:" + csmajor, key);
             	RedisUtil.srem("idx:courseSchedule:course:major:" + csmajor, cscourse);
             	RedisUtil.srem("idx:courseSchedule:course:major:" + csmajor + ":type:" + cstype, cscourse);
             }
@@ -296,7 +306,14 @@ public class CanalClient {
             }
         }
         if (columns.size() > 0) {
-            RedisUtil.stringSet(table + ":" + columns.get(0).getValue(), json.toJSONString());
+            //RedisUtil.stringSet(table + ":" + columns.get(0).getValue(), json.toJSONString());
+            if(!table.equals("courseSchedule")) {
+            	RedisUtil.stringSet(table + ":" + columns.get(0).getValue(), json.toJSONString());
+            }
+            else {
+            	RedisUtil.stringSet(table + ":" + csmajor + ':' + cscourse, json.toJSONString());
+            }
+            
             if(table.equals("course")) {
             	RedisUtil.sadd("idx:course:college:" + ccollege, key);
             }
@@ -310,6 +327,7 @@ public class CanalClient {
             	RedisUtil.sadd("idx:classSelect:teacher:" + csteacher, key);
             }
             else if(table.equals("courseSchedule")) {
+            	//RedisUtil.sadd("idx:courseSchedule:major:" + csmajor, key);
             	RedisUtil.sadd("idx:courseSchedule:course:major:" + csmajor, cscourse);
             	RedisUtil.sadd("idx:courseSchedule:course:major:" + csmajor + ":type:" + cstype, cscourse);
             }
@@ -362,10 +380,29 @@ public class CanalClient {
             		csteacher = column.getValue();
             	}
             }
+            else if(table.equals("courseSchedule")) {
+            	if(column.getName().equals("majorid")) {
+            		csmajor = column.getValue();
+            	}
+            	else if(column.getName().equals("courseid")) {
+            		cscourse = column.getValue();
+            	}
+            	else if(column.getName().equals("type")) {
+            		cstype = column.getValue();
+            	}
+            }
         }
         if (columns.size() > 0) {
-            RedisUtil.delKey(table + ":" + columns.get(0).getValue());
-            RedisUtil.srem("idx:" + table, key);
+//            RedisUtil.delKey(table + ":" + columns.get(0).getValue());
+//            RedisUtil.srem("idx:" + table, key);
+            if(!table.equals("courseSchedule")) {
+            	RedisUtil.delKey(table + ":" + columns.get(0).getValue());
+            	RedisUtil.srem("idx:" + table, key);
+            }
+            else {
+            	RedisUtil.delKey(table + ":" + csmajor + ':' + cscourse);
+            }
+            
             if(table.equals("course")) {
             	RedisUtil.srem("idx:course:college:" + ccollege, key);
             }
@@ -379,6 +416,7 @@ public class CanalClient {
             	RedisUtil.srem("idx:classSelect:teacher:" + csteacher, key);
             }
             else if(table.equals("courseSchedule")) {
+            	//RedisUtil.srem("idx:courseSchedule:major:" + csmajor, key);
             	RedisUtil.srem("idx:courseSchedule:course:major:" + csmajor, cscourse);
             	RedisUtil.srem("idx:courseSchedule:course:major:" + csmajor + ":type:" + cstype, cscourse);
             }

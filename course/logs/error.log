@@ -22,3 +22,28 @@
 2020-01-10 18:27:34 [error]: (course-import):有课程号重复出现，请重新检查文件内容！
 2020-01-10 18:32:50 [error]: (course-scheduleImport):paarms is not defined
 2020-01-10 18:33:15 [error]: (course-scheduleImport):parms is not defined
+2020-01-11 14:02:50 [error]: (course-scheduleImport):编号为A01016的课程不存在，请重新检查文件内容是否符合要求！
+2020-01-11 14:04:05 [error]: (course-scheduleImport):编号为A01016的课程不存在，请重新检查文件内容是否符合要求！
+2020-01-11 14:07:00 [error]: (course-scheduleImport):编号为B01013的课程不存在，请重新检查文件内容是否符合要求！
+2020-01-11 14:15:11 [error]: (course-import):编号为101177的课程已存在，请重新检查文件内容是否符合要求！
+2020-01-11 14:15:17 [error]: (course-import):格式错误，请重新检查表头是否符合要求！
+2020-01-11 16:07:07 [error]: (course-import):ER_PARSE_ERROR: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '' at line 1
+2020-01-11 16:09:02 [error]: (course-scheduleImport):计算机科学与技术专业109007课程计划已存在，请重新检查文件内容是否符合要求！
+2020-01-11 16:10:31 [error]: (course-scheduleImport):编号为C01109的课程不存在，请重新检查文件内容是否符合要求！
+2020-01-11 16:11:45 [error]: (course-scheduleImport):编号为A01016的课程不存在，请重新检查文件内容是否符合要求！
+2020-01-11 16:12:50 [error]: (course-scheduleImport):编号为B01013的课程不存在，请重新检查文件内容是否符合要求！
+2020-01-11 17:05:17 [error]: (course-scheduleList):ERR wrong number of arguments for 'sort' command
+2020-01-11 17:06:05 [error]: (course-scheduleList):ERR wrong number of arguments for 'sort' command
+2020-01-11 17:06:27 [error]: (course-scheduleList):ERR wrong number of arguments for 'sort' command
+2020-01-11 19:22:25 [error]: (course-delete):ER_ROW_IS_REFERENCED_2: Cannot delete or update a parent row: a foreign key constraint fails (`course`.`courseSchedule`, CONSTRAINT `cscourseid` FOREIGN KEY (`courseid`) REFERENCES `course` (`courseid`))
+2020-01-11 19:26:25 [error]: (course-delete):ER_ROW_IS_REFERENCED_2: Cannot delete or update a parent row: a foreign key constraint fails (`course`.`courseSchedule`, CONSTRAINT `cscourseid` FOREIGN KEY (`courseid`) REFERENCES `course` (`courseid`))
+2020-01-11 19:27:10 [error]: (course-delete):ER_ROW_IS_REFERENCED_2: Cannot delete or update a parent row: a foreign key constraint fails (`course`.`courseSchedule`, CONSTRAINT `cscourseid` FOREIGN KEY (`courseid`) REFERENCES `course` (`courseid`))
+2020-01-11 19:27:22 [error]: (course-delete):ER_ROW_IS_REFERENCED_2: Cannot delete or update a parent row: a foreign key constraint fails (`course`.`courseSchedule`, CONSTRAINT `cscourseid` FOREIGN KEY (`courseid`) REFERENCES `course` (`courseid`))
+2020-01-11 19:29:11 [error]: (course-delete):ER_ROW_IS_REFERENCED_2: Cannot delete or update a parent row: a foreign key constraint fails (`course`.`courseSchedule`, CONSTRAINT `cscourseid` FOREIGN KEY (`courseid`) REFERENCES `course` (`courseid`))
+2020-01-11 19:32:33 [error]: (course-delete):ER_ROW_IS_REFERENCED_2: Cannot delete or update a parent row: a foreign key constraint fails (`course`.`courseSchedule`, CONSTRAINT `cscourseid` FOREIGN KEY (`courseid`) REFERENCES `course` (`courseid`))
+2020-01-11 19:35:17 [error]: (course-delete):ER_ROW_IS_REFERENCED_2: Cannot delete or update a parent row: a foreign key constraint fails (`course`.`courseSchedule`, CONSTRAINT `cscourseid` FOREIGN KEY (`courseid`) REFERENCES `course` (`courseid`))
+2020-01-11 19:36:39 [error]: (course-delete):ER_ROW_IS_REFERENCED_2: Cannot delete or update a parent row: a foreign key constraint fails (`course`.`courseSchedule`, CONSTRAINT `cscourseid` FOREIGN KEY (`courseid`) REFERENCES `course` (`courseid`))
+2020-01-11 19:37:26 [error]: (course-delete):ER_ROW_IS_REFERENCED_2: Cannot delete or update a parent row: a foreign key constraint fails (`course`.`courseSchedule`, CONSTRAINT `cscourseid` FOREIGN KEY (`courseid`) REFERENCES `course` (`courseid`))
+2020-01-11 19:37:53 [error]: (course-delete):ER_ROW_IS_REFERENCED_2: Cannot delete or update a parent row: a foreign key constraint fails (`course`.`courseSchedule`, CONSTRAINT `cscourseid` FOREIGN KEY (`courseid`) REFERENCES `course` (`courseid`))
+2020-01-11 19:37:58 [error]: (course-delete):ER_ROW_IS_REFERENCED_2: Cannot delete or update a parent row: a foreign key constraint fails (`course`.`courseSchedule`, CONSTRAINT `cscourseid` FOREIGN KEY (`courseid`) REFERENCES `course` (`courseid`))
+2020-01-11 19:39:27 [error]: (course-delete):ER_ROW_IS_REFERENCED_2: Cannot delete or update a parent row: a foreign key constraint fails (`course`.`courseSchedule`, CONSTRAINT `cscourseid` FOREIGN KEY (`courseid`) REFERENCES `course` (`courseid`))

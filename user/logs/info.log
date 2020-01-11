@@ -179,3 +179,5 @@
 2020-01-10 17:49:45 [info]: (notify-add):通知添加成功
 2020-01-10 18:04:41 [info]: (notify-edit):通知修改成功
 2020-01-10 18:22:18 [info]: (notify-delete):通知删除成功
+2020-01-10 17:31:43 [info]: (notify-edit):通知修改成功
+2020-01-11 19:54:25 [error]: (user-delete):ER_ROW_IS_REFERENCED_2: Cannot delete or update a parent row: a foreign key constraint fails (`user`.`class`, CONSTRAINT `clteacherid` FOREIGN KEY (`teacherid`) REFERENCES `teacher` (`userid`))

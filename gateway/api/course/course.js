@@ -101,6 +101,24 @@ router.post('/course/import', passport.authenticate('jwt', {session: false}), up
     }
 })
 
+// @route  GET /api/course/schedule
+// @desc   获取课程计划
+// @token  true
+// @return scheduleList
+// @access public
+// @params {major: String, isAll: Boolean, type: String/null}
+router.get('/course/schedule', passport.authenticate('jwt', {session: false}), (req, done) => {
+    courseSeneca.act('target:server-course,module:course,if:scheduleList', req.query,
+    (err,res) => {
+        if(err){
+            done.status(500).send(err.data.payload.details.message)
+        }
+        else{
+            done.send(res)
+        }
+        })
+})
+
 // @route  POST /api/course/schedule
 // @desc   添加课程计划
 // @token  true
@@ -125,7 +143,7 @@ router.post('/course/schedule', passport.authenticate('jwt', {session: false}), 
 })
 
 // @route  POST /api/course/schedule/import
-// @desc   用户导入
+// @desc   课程计划导入
 // @token  true
 // @return msg
 // @access manager

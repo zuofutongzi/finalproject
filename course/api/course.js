@@ -131,6 +131,7 @@ async function mydelete(msg, done){
     var tempClass = 'temp:delete:class:' + (new Date()).getTime();
     
     var deleteCourseSql = 'delete from course where courseid in (';
+
     // 课程班级并集
     var tempClass_params = [];
     for(var i = 0; i < course.length; i++){
@@ -142,35 +143,61 @@ async function mydelete(msg, done){
             deleteCourseSql += ', ?';
         }
     }
-    var union = async () => {
-        return await new Promise((resolve) => {
+    var getClass = new Promise((resolve) => {
             // 建立临时表
             redis.sunionstore(tempClass, tempClass_params, (err, keys) => {
                 if(err){
                     logger.error('(course-delete):' + err.message);
                     done(new Error('数据库访问失败，请稍后再试...'))
                 }
+                else if(keys != 0){
+                    resolve(true)
+                }
                 else{
-                    resolve(keys)
+                    resolve(false)
                 }
             })
         })
-    }
-    if((await union()) != 0){
-        done(new Error('当前课程有开课记录，无法删除'))
-    }
 
-    deleteCourseSql += ')';
+    var getSchedule = new Promise((resolve) => {
+            redis.keys('courseSchedule:*:' + course, (err, res) => {
+                if(err){
+                    logger.error('(course-delete):' + err.message);
+                    done(new Error('数据库访问失败，请稍后再试...'))
+                }
+                else if(res.length != 0){
+                    resolve(true)
+                }
+                else{
+                    resolve(false)
+                }
+            })
+        })
+
     const mysql = await connectHandler();
-    mysql.query(deleteCourseSql, course, (err, result) => {
-        if(err){
-            logger.error('(course-delete):' + err.message);
-            done(new Error('课程删除失败！'))
-        }
-        else{
-            done(null, {msg: '课程删除成功'})
-        }
-    })
+    Promise.all([getClass, getSchedule])
+        .then(result => {
+            var index = result.indexOf(false);
+            switch(index){
+                case 0:
+                    done(new Error('当前课程有开课记录，无法删除'))
+                    break;
+                case 1:
+                    done(new Error('当前课程在课程计划内，无法删除'))
+                    break;
+                default:
+                    deleteCourseSql += ')';
+                    mysql.query(deleteCourseSql, course, (err, result) => {
+                        if(err){
+                            logger.error('(course-delete):' + err.message);
+                            done(new Error('课程删除失败！'))
+                        }
+                        else{
+                            done(null, {msg: '课程删除成功'})
+                        }
+                    })
+            }
+        })
 
     // 删除临时表
     redis.del(tempClass)
@@ -239,6 +266,21 @@ router.post('/course/import', async (msg, done) => {
         }
         var { collegeName, collegeId } = await getCollegeList();
 
+        var getCourseList = async () => {
+            return await new Promise((resolve) => {
+                redis.sort('idx:course', 'alpha', (err, keys) => {
+                    if(err){
+                        logger.error('(course-import):' + err.message);
+                        done(new Error('数据库访问失败，请稍后再试...'))
+                    }
+                    else{
+                        resolve(keys)
+                    }
+                })
+            })
+        }
+        var courseList = await getCourseList();
+
         var insert = 'insert into course(collegeid, courseid, name, credit, classHour) values';
         var insert_params = [];
         var newData = [];
@@ -259,6 +301,11 @@ router.post('/course/import', async (msg, done) => {
             // 判断课程编号是否有重复
             if(newData.indexOf(item[courseIndex]) == -1){
                 newData.push(item[courseIndex]);
+            }
+
+            // 判断课程是否已存在
+            if(courseList.indexOf(item[courseIndex].toString()) != -1){
+                throw new Error('编号为' + item[courseIndex] + '的课程已存在，请重新检查文件内容是否符合要求！')
             }
 
             // 分院名替换为编号
@@ -297,6 +344,55 @@ router.post('/course/import', async (msg, done) => {
     }
 })
 
+// 获取课程计划
+// var options = {
+//     major: String,
+//     isAll: Boolean,
+//     type: String/null // isAll:false则type必填
+// }
+// type获取未做
+function scheduleList(msg, done){
+    var { major, isAll } = msg;
+    var options = [];
+
+    if(isAll){
+        options = options.concat(['idx:courseSchedule:course:major:' + major, 'alpha', 'get', 'courseSchedule:' + major + ':*']);
+    }
+    else{
+        // 根据type筛选
+    }
+
+    redis.sort(options, async (err, keys) => {
+        if(err){
+            logger.error('(course-scheduleList):' + err.message);
+            done(new Error('数据库访问失败，请稍后再试...'))
+        }
+        else{
+            Promise.all(keys.map(item => {
+                item = JSON.parse(item);
+                return new Promise((resolve) => {
+                    redis.mget('course:' + item.courseid, (err, res) => {
+                        if(err){
+                            logger.error('(course-scheduleList):' + err.message);
+                            done(new Error('数据库访问失败，请稍后再试...'))
+                        }
+                        else if(res[0] != null){
+                            var data = JSON.parse(res[0]);
+                            item.name = data.name;
+                            item.credit = data.credit;
+                            item.classHour = data.classHour;
+                        }
+                        resolve(item)
+                    })
+                })
+            }))
+            .then(result => {
+                done(null, result)
+            })
+        }
+    })
+}
+
 // 课程计划添加
 // var options = {
 //     major: String,
@@ -307,17 +403,29 @@ async function scheduleAdd(msg, done){
     var { major, course, type } = msg;
     var insert = 'insert into courseSchedule(majorid, courseid, type) values(?, ?, ?)';
     var params = [major, course, type];
-
     const mysql = await connectHandler();
-    mysql.query(insert, params, (err, result) => {
+
+    redis.sort('idx:courseSchedule:course:major:' + major, 'alpha', (err, keys) => {
         if(err){
             logger.error('(course-scheduleAdd):' + err.message);
-            done(new Error('课程计划添加失败！'))
+            done(new Error('数据库访问失败，请稍后再试...'))
+        }
+        else if(keys.indexOf(course.toString()) != -1){
+            done(new Error('该专业该课程已在课程计划内'))
         }
         else{
-            done(null, {msg: '课程计划添加成功'})
+            mysql.query(insert, params, (err, result) => {
+                if(err){
+                    logger.error('(course-scheduleAdd):' + err.message);
+                    done(new Error('课程计划添加失败！'))
+                }
+                else{
+                    done(null, {msg: '课程计划添加成功'})
+                }
+            })
         }
     })
+
     mysql.release();
 }
 
@@ -407,10 +515,29 @@ router.post('/course/schedule/import', async (msg, done) => {
         }
         var typeList = await getType();
 
+        var getSchedule = async (major, course) => {
+            return await new Promise((resolve) => {
+                redis.mget('courseSchedule:' + major + ':' + course, (err, res) => {
+                    if(err){
+                        logger.error('(course-scheduleImport):' + err.message);
+                        done(new Error('数据库访问失败，请稍后再试...'))
+                    }
+                    else if(res[0] == null){
+                        resolve(false)
+                    }
+                    else{
+                        resolve(true)
+                    }
+                })
+            })
+        } 
+
         var insert = 'insert into courseSchedule(majorid, courseid, type) values';
         var params = [];
         var newData = [];
-        data.forEach(item => {
+        for(var i = 0; i < data.length; i++){
+            var item = data[i];
+
             // 数据不能有空项
             item = item.filter((value) => {    
                 return !(
@@ -430,6 +557,7 @@ router.post('/course/schedule/import', async (msg, done) => {
             }
 
             // 替换专业为专业编号
+            var tempMajor = item[majorIndex];
             var index = majorList.findIndex(value => {
                 return value.name == item[majorIndex];
             })
@@ -438,6 +566,11 @@ router.post('/course/schedule/import', async (msg, done) => {
             }
             else{
                 item[majorIndex] = majorList[index].majorid;
+            }
+
+            // 判断计划是否存在
+            if(await getSchedule(item[majorIndex], item[courseIndex])){
+                throw new Error(tempMajor + '专业' + item[courseIndex] + '课程计划已存在，请重新检查文件内容是否符合要求！')
             }
             
             // 判断课程是否存在
@@ -452,7 +585,7 @@ router.post('/course/schedule/import', async (msg, done) => {
 
             insert += '(?, ?, ?),';
             params = params.concat(item);
-        })
+        }
         insert = insert.slice(0, insert.length - 1);
 
         if(newData.length != data.length){
@@ -481,6 +614,7 @@ module.exports = {
     list: list,
     add: add,
     delete: mydelete,
+    scheduleList: scheduleList,
     scheduleAdd: scheduleAdd,
     router: router
 }
