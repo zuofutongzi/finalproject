@@ -66,3 +66,4 @@
 2020-01-09 16:40:08 [error]: (school-classDelete):ER_PARSE_ERROR: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '?, ?)' at line 1
 2020-01-09 16:54:04 [error]: (user-delete):ER_ROW_IS_REFERENCED_2: Cannot delete or update a parent row: a foreign key constraint fails (`user`.`class`, CONSTRAINT `clteacherid` FOREIGN KEY (`teacherid`) REFERENCES `teacher` (`userid`))
 2020-01-11 19:54:25 [error]: (user-delete):ER_ROW_IS_REFERENCED_2: Cannot delete or update a parent row: a foreign key constraint fails (`user`.`class`, CONSTRAINT `clteacherid` FOREIGN KEY (`teacherid`) REFERENCES `teacher` (`userid`))
+2020-01-12 14:04:50 [error]: (user-register):ER_EMPTY_QUERY: Query was empty

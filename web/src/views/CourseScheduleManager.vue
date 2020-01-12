@@ -21,8 +21,8 @@
                     <el-collapse-transition>
                         <el-card v-show="detailShow">
                             <template v-for="child in item.children">
-                                <el-tag :key="child.courseid" :type="item.tagType" class="hidden-xs-only tag-courseid">{{ child.courseid }}</el-tag>
-                                <el-tag :key="'d' + child.courseid" :type="item.tagType" class="tag-course">{{ child.name }}</el-tag>
+                                <el-tag :key="child.courseid" :type="child.tagType" @click="handleTagSelect(child)" class="hidden-xs-only tag-courseid">{{ child.courseid }}</el-tag>
+                                <el-tag :key="'d' + child.courseid" :type="child.tagType" @click="handleTagSelect(child)" class="tag-course">{{ child.name }}</el-tag>
                             </template>
                         </el-card>
                     </el-collapse-transition>
@@ -124,6 +124,7 @@ export default {
             majorList: [],
             courseList: [],
             typeList: [],
+            multipleSelection: [],
             scheduleAddForm: {},
             loading: null,
             filterMajor: [],
@@ -158,6 +159,7 @@ export default {
     methods: {
         handleSelectChange(){
             // 专业筛选切换
+            this.multipleSelection.splice(0, this.multipleSelection.length);
             this.detailShow = false;
             this.pointShow = false;
             var options = {
@@ -183,11 +185,16 @@ export default {
                                         return value.label == item.type;
                                     })
                                     if(index != -1){
+                                        item.tagType = result[index].tagType;
                                         result[index].children.push(item);
                                     }
                                 })
                                 setTimeout(() => {
                                     this.detailShow = true;
+                                    var width = $(window).width();
+                                    if(width < 768){
+                                        $('.tag-course').css({'width':'100%', 'margin-left':'0', 'overflow':'hidden', 'text-overflow':'ellipsis', 'white-space':'nowrap'});
+                                    }
                                 },500)
                             })
                         },500)
@@ -216,6 +223,13 @@ export default {
                                     message: data.msg,
                                     type: "success"
                                 });
+
+                                if(!this.isEmpty(this.filterMajor) && this.filterMajor[1] == options.major){
+                                    setTimeout(() => {
+                                        // 获取最新课程计划列表
+                                        this.handleSelectChange();
+                                    },1000)
+                                }
 
                                 this.addDialogVisible = false;
                                 this.scheduleAddForm = {
@@ -279,6 +293,53 @@ export default {
                 message: response.msg,
                 type: "success"
             });
+        },
+        handleTagSelect(value){
+            // 课程计划选择
+            this.items = this.items.map(item => {
+                if(item.label == value.type){
+                    item.children = item.children.map(citem => {
+                        if(citem.majorid == value.majorid && citem.courseid == value.courseid){
+                            if(citem.tagType != 'info'){
+                                citem.tagType = 'info';
+                                this.multipleSelection.push(citem);
+                            }
+                            else{
+                                citem.tagType = item.tagType;
+                                var index = this.multipleSelection.findIndex(mitem => {
+                                    return mitem.majorid == citem.majorid && mitem.courseid == citem.courseid;
+                                })
+                                if(index != -1){
+                                    this.multipleSelection.splice(index, 1);
+                                }
+                            }
+                        }
+                        return citem;
+                    })
+                }
+                return item;
+            })
+        },
+        scheduleDelete(){
+            // 课程计划删除
+            this.$axios
+                .delete('/api/course/schedule', {data: this.multipleSelection})
+                .then(res => {
+                    if(res.status == 200){
+                        var data = res.data;
+                        this.$message({
+                            message: data.msg,
+                            type: "success"
+                        });
+
+                        if(!this.isEmpty(this.filterMajor)){
+                            setTimeout(() => {
+                                // 获取最新课程计划列表
+                                this.handleSelectChange();
+                            },1000)
+                        }
+                    }
+                })
         },
         isEmpty(value){
 			return (
@@ -368,8 +429,7 @@ export default {
                             type: type[index%5],
                             tagType: tagType[index%4],
                             label: item,
-                            children: [],
-                            major: -1
+                            children: []
                         })
                     })
                 }
@@ -413,11 +473,13 @@ export default {
     }
     .scheduleDetail .tag-courseid{
         width: 130px;
+        cursor:pointer;
     }
     .scheduleDetail .tag-course{
         margin-bottom: 10px;
         margin-left: 10px;
         width: calc(100% - 140px);
+        cursor:pointer;
     }
     .scheduleAddForm .el-cascader{
         width: 100%;

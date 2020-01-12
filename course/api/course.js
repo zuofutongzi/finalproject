@@ -144,35 +144,36 @@ async function mydelete(msg, done){
         }
     }
     var getClass = new Promise((resolve) => {
-            // 建立临时表
-            redis.sunionstore(tempClass, tempClass_params, (err, keys) => {
-                if(err){
-                    logger.error('(course-delete):' + err.message);
-                    done(new Error('数据库访问失败，请稍后再试...'))
-                }
-                else if(keys != 0){
-                    resolve(true)
-                }
-                else{
-                    resolve(false)
-                }
-            })
+        // 建立临时表
+        redis.sunionstore(tempClass, tempClass_params, (err, keys) => {
+            if(err){
+                logger.error('(course-delete):' + err.message);
+                done(new Error('数据库访问失败，请稍后再试...'))
+            }
+            else if(keys != 0){
+                resolve(true)
+            }
+            else{
+                resolve(false)
+            }
         })
+    })
 
+    // 获取课程计划
     var getSchedule = new Promise((resolve) => {
-            redis.keys('courseSchedule:*:' + course, (err, res) => {
-                if(err){
-                    logger.error('(course-delete):' + err.message);
-                    done(new Error('数据库访问失败，请稍后再试...'))
-                }
-                else if(res.length != 0){
-                    resolve(true)
-                }
-                else{
-                    resolve(false)
-                }
-            })
+        redis.keys('courseSchedule:*:' + course, (err, res) => {
+            if(err){
+                logger.error('(course-delete):' + err.message);
+                done(new Error('数据库访问失败，请稍后再试...'))
+            }
+            else if(res.length != 0){
+                resolve(true)
+            }
+            else{
+                resolve(false)
+            }
         })
+    })
 
     const mysql = await connectHandler();
     Promise.all([getClass, getSchedule])
@@ -196,6 +197,7 @@ async function mydelete(msg, done){
                             done(null, {msg: '课程删除成功'})
                         }
                     })
+                    break;
             }
         })
 
@@ -429,6 +431,40 @@ async function scheduleAdd(msg, done){
     mysql.release();
 }
 
+// 课程计划删除
+// var options = {
+//     schedule: [{
+//         majorid: String,
+//         courseid: String
+//     }]
+// }
+async function scheduleDelete(msg, done){
+    var { schedule } = msg;
+    schedule = JSON.parse(schedule);
+    var deleteScheduleSql = 'delete from courseSchedule where (majorid,courseid) in (';
+    var delete_params = [];
+
+    for(var i = 0; i < schedule.length; i++){
+        deleteScheduleSql += '(?, ?),';
+        delete_params.push(schedule[i].majorid);
+        delete_params.push(schedule[i].courseid);
+    }
+    deleteScheduleSql = deleteScheduleSql.slice(0, deleteScheduleSql.length - 1);
+    deleteScheduleSql += ')';
+
+    const mysql = await connectHandler();
+    mysql.query(deleteScheduleSql, delete_params, (err, result) => {
+        if(err){
+            logger.error('(course-scheduleDelete):' + err.message);
+            done(new Error('课程计划删除失败！'))
+        }
+        else{
+            done(null, {msg: '课程计划删除成功'})
+        }
+    })
+    mysql.release();
+}
+
 // 课程计划导入
 router.post('/course/schedule/import', async (msg, done) => {
     try{
@@ -616,5 +652,6 @@ module.exports = {
     delete: mydelete,
     scheduleList: scheduleList,
     scheduleAdd: scheduleAdd,
+    scheduleDelete: scheduleDelete,
     router: router
 }

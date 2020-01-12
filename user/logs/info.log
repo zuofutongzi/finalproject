@@ -181,3 +181,4 @@
 2020-01-10 18:22:18 [info]: (notify-delete):通知删除成功
 2020-01-10 17:31:43 [info]: (notify-edit):通知修改成功
 2020-01-11 19:54:25 [error]: (user-delete):ER_ROW_IS_REFERENCED_2: Cannot delete or update a parent row: a foreign key constraint fails (`user`.`class`, CONSTRAINT `clteacherid` FOREIGN KEY (`teacherid`) REFERENCES `teacher` (`userid`))
+2020-01-12 14:04:50 [error]: (user-register):ER_EMPTY_QUERY: Query was empty

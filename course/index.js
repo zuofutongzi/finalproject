@@ -16,6 +16,7 @@ seneca.add('target:server-course,module:course,if:add', course.add)
 seneca.add('target:server-course,module:course,if:delete', course.delete)
 seneca.add('target:server-course,module:course,if:scheduleList', course.scheduleList)
 seneca.add('target:server-course,module:course,if:scheduleAdd', course.scheduleAdd)
+seneca.add('target:server-course,module:course,if:scheduleDelete', course.scheduleDelete)
 app.use('/', course.router)
 
 // type

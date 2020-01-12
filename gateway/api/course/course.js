@@ -73,7 +73,7 @@ router.delete('/course', passport.authenticate('jwt', {session: false}), (req, d
 })
 
 // @route  POST /api/course/import
-// @desc   用户导入
+// @desc   课程导入
 // @token  true
 // @return msg
 // @access manager
@@ -131,6 +131,29 @@ router.post('/course/schedule', passport.authenticate('jwt', {session: false}), 
     }
     else{
         courseSeneca.act('target:server-course,module:course,if:scheduleAdd', req.body,
+        (err,res) => {
+            if(err){
+                done.status(500).send(err.data.payload.details.message)
+            }
+            else{
+                done.send(res)
+            }
+        })
+    }
+})
+
+// @route  DELETE /api/course/schedule
+// @desc   删除课程计划
+// @token  true
+// @return msg
+// @access manager
+// @params {schedule: Array}
+router.delete('/course/schedule', passport.authenticate('jwt', {session: false}), (req, done) => {
+    if(req.user.identity !== 'manager'){
+        done.status(500).send("没有权限！")
+    }
+    else{
+        courseSeneca.act('target:server-course,module:course,if:scheduleDelete', {schedule: JSON.stringify(req.body)},
         (err,res) => {
             if(err){
                 done.status(500).send(err.data.payload.details.message)

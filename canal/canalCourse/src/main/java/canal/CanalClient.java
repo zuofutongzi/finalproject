@@ -89,6 +89,8 @@ public class CanalClient {
         // class
         String ccourse = null;
         String cteacher = null;
+        String cschoolYear = null;
+        String cschoolTerm = null;
         // classSelect
         String csstudent = null;
         String csclass = null;
@@ -114,6 +116,12 @@ public class CanalClient {
             	}
             	else if(column.getName().equals("teacherid")) {
             		cteacher = column.getValue();
+            	}
+            	else if(column.getName().equals("schoolYear")) {
+            		cschoolYear = column.getValue();
+            	}
+            	else if(column.getName().equals("schoolTerm")) {
+            		cschoolTerm = column.getValue();
             	}
             }
             else if(table.equals("classSelect")) {
@@ -156,6 +164,7 @@ public class CanalClient {
             else if(table.equals("class")) {
             	RedisUtil.sadd("idx:class:course:" + ccourse, key);
             	RedisUtil.sadd("idx:class:teacher:" + cteacher, key);
+            	RedisUtil.sadd("idx:class:schoolYear:" + cschoolYear + ":schoolTerm:" + cschoolTerm, key);
             }
             else if(table.equals("classSelect")) {
             	RedisUtil.sadd("idx:classSelect:student:" + csstudent, key);
@@ -177,6 +186,8 @@ public class CanalClient {
     	// class
         String ccourse = null;
         String cteacher = null;
+        String cschoolYear = null;
+        String cschoolTerm = null;
         // classSelect
         String csstudent = null;
         String csclass = null;
@@ -201,6 +212,12 @@ public class CanalClient {
             	}
             	else if(column.getName().equals("teacherid")) {
             		cteacher = column.getValue();
+            	}
+            	else if(column.getName().equals("schoolYear")) {
+            		cschoolYear = column.getValue();
+            	}
+            	else if(column.getName().equals("schoolTerm")) {
+            		cschoolTerm = column.getValue();
             	}
             }
             else if(table.equals("classSelect")) {
@@ -233,6 +250,7 @@ public class CanalClient {
     		else if(table.equals("class")) {
             	RedisUtil.srem("idx:class:course:" + ccourse, key);
             	RedisUtil.srem("idx:class:teacher:" + cteacher, key);
+            	RedisUtil.srem("idx:class:schoolYear:" + cschoolYear + ":schoolTerm:" + cschoolTerm, key);
             }
             else if(table.equals("classSelect")) {
             	RedisUtil.srem("idx:classSelect:student:" + csstudent, key);
@@ -255,6 +273,8 @@ public class CanalClient {
         // class
         String ccourse = null;
         String cteacher = null;
+        String cschoolYear = null;
+        String cschoolTerm = null;
         // classSelect
         String csstudent = null;
         String csclass = null;
@@ -280,6 +300,12 @@ public class CanalClient {
             	}
             	else if(column.getName().equals("teacherid")) {
             		cteacher = column.getValue();
+            	}
+            	else if(column.getName().equals("schoolYear")) {
+            		cschoolYear = column.getValue();
+            	}
+            	else if(column.getName().equals("schoolTerm")) {
+            		cschoolTerm = column.getValue();
             	}
             }
             else if(table.equals("classSelect")) {
@@ -320,6 +346,7 @@ public class CanalClient {
             else if(table.equals("class")) {
             	RedisUtil.sadd("idx:class:course:" + ccourse, key);
             	RedisUtil.sadd("idx:class:teacher:" + cteacher, key);
+            	RedisUtil.sadd("idx:class:schoolYear:" + cschoolYear + ":schoolTerm:" + cschoolTerm, key);
             }
             else if(table.equals("classSelect")) {
             	RedisUtil.sadd("idx:classSelect:student:" + csstudent, key);
@@ -342,6 +369,8 @@ public class CanalClient {
         // class
         String ccourse = null;
         String cteacher = null;
+        String cschoolYear = null;
+        String cschoolTerm = null;
         // classSelect
         String csstudent = null;
         String csclass = null;
@@ -367,6 +396,12 @@ public class CanalClient {
             	}
             	else if(column.getName().equals("teacherid")) {
             		cteacher = column.getValue();
+            	}
+            	else if(column.getName().equals("schoolYear")) {
+            		cschoolYear = column.getValue();
+            	}
+            	else if(column.getName().equals("schoolTerm")) {
+            		cschoolTerm = column.getValue();
             	}
             }
             else if(table.equals("classSelect")) {
@@ -409,6 +444,7 @@ public class CanalClient {
             else if(table.equals("class")) {
             	RedisUtil.srem("idx:class:course:" + ccourse, key);
             	RedisUtil.srem("idx:class:teacher:" + cteacher, key);
+            	RedisUtil.srem("idx:class:schoolYear:" + cschoolYear + ":schoolTerm:" + cschoolTerm, key);
             }
             else if(table.equals("classSelect")) {
             	RedisUtil.srem("idx:classSelect:student:" + csstudent, key);

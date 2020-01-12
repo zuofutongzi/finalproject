@@ -694,7 +694,7 @@ function detail(msg, done){
                     data.classTeacher = userDetail.classTeacher;
                     break;
                 default:
-                    done(new Error('添加对象身份类型错误！'))
+                    done(new Error('对象身份类型错误！'))
             }
             // 请求自己信息，将密码去除返回
             // 请求他人信息，将隐私信息去除返回
