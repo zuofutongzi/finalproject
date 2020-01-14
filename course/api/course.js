@@ -50,7 +50,8 @@ async function list(msg, done){
             userSeneca.act('target:server-user,module:school,if:collegeList',
             (err, res) => {
                 if(err){
-                    done.send({status: 500, msg: err.message})
+                    logger.error('(course-list):server-user访问失败');
+                    done(new Error(err.data.payload.details.message))
                 }
                 else{
                     var collegeName = [];
@@ -249,7 +250,8 @@ router.post('/course/import', async (msg, done) => {
                 userSeneca.act('target:server-user,module:school,if:collegeList',
                 (err, res) => {
                     if(err){
-                        done.send({status: 500, msg: err.message})
+                        logger.error('(course-import):server-user访问失败');
+                        done.send({status: 500, msg: err.data.payload.details.message})
                     }
                     else{
                         var collegeName = [];
@@ -509,7 +511,8 @@ router.post('/course/schedule/import', async (msg, done) => {
                 userSeneca.act('target:server-user,module:school,if:majorList',
                 (err, res) => {
                     if(err){
-                        done.send({status: 500, msg: err.message})
+                        logger.error('(course-scheduleImport):server-user访问失败');
+                        done.send({status: 500, msg: err.data.payload.details.message})
                     }
                     else{
                         resolve(res)

@@ -5,6 +5,7 @@
             <el-button type="success" :size="buttonSize" plain @click="classImport()">开课导入</el-button>
             <el-button type="danger" :size="buttonSize" plain @click="classDelete()">开课删除</el-button>
             <el-button type="primary" :size="buttonSize" plain @click="selectSet()">选课设置</el-button>
+            <el-button type="success" :size="buttonSize" plain @click="drawLots()">课程抽签</el-button>
             <el-card shadow="always" style="margin-top: 10px;">
                 最近没有选课
             </el-card>
@@ -53,57 +54,65 @@
                                 </el-option>
                             </el-select>
                         </el-form-item>
+                        <el-form-item label="课程容量" prop="capacityLimit">
+                            <el-input v-model="classSelectAddForm.capacityLimit" placeholder="请填写数字"></el-input>
+                        </el-form-item>
                         <div style="margin-bottom: 22px;">
-                            <el-table
-                                border
-                                :highlight-current-row="false"
-                                :data="courseTable"
-                                :row-class-name="tableRowClassName"
-                                @cell-click="courseTableCellClick"
-                                style="width: 100%">
-                                <el-table-column
-                                    header-align="center"
-                                    align="center"
-                                    prop="session"
-                                    label=""
-                                    width="50">
-                                </el-table-column>
-                                <el-table-column
-                                    header-align="center"
-                                    align="center"
-                                    prop="Mon"
-                                    label="一">
-                                </el-table-column>
-                                <el-table-column
-                                    header-align="center"
-                                    align="center"
-                                    prop="Tue"
-                                    label="二">
-                                </el-table-column>
-                                <el-table-column
-                                    header-align="center"
-                                    align="center"
-                                    prop="Wed"
-                                    label="三">
-                                </el-table-column>
-                                <el-table-column
-                                    header-align="center"
-                                    align="center"
-                                    prop="Thur"
-                                    label="四">
-                                </el-table-column>
-                                <el-table-column
-                                    header-align="center"
-                                    align="center"
-                                    prop="Fri"
-                                    label="五">
-                                </el-table-column>
-                            </el-table>
+                            <course-table
+                                ref="courseTable"
+                                :topbar="courseTableTopBar" 
+                                :selectChangeColor="true" 
+                                v-model="courseTableSelect">
+                            </course-table>
                         </div>
                         <el-form-item>
 					    	<el-button type="primary" class="submit_btn" @click="submitAddForm('addForm')">添加</el-button>
 					  	</el-form-item>
                     </el-form>
+				</el-col>
+			</el-row>
+		</el-dialog>
+
+        <!-- 开课导入 -->
+        <el-dialog
+			:visible.sync="importDialogVisible"
+			:fullscreen="true"
+			title="开课导入"
+			center>
+			<el-row class="classImport">
+				<el-col :xs='{span: 24}' :sm='{span: 16, offset: 4}'>
+                    <el-divider content-position="left"><span>* </span>导入格式</el-divider>
+                    <el-image :src="require('../assets/teach/table.jpg')"></el-image><br>
+                    <el-image :src="require('../assets/teach/classCourse.jpg')"></el-image><br>
+                    <p style="color: red">时间设置如下：[星期]-[第x节]，多个课时用分号隔开（例：Mon-1;Mon-2;Fri-6;Fri-7;）</p>
+                    <div class="tag-group">
+                        <span class="tag-group__title">星期选择如下：</span>
+                        <el-tag
+                            v-for="item in weekday"
+                            :key="item.label"
+                            :type="item.type">
+                            {{ item.label }}
+                        </el-tag>
+                    </div>
+                    <p>学年：2020-2010</p>
+                    <p>学期：1</p>
+                    
+                    <el-divider content-position="left">文件导入</el-divider>
+					<el-upload
+                        class="upload-demo"
+                        ref="upload"
+                        action="/api/course/import"
+                        accept=".xls,.xlsx"
+                        :headers="headers"
+                        :on-error="handleError"
+                        :on-change="handleChange"
+                        :on-success="handleSuccess"
+                        :limit="1"
+                        :auto-upload="false">
+                        <el-button slot="trigger" size="small" type="primary">选取文件</el-button>
+                        <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload">上传到服务器</el-button>
+                        <div slot="tip" class="el-upload__tip">只接收.xls/.xlsx文件，上传文件不超过1mb</div>
+                    </el-upload>
 				</el-col>
 			</el-row>
 		</el-dialog>
@@ -113,24 +122,84 @@
 <script>
 import $ from 'jquery'
 import Timetables from 'timetables'
+import CourseTable from '../components/CourseTable'
 
 export default {
-    components: {},
+    components: {
+        CourseTable
+    },
     props: {},
     data() {
+        var validateCapacity = (rule, value, callback) => {
+            var reg = new RegExp("^[0-9]+$"); 
+            if(reg.test(value)){
+                callback();
+            }
+            else{
+                callback(new Error('请填写数字'))
+            }
+        }
         return {
             user: {},
+            headers: {
+                Authorization: localStorage.eleToken
+            },
             classSelectAddForm: {
                 session: []
             },
+            courseTableSelect: [],
             courseList: [],
             teacherList: [],
             schoolYearSelect: [],
-            courseTable: [],
+            weekday: [],
+            courseTableTopBar: ['一', '二', '三', '四', '五'],
             buttonSize: 'medium',
+            file: '',
+            loading: null,
             addDialogFullScreen: false,
             addDialogVisible: false,
-            addRules: {}
+            importDialogVisible: false,
+            addRules: {
+                course: [
+                    {
+                        required: true,
+                        message: '课程不能为空',
+                        trigger: 'blur'
+                    }
+                ],
+                teacher: [
+                    {
+                        required: true,
+                        message: '教师不能为空',
+                        trigger: 'blur'
+                    }
+                ],
+                schoolYear: [
+                    {
+                        required: true,
+                        message: '开课学年不能为空',
+                        trigger: 'blur'
+                    }
+                ],
+                schoolTerm: [
+                    {
+                        required: true,
+                        message: '开课学年不能为空',
+                        trigger: 'blur'
+                    }
+                ],
+                capacityLimit: [
+                    {
+                        required: true,
+                        message: '课程容量不能为空',
+                        trigger: 'blur'
+                    },
+                    {
+                        validator: validateCapacity,
+                        trigger: 'blur'
+                    }
+                ]
+            }
         };
     },
     watch: {},
@@ -139,32 +208,18 @@ export default {
         classAdd(){
             // 开课添加
             this.addDialogVisible = true;
-
-            // 课表内数据重置
-            this.courseTable.splice(0, this.courseTable.length);
-            for(var i = 1; i <= 12; i++){
-                this.courseTable.push({
-                    session: i,
-                    Mon: false,
-                    Tue: false,
-                    Wed: false,
-                    Thur: false,
-                    Fri: false
-                })
-            }
-
-            // 课表内选中颜色去除
-            $('.el-table__row td').css({'background':'transparent'})
         },
         handleCloseAddDialog(done){
             // 开课添加dialog关闭前
+            var nowYear = (new Date()).getFullYear();
             this.classSelectAddForm = {
                 course: '',
                 teacher: '',
-                schoolYear: '',
+                schoolYear: nowYear.toString() + '-' + (nowYear + 1).toString(),
                 schoolTerm: '',
-                session: []
+                capacityLimit: ''
             }
+            this.$refs.courseTable.cleanSelect();
             done();
         },
         classSelectCourseChange(value){
@@ -187,34 +242,51 @@ export default {
                     }
                 })
         },
-        tableRowClassName({row, rowIndex}){
-            row.index = rowIndex;
-        },
-        courseTableCellClick(row, column){
-            // 课表设置
-            var day = ['', 'Mon', 'Tue', 'Wed', 'Thur', 'Fri'];
-            var cindex = day.indexOf(column.property);
-            if(column.property != 'session'){
-                if(this.courseTable[row.index][column.property]){
-                    // 取消选择
-                    this.courseTable[row.index][column.property] = false;
-                    $('.el-table__row').eq(row.index).children('td').eq(cindex).css({'background':'transparent'})
-                    var sindex = this.classSelectAddForm.session.indexOf(column.property + '-' + row.session);
-                    this.classSelectAddForm.session.splice(sindex, 1);
-                }
-                else{
-                    // 选择
-                    this.courseTable[row.index][column.property] = true;
-                    $('.el-table__row').eq(row.index).children('td').eq(cindex).css({'background':'#a0cfff'})
-                    this.classSelectAddForm.session.push(column.property + '-' + row.session);
-                }
-            }
-        },
         submitAddForm(formName){
             // 开课添加
 			this.$refs[formName].validate(valid => {
-				if(valid){
-                    console.log(this.classSelectAddForm)
+                var session = [];
+                this.courseTableSelect.forEach(item => {
+                    session.push(item.coordinate);
+                })
+                if(this.isEmpty(session)){
+                    this.$message({
+						message: "请选择上课时间！",
+						type: "error"
+					});
+                }
+				else if(valid){
+                    var options = {
+                        courseid: this.classSelectAddForm.course[1],
+                        teacherid: this.classSelectAddForm.teacher,
+                        schoolYear: this.classSelectAddForm.schoolYear,
+                        schoolTerm: this.classSelectAddForm.schoolTerm,
+                        capacityLimit: this.classSelectAddForm.capacityLimit,
+                        session: session
+                    }
+                    this.$axios
+                        .post('/api/class', options)
+                        .then(res => {
+                            if(res.status == 200){
+                                var data = res.data;
+                                this.$message({
+                                    message: data.msg,
+                                    type: "success"
+                                });
+
+                                var nowYear = (new Date()).getFullYear();
+                                this.classSelectAddForm = {
+                                    course: '',
+                                    teacher: '',
+                                    schoolYear: nowYear.toString() + '-' + (nowYear + 1).toString(),
+                                    schoolTerm: '',
+                                    capacityLimit: ''
+                                }
+                                this.$refs.courseTable.cleanSelect();
+
+                                this.addDialogVisible = false;
+                            }
+                        })
 				}
 				else{
 					this.$message({
@@ -224,6 +296,51 @@ export default {
 					return false;
 				}
 			})
+        },
+        classImport(){
+            // 开课导入
+            this.importDialogVisible = true;
+        },
+        submitUpload() {
+            // 开课导入
+            if(this.isEmpty(this.file)){
+                this.$message({
+                    message: '文件不能为空',
+                    type: "error"
+                });
+            }
+            else{
+                this.$refs.upload.submit();
+                this.loading = this.$loading({
+                    lock: true,
+                    text: "数据较大，请耐性等待",
+                    background: 'rgba(0,0,0,0.7)'
+                });
+            }
+        },
+        handleChange(file,fileList){
+			// 文件添加
+            if(!this.isEmpty(file) && file.status == 'ready'){
+				this.file = file.name;
+            }
+        },
+        handleError(err, file, fileList){
+            // 文件上传失败
+            this.loading.close();
+            this.$message({
+                message: err.message,
+                type: "error"
+            });
+        },
+        handleSuccess(response, file, fileList){
+            // 文件上传成功
+            this.loading.close();
+            this.importDialogVisible = false;
+            this.$refs.upload.clearFiles();
+            this.$message({
+                message: response.msg,
+                type: "success"
+            });
         },
         isEmpty(value){
 			return (
@@ -283,16 +400,27 @@ export default {
         }
         this.classSelectAddForm.schoolYear = nowYear.toString() + '-' + (nowYear + 1).toString();
 
+        // 时间选择设置
+        var week = ['Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun'];
+        var type = ['', 'success', 'info', 'danger', 'warning'];
+        week.forEach((item, index) => {
+            this.weekday.push({
+                label: item,
+                type: type[index%5]
+            })
+        })
+
         var width = $(window).width();
         if(width < 768){
             this.addDialogFullScreen = true;
-            var buttonParentWidth = $('.courseSelectTop .el-button').parent().width() - 20;
+            var buttonParentWidth = $('.classSelectTop .el-button').parent().width() - 20;
             var buttonWith = buttonParentWidth/3;
-            $('.courseSelectTop .el-button').eq(0).css({'margin-left':'0','width':buttonWith.toString(),'padding':'12px 10px'});
-            $('.courseSelectTop .el-button').eq(1).css({'margin-left':'10px','width':buttonWith.toString(),'padding':'12px 10px'});
-            $('.courseSelectTop .el-button').eq(2).css({'margin-left':'10px','width':buttonWith.toString(),'padding':'12px 10px'});
-            $('.courseSelectTop .el-button').eq(3).css({'margin-left':'0','margin-top':'10px','width':'100%','padding':'12px 10px'});
-            var buttonTextWidth = $('.courseSelectTop .el-button span').width();
+            $('.classSelectTop .el-button').eq(0).css({'margin-left':'0','width':buttonWith.toString(),'padding':'12px 10px'});
+            $('.classSelectTop .el-button').eq(1).css({'margin-left':'10px','width':buttonWith.toString(),'padding':'12px 10px'});
+            $('.classSelectTop .el-button').eq(2).css({'margin-left':'10px','width':buttonWith.toString(),'padding':'12px 10px'});
+            $('.classSelectTop .el-button').eq(3).css({'margin-left':'0','margin-top':'10px','width':'100%','padding':'12px 10px'});
+            $('.classSelectTop .el-button').eq(4).css({'margin-left':'0','margin-top':'10px','width':'100%','padding':'12px 10px'});
+            var buttonTextWidth = $('.classSelectTop .el-button span').width();
             if(buttonWith-20 < buttonTextWidth){
                 this.buttonSize = 'mini';
             }
@@ -309,6 +437,16 @@ export default {
     }
     .el-divider__text span{
         color: red;
+    }
+    .classImport .tag-group{
+        margin-top: 15px;
+    }
+    .classImport .tag-group__title{
+        margin-right: 10px;
+    }
+    .classImport .el-tag{
+        margin-right: 10px;
+        margin-bottom: 10px;
     }
     .el-timeline{
         padding-left: 0;

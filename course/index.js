@@ -9,6 +9,7 @@ app.use(bodyParser.json({limit: '20mb'}));
 
 const course = require('./api/course')
 const type = require('./api/type')
+const myclass = require('./api/class')
 
 // course
 seneca.add('target:server-course,module:course,if:list', course.list)
@@ -21,6 +22,9 @@ app.use('/', course.router)
 
 // type
 seneca.add('target:server-course,module:type,if:list', type.list)
+
+// class
+seneca.add('target:server-course,module:class,if:add', myclass.add)
 
 app.listen(8004)
 seneca.listen(8003)

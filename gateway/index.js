@@ -30,6 +30,7 @@ const school = require('./api/user/school')
 // course
 const course = require('./api/course/course')
 const type = require('./api/course/type')
+const myclass = require('./api/course/class')
 
 // 使用api
 // user
@@ -40,6 +41,7 @@ app.use('/api', school)
 // course
 app.use('/api', course)
 app.use('/api', type)
+app.use('/api', myclass)
 
 const port = process.env.PORT || 5000;
 app.listen(port,() => {
