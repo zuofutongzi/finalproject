@@ -877,6 +877,54 @@ async function password(msg, done){
     mysql.release();
 }
 
+// 其他服务调用接口，不对外开放
+
+// 用户id列表
+// var options = {
+//     identity: String
+// }
+function idList(msg, done){
+    var { identity } = msg;
+
+    redis.sort('idx:' + identity, 'alpha', (err, keys) => {
+        if(err){
+            logger.error('(user-idList):' + err.message);
+            done(new Error('数据库访问失败，请稍后再试...'))
+        }
+        else{
+            done(null, keys)
+        }
+    })
+}
+// 用户id转姓名
+// var options = {
+//     identity: String,
+//     userid: Array
+// }
+function id2name(msg, done){
+    var { identity, userid } = msg;
+
+    var options = [];
+    userid.forEach(item => {
+        options.push(identity + ':' + item);
+    })
+    redis.mget(options, (err, res) => {
+        if(err){
+            logger.error('(user-id2name):' + err.message);
+            done(new Error('数据库访问失败，请稍后再试...'))
+        }
+        else{
+            res = res.map(item => {
+                delete item.IDcard;
+                delete item.password;
+                delete item.birthday;
+                return JSON.parse(item)
+            })
+            done(null, res)
+        }
+    })
+}
+
 module.exports = {
     list: list,
     register: register,
@@ -885,5 +933,8 @@ module.exports = {
     login: login,
     change: change,
     password: password,
-    router: router
+    router: router,
+
+    idList: idList,
+    id2name: id2name
 }

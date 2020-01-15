@@ -164,7 +164,7 @@ public class CanalClient {
             else if(table.equals("class")) {
             	RedisUtil.sadd("idx:class:course:" + ccourse, key);
             	RedisUtil.sadd("idx:class:teacher:" + cteacher, key);
-            	RedisUtil.sadd("idx:class:schoolYear:" + cschoolYear + ":schoolTerm:" + cschoolTerm, key);
+            	RedisUtil.sadd("idx:class:course:schoolYear:" + cschoolYear + ":schoolTerm:" + cschoolTerm, ccourse);
             }
             else if(table.equals("classSelect")) {
             	RedisUtil.sadd("idx:classSelect:student:" + csstudent, key);
@@ -250,7 +250,7 @@ public class CanalClient {
     		else if(table.equals("class")) {
             	RedisUtil.srem("idx:class:course:" + ccourse, key);
             	RedisUtil.srem("idx:class:teacher:" + cteacher, key);
-            	RedisUtil.srem("idx:class:schoolYear:" + cschoolYear + ":schoolTerm:" + cschoolTerm, key);
+            	RedisUtil.srem("idx:class:course:schoolYear:" + cschoolYear + ":schoolTerm:" + cschoolTerm, ccourse);
             }
             else if(table.equals("classSelect")) {
             	RedisUtil.srem("idx:classSelect:student:" + csstudent, key);
@@ -346,7 +346,7 @@ public class CanalClient {
             else if(table.equals("class")) {
             	RedisUtil.sadd("idx:class:course:" + ccourse, key);
             	RedisUtil.sadd("idx:class:teacher:" + cteacher, key);
-            	RedisUtil.sadd("idx:class:schoolYear:" + cschoolYear + ":schoolTerm:" + cschoolTerm, key);
+            	RedisUtil.sadd("idx:class:course:schoolYear:" + cschoolYear + ":schoolTerm:" + cschoolTerm, ccourse);
             }
             else if(table.equals("classSelect")) {
             	RedisUtil.sadd("idx:classSelect:student:" + csstudent, key);
@@ -444,7 +444,7 @@ public class CanalClient {
             else if(table.equals("class")) {
             	RedisUtil.srem("idx:class:course:" + ccourse, key);
             	RedisUtil.srem("idx:class:teacher:" + cteacher, key);
-            	RedisUtil.srem("idx:class:schoolYear:" + cschoolYear + ":schoolTerm:" + cschoolTerm, key);
+            	RedisUtil.srem("idx:class:course:schoolYear:" + cschoolYear + ":schoolTerm:" + cschoolTerm, ccourse);
             }
             else if(table.equals("classSelect")) {
             	RedisUtil.srem("idx:classSelect:student:" + csstudent, key);

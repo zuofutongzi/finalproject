@@ -40,5 +40,10 @@ seneca.add('target:server-user,module:school,if:classAdd', school.classAdd)
 seneca.add('target:server-user,module:school,if:classDelete', school.classDelete)
 app.use('/', school.router)
 
+// 不对外开放接口
+// user
+seneca.add('target:server-user,module:user,if:idList', user.idList)
+seneca.add('target:server-user,module:user,if:id2name', user.id2name)
+
 app.listen(8002)
 seneca.listen(8001)

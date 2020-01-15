@@ -6,9 +6,30 @@
             <el-button type="danger" :size="buttonSize" plain @click="classDelete()">开课删除</el-button>
             <el-button type="primary" :size="buttonSize" plain @click="selectSet()">选课设置</el-button>
             <el-button type="success" :size="buttonSize" plain @click="drawLots()">课程抽签</el-button>
-            <el-card shadow="always" style="margin-top: 10px;">
-                最近没有选课
-            </el-card>
+            <el-cascader class="hidden-xs-only" v-model="filterSchoolYear" :options="schoolYearSelect" @change="handleSelectChange" :show-all-levels="true" placeholder="学年选择"></el-cascader>
+        </el-row>
+        <el-row class="classSelectXsTop">
+            <el-cascader class="hidden-sm-and-up" v-model="filterSchoolYear" :options="schoolYearSelect" @change="handleSelectChange" :show-all-levels="true" placeholder="学年选择"></el-cascader>
+        </el-row>
+        <el-row class="classSelectDetail" style="margin-top: 20px;">
+            <el-collapse-transition>
+                <div v-show="detailLineShow">
+                    <el-timeline>
+                        <el-timeline-item v-for="item in classList" :key="item.course.courseid" :color="item.color" :timestamp="item.course.name" placement="top">
+                            <el-collapse-transition>
+                                <el-card v-show="detailShow">
+                                    <template v-for="child in item.class">
+                                        <el-tag :key="child.classid" :type="child.tagType" class="tag-courseid">{{ child.teacher.name }}</el-tag>
+                                        <el-tag :key="'d' + child.classid" :type="child.tagType" class="hidden-xs-only tag-course">{{ child.session }}</el-tag>
+                                        <!-- <el-tag :key="child.teacherid" :type="child.tagType" @click="handleTagSelect(child)" class="hidden-xs-only tag-courseid">{{ child.courseid }}</el-tag>
+                                        <el-tag :key="'d' + child.courseid" :type="child.tagType" @click="handleTagSelect(child)" class="tag-course">{{ child.name }}</el-tag> -->
+                                    </template>
+                                </el-card>
+                            </el-collapse-transition>
+                        </el-timeline-item>
+                    </el-timeline>
+                </div>
+            </el-collapse-transition>
         </el-row>
 
         <!-- 开课添加 -->
@@ -38,9 +59,9 @@
                             <el-select v-model="classSelectAddForm.schoolYear" filterable>
                                 <el-option
                                     v-for="item in schoolYearSelect"
-                                    :key="item"
-                                    :label="item"
-                                    :value="item">
+                                    :key="item.value"
+                                    :label="item.label"
+                                    :value="item.value">
                                 </el-option>
                             </el-select>
                         </el-form-item>
@@ -96,12 +117,11 @@
                     </div>
                     <p>学年：2020-2010</p>
                     <p>学期：1</p>
-                    
                     <el-divider content-position="left">文件导入</el-divider>
 					<el-upload
                         class="upload-demo"
                         ref="upload"
-                        action="/api/course/import"
+                        action="/api/class/import"
                         accept=".xls,.xlsx"
                         :headers="headers"
                         :on-error="handleError"
@@ -150,12 +170,16 @@ export default {
             courseTableSelect: [],
             courseList: [],
             teacherList: [],
+            classList: [],
             schoolYearSelect: [],
             weekday: [],
+            filterSchoolYear: [],
             courseTableTopBar: ['一', '二', '三', '四', '五'],
             buttonSize: 'medium',
             file: '',
             loading: null,
+            detailLineShow: false,
+            detailShow: false,
             addDialogFullScreen: false,
             addDialogVisible: false,
             importDialogVisible: false,
@@ -205,6 +229,62 @@ export default {
     watch: {},
     computed: {},
     methods: {
+        handleSelectChange(){
+            // 学年选择切换
+            this.detailShow = false;
+            setTimeout(() => {
+                this.detailLineShow = false;
+            },500)
+            var options = {
+                schoolYear: this.filterSchoolYear[0],
+                schoolTerm: this.filterSchoolYear[1],
+                page: 1,
+                size: 10
+            }
+            this.$axios
+                .get('/api/class', {headers: {'showLoading': false}, params: options})
+                .then(res => {
+                    if(res.status == 200){
+                        if(this.isEmpty(res.data)){
+                            this.$message({
+                                message: '当前学期没有开课',
+                                type: "error"
+                            });
+                            setTimeout(() => {
+                                this.detailLineShow = false;
+                            },500)
+                        }
+                        else{
+                            setTimeout(() => {
+                                this.classList = res.data;
+                                var color = ['#a0cfff', '#b3e19d', '#f3d19e', '#fab6b6'];
+                                var tagType = ['', 'success', 'danger', 'warning'];
+
+                                this.classList.map((item, index) => {
+                                    item.tagType = tagType[index%4];
+                                    item.color = color[index%4];
+                                    item.class.map(citem => {
+                                        citem.tagType = item.tagType;
+                                        return citem;
+                                    })
+                                    return item;
+                                })
+
+                                setTimeout(() => {
+                                    this.detailLineShow = true;
+                                    setTimeout(() => {
+                                        this.detailShow = true;
+                                        var width = $(window).width();
+                                        if(width < 768){
+                                            $('.tag-courseid').css({'width':'100%', 'margin-bottom':'10px', 'overflow':'hidden', 'text-overflow':'ellipsis', 'white-space':'nowrap'});
+                                        }
+                                    },500)
+                                },500)
+                            },500)
+                        }
+                    }
+                })
+        },
         classAdd(){
             // 开课添加
             this.addDialogVisible = true;
@@ -355,6 +435,78 @@ export default {
     mounted() {
         this.user = this.$store.getters.user;
 
+        // 开课学年选择器设置
+        var nowYear = (new Date()).getFullYear();
+        for(var i = 0; i <= nowYear - 1949; i++){
+            this.schoolYearSelect.push({
+                value: (1949+i).toString() + '-' + (1950+i).toString(),
+                label: (1949+i).toString() + '-' + (1950+i).toString(),
+                children: [{
+                    value: '1',
+                    label: '1'
+                },{
+                    value: '2',
+                    label: '2'
+                }]
+            });
+        }
+        this.classSelectAddForm.schoolYear = nowYear.toString() + '-' + (nowYear + 1).toString();
+        this.filterSchoolYear = [nowYear.toString() + '-' + (nowYear + 1).toString(), '1'];
+
+        // 时间选择设置
+        var week = ['Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun'];
+        var type = ['', 'success', 'info', 'danger', 'warning'];
+        week.forEach((item, index) => {
+            this.weekday.push({
+                label: item,
+                type: type[index%5]
+            })
+        })
+
+        var options = {
+            schoolYear: nowYear.toString() + '-' + (nowYear + 1).toString(),
+            schoolTerm: '1',
+            page: 1,
+            size: 10
+        }
+        this.$axios
+            .get('/api/class', {headers: {'showLoading': false}, params: options})
+            .then(res => {
+                if(res.status == 200){
+                    if(this.isEmpty(res.data)){
+                        this.$message({
+                            message: '当前学期没有开课',
+                            type: "error"
+                        });
+                    }
+                    else{
+                        setTimeout(() => {
+                            this.classList = res.data;
+                            var color = ['#a0cfff', '#b3e19d', '#f3d19e', '#fab6b6'];
+                            var tagType = ['', 'success', 'danger', 'warning'];
+
+                            this.classList.map((item, index) => {
+                                item.tagType = tagType[index%4];
+                                item.color = color[index%4];
+                                item.class.map(citem => {
+                                    citem.tagType = item.tagType;
+                                    return citem;
+                                })
+                                return item;
+                            })
+
+                            
+                            setTimeout(() => {
+                                this.detailLineShow = true;
+                                setTimeout(() => {
+                                    this.detailShow = true;
+                                },500)
+                            },500)
+                        },500)
+                    }
+                }
+            })
+
         this.$axios
             .get('/api/school/college')
             .then(res => {
@@ -392,23 +544,6 @@ export default {
                         })
                 }
             })
-
-        // 开课学年选择器设置
-        var nowYear = (new Date()).getFullYear();
-        for(var i = 0; i <= nowYear - 1949; i++){
-            this.schoolYearSelect.push((1949+i).toString() + '-' + (1950+i).toString());
-        }
-        this.classSelectAddForm.schoolYear = nowYear.toString() + '-' + (nowYear + 1).toString();
-
-        // 时间选择设置
-        var week = ['Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun'];
-        var type = ['', 'success', 'info', 'danger', 'warning'];
-        week.forEach((item, index) => {
-            this.weekday.push({
-                label: item,
-                type: type[index%5]
-            })
-        })
 
         var width = $(window).width();
         if(width < 768){
@@ -454,7 +589,7 @@ export default {
     .classSelectTop .el-cascader{
         margin-left: 10px;
     }
-    .classSelectTop .el-cascader{
+    .classSelectXsTop .el-cascader{
         margin-top: 10px;
         width: 100%;
     }
