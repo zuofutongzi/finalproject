@@ -26,6 +26,7 @@ seneca.add('target:server-course,module:type,if:list', type.list)
 // class
 seneca.add('target:server-course,module:class,if:list', myclass.list)
 seneca.add('target:server-course,module:class,if:add', myclass.add)
+seneca.add('target:server-course,module:class,if:delete', myclass.delete)
 app.use('/', myclass.router)
 
 app.listen(8004)

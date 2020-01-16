@@ -915,10 +915,11 @@ function id2name(msg, done){
         }
         else{
             res = res.map(item => {
+                item = JSON.parse(item);
                 delete item.IDcard;
                 delete item.password;
                 delete item.birthday;
-                return JSON.parse(item)
+                return item;
             })
             done(null, res)
         }

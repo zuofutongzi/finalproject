@@ -8,6 +8,7 @@
             :highlight-current-row="false"
             style="width: 100%">
             <el-table-column
+                fixed
                 header-align="center"
                 align="center"
                 prop="session"
@@ -67,8 +68,22 @@ export default{
                 return data;
             }
         },
+        color: {
+            type: Array,
+            required: false,
+            default: function(){
+                return ['#a0cfff', '#b3e19d', '#f3d19e', '#fab6b6'];
+            }
+        },
         selectChangeColor: {
             type: [Boolean, String],
+            required: false,
+            default: function(){
+                return false;
+            }
+        },
+        showBackgroundColor: {
+            type: Boolean,
             required: false,
             default: function(){
                 return false;
@@ -101,10 +116,10 @@ export default{
                     return item.session == this.sidebar[i];
                 })
                 if(index != -1){
-                    option.session = this.data[i].session;
+                    option.session = this.data[index].session;
                     for(let j in this.weekday){
-                        if(!this.isEmpty(this.data[i][this.weekday[j]])){
-                            option[this.weekday[j]] = this.data[i][this.weekday[j]];
+                        if(!this.isEmpty(this.data[index][this.weekday[j]])){
+                            option[this.weekday[j]] = this.data[index][this.weekday[j]];
                         }
                         else{
                             option[this.weekday[j]] = '';
@@ -211,6 +226,46 @@ export default{
                 (typeof value === 'object' && Object.keys(value).length === 0) ||
                 (typeof value === 'string' && value.trim().length === 0)
             )
+        }
+    },
+    watch:{
+        data: {
+            handler(data){
+                if(this.showBackgroundColor){
+                    $('.el-table__row td').css({'background':'transparent'});
+                    // 延迟，解决elementui组件中dialog的懒渲染问题
+                    setTimeout(() => {
+                        var temp = [];
+                        data.forEach(item => {
+                            // 行
+                            var rindex = this.sidebar.indexOf(item.session);
+                            for(let key in item){
+                                if(key != 'session'){
+                                    // 列
+                                    var cindex = this.weekday.indexOf(key) + 1;
+                                    var color = this.color[temp.length%this.color.length];
+                                    // 相同内容设置同样的颜色
+                                    var index = temp.findIndex(citem => {
+                                        return citem.data == item[key];
+                                    })
+                                    if(index == -1){
+                                        temp.push({
+                                            data: item[key],
+                                            color: this.color[temp.length%this.color.length]
+                                        })
+                                    }
+                                    else{
+                                        color = temp[index].color;
+                                    }
+                                    $('.el-table__row').eq(rindex).children('td').eq(cindex).css({'background':color});
+                                }
+                            }
+                        })
+                    },0)
+                }
+            },
+            immediate: true, // 首次传入监听
+            deep: true  // 深度监听，可监听数组和对象内部变化
         }
     }
 }

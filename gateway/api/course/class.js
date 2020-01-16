@@ -55,6 +55,29 @@ router.post('/class', passport.authenticate('jwt', {session: false}), (req, done
     }
 })
 
+// @route  DELETE /api/class
+// @desc   开课删除
+// @token  true
+// @return msg
+// @access manager
+// @params {classid: Array}
+router.delete('/class', passport.authenticate('jwt', {session: false}), (req, done) => {
+    if(req.user.identity !== 'manager'){
+        done.status(500).send("没有权限！")
+    }
+    else{
+        courseSeneca.act('target:server-course,module:class,if:delete', req.body,
+        (err,res) => {
+            if(err){
+                done.status(500).send(err.data.payload.details.message)
+            }
+            else{
+                done.send(res)
+            }
+        })
+    }
+})
+
 // @route  POST /api/class/import
 // @desc   开课导入
 // @token  true

@@ -15,14 +15,13 @@
             <el-collapse-transition>
                 <div v-show="detailLineShow">
                     <el-timeline>
-                        <el-timeline-item v-for="item in classList" :key="item.course.courseid" :color="item.color" :timestamp="item.course.name" placement="top">
+                        <el-timeline-item v-for="item in classList" :key="item.course.courseid" :color="item.color" :timestamp="'(' + item.course.courseid + ')' + item.course.name" placement="top">
                             <el-collapse-transition>
                                 <el-card v-show="detailShow">
                                     <template v-for="child in item.class">
-                                        <el-tag :key="child.classid" :type="child.tagType" class="tag-courseid">{{ child.teacher.name }}</el-tag>
-                                        <el-tag :key="'d' + child.classid" :type="child.tagType" class="hidden-xs-only tag-course">{{ child.session }}</el-tag>
-                                        <!-- <el-tag :key="child.teacherid" :type="child.tagType" @click="handleTagSelect(child)" class="hidden-xs-only tag-courseid">{{ child.courseid }}</el-tag>
-                                        <el-tag :key="'d' + child.courseid" :type="child.tagType" @click="handleTagSelect(child)" class="tag-course">{{ child.name }}</el-tag> -->
+                                        <el-tag :key="child.classid" :type="child.tagType" @click="handleTagSelect(child)" class="tag-courseid">{{ child.teacher.name }}</el-tag>
+                                        <el-tag :key="'c' + child.classid" :type="child.tagType" @click="showClassDetail(item.course,child)" class="hidden-xs-only tag-capacity">{{ child.capacityReal }}/{{ child.capacityLimit }}</el-tag>
+                                        <el-tag :key="'t' + child.classid" :type="child.tagType" @click="showClassDetail(item.course,child)" class="tag-course">{{ child.session }}</el-tag>
                                     </template>
                                 </el-card>
                             </el-collapse-transition>
@@ -40,7 +39,7 @@
             :before-close="handleCloseAddDialog"
 			center>
 			<el-row class="classSelectAddForm">
-				<el-col :md='{span: 16, offset: 4}'>
+				<el-col :md='{span: 21, offset: 1}'>
                     <el-form :model="classSelectAddForm" :rules="addRules" ref="addForm" label-position="left" label-width="80px" class="addForm">
                         <el-form-item label="课程" prop="course">
                             <el-cascader v-model="classSelectAddForm.course" :options="courseList" @change="classSelectCourseChange" :show-all-levels="false" filterable></el-cascader>
@@ -136,6 +135,43 @@
 				</el-col>
 			</el-row>
 		</el-dialog>
+
+        <!-- 开课详情 -->
+        <el-dialog
+            width="760px"
+			:visible.sync="detailDialogVisible"
+			title="开课详情"
+            :fullscreen="addDialogFullScreen"
+			center>
+			<el-row class="classDetail">
+				<el-col :md='{span: 24}'>
+                    <el-card class="hidden-xs-only" style="margin-bottom: 10px;">
+                        <el-breadcrumb separator="|">
+                            <el-breadcrumb-item>课程号：{{ classDetail.course.courseid }}</el-breadcrumb-item>
+                            <el-breadcrumb-item>课程：{{ classDetail.course.name }}</el-breadcrumb-item>
+                            <el-breadcrumb-item>学分：{{ classDetail.course.credit }}</el-breadcrumb-item>
+                            <el-breadcrumb-item>课时：{{ classDetail.course.classHour }}</el-breadcrumb-item>
+                            <el-breadcrumb-item>课程容量：{{ classDetail.class.capacityLimit }}</el-breadcrumb-item>
+                            <el-breadcrumb-item>选课人数：{{ classDetail.class.capacityReal }}</el-breadcrumb-item>
+                        </el-breadcrumb>
+                    </el-card>
+                    <div class="hidden-sm-and-up">
+                        <p>课程号：{{ classDetail.course.courseid }}</p>
+                        <p>课程：{{ classDetail.course.name }}</p>
+                        <p>学分：{{ classDetail.course.credit }}</p>
+                        <p>课时：{{ classDetail.course.classHour }}</p>
+                        <p>课程容量：{{ classDetail.class.capacityLimit }}</p>
+                        <p>选课人数：{{ classDetail.class.capacityReal }}</p>
+                    </div>
+                    <course-table
+                        ref="classCourseTable"
+                        :data="classDetail.session"
+                        :topbar="courseTableTopBar"
+                        :showBackgroundColor="true">
+                    </course-table>
+				</el-col>
+			</el-row>
+		</el-dialog>
     </div>
 </template>
 
@@ -168,13 +204,19 @@ export default {
                 session: []
             },
             courseTableSelect: [],
+            classDetail: {
+                course: {},
+                class: {},
+                session: []
+            },
             courseList: [],
             teacherList: [],
             classList: [],
             schoolYearSelect: [],
             weekday: [],
             filterSchoolYear: [],
-            courseTableTopBar: ['一', '二', '三', '四', '五'],
+            multipleSelection: [],
+            courseTableTopBar: ['一', '二', '三', '四', '五', '六', '七'],
             buttonSize: 'medium',
             file: '',
             loading: null,
@@ -183,6 +225,7 @@ export default {
             addDialogFullScreen: false,
             addDialogVisible: false,
             importDialogVisible: false,
+            detailDialogVisible: false,
             addRules: {
                 course: [
                     {
@@ -276,7 +319,14 @@ export default {
                                         this.detailShow = true;
                                         var width = $(window).width();
                                         if(width < 768){
-                                            $('.tag-courseid').css({'width':'100%', 'margin-bottom':'10px', 'overflow':'hidden', 'text-overflow':'ellipsis', 'white-space':'nowrap'});
+                                            $('.tag-courseid').css({'width':'80px', 'margin-bottom':'10px', 'overflow':'hidden', 'text-overflow':'ellipsis', 'white-space':'nowrap'});
+                                            $('.tag-course').css({'width':'calc(100% - 90px)', 'margin-bottom':'10px', 'overflow':'hidden', 'text-overflow':'ellipsis', 'white-space':'nowrap'});
+                                        }
+                                        for(let i in $('.el-card__body')){
+                                            $('.el-card__body').eq(i).children('.tag-course:last').css({'margin-bottom':'0'});
+                                            if(width < 786){
+                                                $('.el-card__body').eq(i).children('.tag-courseid:last').css({'margin-bottom':'0'});
+                                            }
                                         }
                                     },500)
                                 },500)
@@ -365,6 +415,11 @@ export default {
                                 this.$refs.courseTable.cleanSelect();
 
                                 this.addDialogVisible = false;
+
+                                setTimeout(() => {
+                                    // 获取最新开课列表
+                                    this.handleSelectChange();
+                                }, 1000)
                             }
                         })
 				}
@@ -421,6 +476,77 @@ export default {
                 message: response.msg,
                 type: "success"
             });
+        },
+        handleTagSelect(value){
+            // 开课选择
+            this.classList = this.classList.map(item => {
+                if(item.course.courseid == value.courseid){
+                    item.class = item.class.map(citem => {
+                        if(citem.classid == value.classid){
+                            if(citem.tagType != 'info'){
+                                citem.tagType = 'info';
+                                this.multipleSelection.push(citem.classid);
+                            }
+                            else{
+                                citem.tagType = item.tagType;
+                                var index = this.multipleSelection.indexOf(citem.classid);
+                                if(index != -1){
+                                    this.multipleSelection.splice(index, 1);
+                                }
+                            }
+                        }
+                        return citem;
+                    })
+                }
+                return item;
+            })
+        },
+        showClassDetail(course, myclass){
+            // 开课详情
+            this.detailDialogVisible = true;
+            this.classDetail.course = course;
+            this.classDetail.class = myclass;
+            var session = this.classDetail.class.session.split(';');
+            this.classDetail.session.splice(0, this.classDetail.session.length);
+            session.forEach(item => {
+                if(!this.isEmpty(item)){
+                    var weekday = item.split('-')[0];
+                    var s = item.split('-')[1];
+                    var index = this.classDetail.session.findIndex(citem => {
+                        return citem.session == s;
+                    })
+                    if(index != -1){
+                        this.classDetail.session[index][weekday] = true;
+                    }
+                    else{
+                        var option = { session: s };
+                        option[weekday] = true;
+                        this.classDetail.session.push(option)
+                    }
+                }
+            })
+        },
+        classDelete(){
+            // 开课删除
+            var options = {
+                classid: this.multipleSelection
+            }
+            this.$axios
+                .delete('/api/class', {data: options})
+                .then(res => {
+                    if(res.status == 200){
+                        var data = res.data;
+                        this.$message({
+                            message: data.msg,
+                            type: "success"
+                        });
+
+                        setTimeout(() => {
+                            // 获取最新开课列表
+                            this.handleSelectChange();
+                        },1000)
+                    }
+                })
         },
         isEmpty(value){
 			return (
@@ -500,6 +626,17 @@ export default {
                                 this.detailLineShow = true;
                                 setTimeout(() => {
                                     this.detailShow = true;
+                                    var width = $(window).width();
+                                    if(width < 768){
+                                        $('.tag-courseid').css({'width':'80px', 'margin-bottom':'10px', 'overflow':'hidden', 'text-overflow':'ellipsis', 'white-space':'nowrap'});
+                                        $('.tag-course').css({'width':'calc(100% - 90px)', 'margin-bottom':'10px', 'overflow':'hidden', 'text-overflow':'ellipsis', 'white-space':'nowrap'});
+                                    }
+                                    for(let i in $('.el-card__body')){
+                                        $('.el-card__body').eq(i).children('.tag-course:last').css({'margin-bottom':'0'});
+                                        if(width < 786){
+                                            $('.el-card__body').eq(i).children('.tag-courseid:last').css({'margin-bottom':'0'});
+                                        }
+                                    }
                                 },500)
                             },500)
                         },500)
@@ -560,6 +697,14 @@ export default {
                 this.buttonSize = 'mini';
             }
         }
+        else if(width > 991 && width - 186 - 80 - 98*5 - 50 < 221.4){
+            var elcascaderWidth = width - 186 - 80 - 98*5 - 50;
+            $('.classSelectTop .el-cascader').css({'width':elcascaderWidth.toString()});
+        }
+        else if(width - 80 - 98*5 - 50 < 221.4){
+            var elcascaderWidth = width - 80 - 98*5 - 50;
+            $('.classSelectTop .el-cascader').css({'width':elcascaderWidth.toString()});
+        }
     }
 };
 </script>
@@ -597,10 +742,15 @@ export default {
         width: 130px;
         cursor:pointer;
     }
+    .classSelectDetail .tag-capacity{
+        margin-left: 10px;
+        width: 70px;
+        cursor:pointer;
+    }
     .classSelectDetail .tag-course{
         margin-bottom: 10px;
         margin-left: 10px;
-        width: calc(100% - 140px);
+        width: calc(100% - 220px);
         cursor:pointer;
     }
     .classSelectAddForm .el-cascader{

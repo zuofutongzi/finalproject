@@ -195,6 +195,33 @@ async function add(msg, done){
     mysql.release();
 }
 
+// 开课删除
+// var options = {
+//     classid: Array
+// }
+async function mydelete(msg, done){
+    var { classid } = msg;
+    var deleteSql = 'delete from class where classid in (';
+
+    classid.forEach(item => {
+        deleteSql += '?,';
+    })
+    deleteSql = deleteSql.slice(0, deleteSql.length - 1);
+    deleteSql += ')';
+
+    const mysql = await connectHandler();
+    mysql.query(deleteSql, classid, (err, result) => {
+        if(err){
+            logger.error('(class-delete):' + err.message);
+            done(new Error('开课删除失败！'))
+        }
+        else{
+            done(null, {msg: '开课删除成功'})
+        }
+    })
+    mysql.release();
+}
+
 // 开课导入
 router.post('/class/import', async (msg, done) => {
     try{
@@ -341,5 +368,6 @@ router.post('/class/import', async (msg, done) => {
 module.exports = {
     list: list,
     add: add,
+    delete: mydelete,
     router: router
 }
