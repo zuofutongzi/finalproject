@@ -18,7 +18,6 @@ const userSeneca = key.userSeneca
 // }
 async function list(msg, done){
     var { schoolYear, schoolTerm, page, size } = msg;
-    var { askerid } = msg;
     var options = ['idx:class:course:schoolYear:' + schoolYear + ':schoolTerm:' + schoolTerm, 'alpha', 'limit', ((page-1)*size).toString(), size.toString()];
     
     // 获取当前学期开设的课程
@@ -227,6 +226,8 @@ router.post('/class/import', async (msg, done) => {
     try{
         var courseIndex = 0;
         var teacherIndex = 1;
+        var schoolYearIndex = 2;
+        var schoolTermIndex = 3;
         var sessionIndex = 5;
 
         var file = msg.body.file;
@@ -261,11 +262,12 @@ router.post('/class/import', async (msg, done) => {
         })
 
         // 课程获取
-        var getCourse = new Promise((resolve) => {
+        var getCourse = new Promise((resolve, reject) => {
             redis.sort('idx:course', 'alpha', (err, keys) => {
                 if(err){
-                    logger.error('(class-import):' + err.message);
-                    throw new Error('数据库访问失败，请稍后再试...')
+                    // logger.error('(class-import):' + err.message);
+                    // throw new Error('数据库访问失败，请稍后再试...')
+                    reject('数据库访问失败，请稍后再试...')
                 }
                 else{
                     resolve(keys)
@@ -274,13 +276,14 @@ router.post('/class/import', async (msg, done) => {
         })
 
         // 教师获取
-        var getTeacher = new Promise((resolve) => {
+        var getTeacher = new Promise((resolve, reject) => {
             var options = { identity: 'teacher' }
             userSeneca.act('target:server-user,module:user,if:idList', options,
             (err,res) => {
                 if(err){
-                    logger.error('(class-import):server-user访问失败');
-                    done.send({status: 500, msg: err.data.payload.details.message})
+                    // logger.error('(class-import):server-user访问失败');
+                    // done.send({status: 500, msg: err.data.payload.details.message})
+                    reject('(class-import):server-user访问失败')
                 }
                 else{
                     resolve(res)
@@ -288,75 +291,147 @@ router.post('/class/import', async (msg, done) => {
             })
         })
 
-        Promise.all([getCourse, getTeacher])
-            .then(async result => {
-                var courseList = result[0];
-                var teacherList = result[1];
-
-                var weekday = ['Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun'];
-                var insertSql = 'insert into class(courseid, teacherid, schoolYear, schoolTerm, capacityLimit, session) values';
-                var insert_params = [];
-                data.forEach(item => {
-                    // 数据不能有空项
-                    item = item.filter((value) => {    
-                        return !(
-                            value === undefined ||
-                            value === null ||
-                            (typeof value === 'object' && Object.keys(value).length === 0) ||
-                            (typeof value === 'string' && value.trim().length === 0)
-                        )
-                    })
-                    if(item.length != rule.length){
-                        throw new Error('格式错误，请重新检查文件内容是否符合要求！')
-                    }
-
-                    // 判断课程是否存在
-                    if(courseList.indexOf(item[courseIndex].toString()) == -1){
-                        throw new Error('课程号' + item[courseIndex] + '不存在，请重新检查文件内容是否符合要求！')
-                    }
-
-                    // 判断教师是否存在
-                    if(teacherList.indexOf(item[teacherIndex].toString()) == -1){
-                        throw new Error('教师' + item[teacherIndex] + '不存在，请重新检查文件内容是否符合要求！')
-                    }
-
-                    // 判断上课时间是否符合规范
-                    var sessions = item[sessionIndex].split(';');
-                    // 最长的上课时间格式为Thur-12，7个字符
-                    for(let i in sessions){
-                        if(sessions[i].length > 8){
-                            throw new Error('上课时间格式错误，请重新检查文件内容是否符合要求！')
-                        }
-                        else if(sessions[i].length != 0){
-                            var stemp = sessions[i].split('-');
-                            var day = stemp[0];
-                            var session = stemp[1];
-                            if(sessions[i].indexOf('-') == -1 || weekday.indexOf(day) == -1){
-                                throw new Error('上课时间格式错误，请重新检查文件内容是否符合要求！')
-                            }
-                        }
-                    }
-
-                    insertSql += ' (?,?,?,?,?,?),';
-                    insert_params = insert_params.concat(item);
-                })
-                insertSql = insertSql.slice(0, insertSql.length - 1);
-        
-                const mysql = await connectHandler();
-                mysql.query(insertSql, insert_params, (err, result) => {
+        var getExistSession =  (item) => {
+            return new Promise((resolve, reject) => {
+                // 判断该教师该学期该时间是否已经有排课
+                redis.sinter('idx:class:teacher:' + item.data[teacherIndex], 'idx:class:schoolYear:' + item.data[schoolYearIndex] + ':schoolTerm:' + item.data[schoolTermIndex], (err, keys) => {
                     if(err){
                         logger.error('(class-import):' + err.message);
-                        done.send({status: 500, msg: '开课导入失败！'})
+                        reject('数据库访问失败，请稍后再试...')
+                    }
+                    else if(keys.length != 0){
+                        var options = [];
+                        keys.forEach(sitem => {
+                            options.push('class:' + sitem);
+                        })
+                        redis.mget(options, (err, res) => {
+                            if(err){
+                                logger.error('(class-import):' + err.message);
+                                reject('数据库访问失败，请稍后再试...')
+                            }
+                            else{
+                                var existsession = [];
+                                res.forEach(mitem => {
+                                    mitem = JSON.parse(mitem);
+                                    existsession = existsession.concat(mitem.session.split(';'));
+                                })
+                                existsession = existsession.filter(mitem => {
+                                    return mitem.length != 0;
+                                })
+
+                                item.session.forEach(citem => {
+                                    if(existsession.indexOf(citem) != -1){
+                                        reject(item.data[teacherIndex] + '教师在' + citem + '已经排课，请重新检查文件内容是否符合要求！')
+                                    }
+                                })
+
+                                resolve(true)
+                            }
+                        })
                     }
                     else{
-                        done.send({msg: '开课导入成功'})
+                        resolve(true)
                     }
                 })
-                mysql.release();
+            })
+        }
+
+        var insertSql = 'insert into class(courseid, teacherid, schoolYear, schoolTerm, capacityLimit, session) values';
+        var insert_params = [];
+        Promise.all([getCourse, getTeacher])
+            .then(result => {
+                return new Promise((resolve, reject) => {
+                    var courseList = result[0];
+                    var teacherList = result[1];
+
+                    var weekday = ['Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun'];
+                    var teacherSession = [];
+                    data.forEach(async item => {
+                        // 数据不能有空项
+                        item = item.filter((value) => {    
+                            return !(
+                                value === undefined ||
+                                value === null ||
+                                (typeof value === 'object' && Object.keys(value).length === 0) ||
+                                (typeof value === 'string' && value.trim().length === 0)
+                            )
+                        })
+                        if(item.length != rule.length){
+                            reject('格式错误，请重新检查文件内容是否符合要求！')
+                        }
+
+                        // 判断课程是否存在
+                        if(courseList.indexOf(item[courseIndex].toString()) == -1){
+                            reject('课程号' + item[courseIndex] + '不存在，请重新检查文件内容是否符合要求！')
+                        }
+
+                        // 判断教师是否存在
+                        if(teacherList.indexOf(item[teacherIndex].toString()) == -1){
+                            reject('教师' + item[teacherIndex] + '不存在，请重新检查文件内容是否符合要求！')
+                        }
+
+                        // 判断上课时间是否符合规范
+                        var sessions = item[sessionIndex].split(';').filter(item => {
+                            return item.length != 0;
+                        })
+                        // 最长的上课时间格式为Thur-12，7个字符
+                        for(let i in sessions){
+                            if(sessions[i].length > 8){
+                                reject('上课时间格式错误，请重新检查文件内容是否符合要求！')
+                            }
+                            else if(sessions[i].length != 0){
+                                var stemp = sessions[i].split('-');
+                                var day = stemp[0];
+                                if(sessions[i].indexOf('-') == -1 || weekday.indexOf(day) == -1){
+                                    reject('上课时间格式错误，请重新检查文件内容是否符合要求！')
+                                }
+                            }
+                        }
+                        teacherSession.push({
+                            data: item,
+                            session: sessions
+                        })
+
+                        insertSql += ' (?,?,?,?,?,?),';
+                        insert_params = insert_params.concat(item);
+                    })
+                    insertSql = insertSql.slice(0, insertSql.length - 1);
+                    resolve(teacherSession)
+                })
+            })
+            .then(result => {
+                Promise.all(result.map(item => {
+                    return new Promise(async (resolve, reject) => {
+                        getExistSession(item)
+                        .then(result => {
+                            resolve(result)
+                        })
+                        .catch(err => {
+                            reject(err)
+                        })
+                    })
+                }))
+                .then(async result => {
+                    const mysql = await connectHandler();
+                    mysql.query(insertSql, insert_params, (err, result) => {
+                        if(err){
+                            logger.error('(class-import):' + err.message);
+                            done.send({status: 500, msg: '开课导入失败！'})
+                        }
+                        else{
+                            done.send({msg: '开课导入成功'})
+                        }
+                    })
+                    mysql.release();
+                })
+                .catch(err => {
+                    logger.error('(class-import):' + err);
+                    done.send({status: 500, msg: err})
+                })
             })
             .catch(err => {
-                logger.error('(class-import):' + err.message);
-                done.send({status: 500, msg: err.message})
+                logger.error('(class-import):' + err);
+                done.send({status: 500, msg: err})
             })
     }
     catch(err){

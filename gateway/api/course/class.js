@@ -18,7 +18,6 @@ router.get('/class', passport.authenticate('jwt', {session: false}), (req, done)
         done.status(500).send("没有权限！")
     }
     else{
-        req.query.askerid = req.user.userid;
         courseSeneca.act('target:server-course,module:class,if:list', req.query,
         (err,res) => {
             if(err){

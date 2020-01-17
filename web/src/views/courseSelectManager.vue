@@ -80,6 +80,7 @@
                         <div style="margin-bottom: 22px;">
                             <course-table
                                 ref="courseTable"
+                                id="courseTable"
                                 :topbar="courseTableTopBar" 
                                 :selectChangeColor="true" 
                                 v-model="courseTableSelect">
@@ -165,6 +166,7 @@
                     </div>
                     <course-table
                         ref="classCourseTable"
+                        id="classCourseTable"
                         :data="classDetail.session"
                         :topbar="courseTableTopBar"
                         :showBackgroundColor="true">
@@ -476,6 +478,10 @@ export default {
                 message: response.msg,
                 type: "success"
             });
+            setTimeout(() => {
+                // 获取最新开课列表
+                this.handleSelectChange();
+            }, 1000)
         },
         handleTagSelect(value){
             // 开课选择

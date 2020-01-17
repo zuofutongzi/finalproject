@@ -1,5 +1,5 @@
 <template>
-	<div>
+	<div :id="id">
         <el-table
             border
             :data="courseData"
@@ -32,7 +32,13 @@ import $ from 'jquery'
 export default{
     name: 'course-table',
     props: {
+        id: {
+            // 表格唯一标实，方便jquery操作
+            type: String,
+            required: true
+        },
         topbar: {
+            // 上边栏
             type: Array,
             required: false,
             default: function(){
@@ -40,6 +46,7 @@ export default{
             }
         },
         sidebar: {
+            // 左边栏
             type: Array,
             required: false,
             default: function(){
@@ -47,6 +54,7 @@ export default{
             }
         },
         data: {
+            // 数据
             type: Array,
             required: false,
             default: function(){
@@ -69,6 +77,7 @@ export default{
             }
         },
         color: {
+            // 颜色
             type: Array,
             required: false,
             default: function(){
@@ -76,6 +85,7 @@ export default{
             }
         },
         selectChangeColor: {
+            // 点击变色
             type: [Boolean, String],
             required: false,
             default: function(){
@@ -83,6 +93,7 @@ export default{
             }
         },
         showBackgroundColor: {
+            // 显示背景色
             type: Boolean,
             required: false,
             default: function(){
@@ -98,6 +109,7 @@ export default{
     },
     computed: {
         columns: function(){
+            // 表格上边栏
             var data = [];
             for(var i = 0; i < this.topbar.length; i++){
                 data.push({
@@ -108,6 +120,7 @@ export default{
             return data;
         },
         courseData: function(){
+            // 表格数据显示
             var temp = [];
 
             for(var i in this.sidebar){
@@ -138,6 +151,7 @@ export default{
             return temp;
         },
         selectTag: function(){
+            // 点击标记
             var temp = [];
 
             for(var i = 0; i < this.sidebar.length; i++){
@@ -153,6 +167,7 @@ export default{
             return temp;
         },
         selectColor: function(){
+            // 点击颜色
             if(typeof(this.selectChangeColor) == 'string'){
                 return this.selectChangeColor;
             }
@@ -178,7 +193,7 @@ export default{
                     if(this.selectTag[row.index][column.property]){
                         // 取消选择
                         this.selectTag[row.index][column.property] = false;
-                        $('.el-table__row').eq(row.index).children('td').eq(cindex).css({'background':'transparent'});
+                        $('#'+ this.id +' .el-table__row').eq(row.index).children('td').eq(cindex).css({'background':'transparent'});
                         var sindex = this.selectData.findIndex(item => {
                             return item.coordinate == column.property + '-' + row.session;
                         })
@@ -190,7 +205,7 @@ export default{
                     else{
                         // 选择
                         this.selectTag[row.index][column.property] = true;
-                        $('.el-table__row').eq(row.index).children('td').eq(cindex).css({'background':this.selectColor});
+                        $('#'+ this.id +' .el-table__row').eq(row.index).children('td').eq(cindex).css({'background':this.selectColor});
                         this.selectData.push({
                             coordinate: column.property + '-' + row.session, 
                             data: this.courseData[row.index][column.property]
@@ -212,7 +227,7 @@ export default{
         cleanSelect(){
             this.selectData = [];
             this.$emit('input', this.selectData);
-            $('.el-table__row td').css({'background':'transparent'})
+            $('#'+ this.id +' .el-table__row td').css({'background':'transparent'})
             for(var i in this.selectTag){
                 for(let j in this.weekday){
                     this.selectTag[i][this.weekday[j]] = false;
@@ -232,7 +247,7 @@ export default{
         data: {
             handler(data){
                 if(this.showBackgroundColor){
-                    $('.el-table__row td').css({'background':'transparent'});
+                    $('#'+ this.id +' .el-table__row td').css({'background':'transparent'});
                     // 延迟，解决elementui组件中dialog的懒渲染问题
                     setTimeout(() => {
                         var temp = [];
@@ -257,7 +272,7 @@ export default{
                                     else{
                                         color = temp[index].color;
                                     }
-                                    $('.el-table__row').eq(rindex).children('td').eq(cindex).css({'background':color});
+                                    $('#'+ this.id +' .el-table__row').eq(rindex).children('td').eq(cindex).css({'background':color});
                                 }
                             }
                         })
