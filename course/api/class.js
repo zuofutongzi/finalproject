@@ -12,14 +12,19 @@ const userSeneca = key.userSeneca
 // 开课数量过于庞大，限制分页获取
 // var options = {
 //     schoolYear: String, 
-//     schoolTerm: String, 
+//     schoolTerm: String,
 //     page: int, 
 //     size: int
 // }
 async function list(msg, done){
     var { schoolYear, schoolTerm, page, size } = msg;
-    var options = ['idx:class:course:schoolYear:' + schoolYear + ':schoolTerm:' + schoolTerm, 'alpha', 'limit', ((page-1)*size).toString(), size.toString()];
-    
+    var options = ['idx:class:course:schoolYear:' + schoolYear + ':schoolTerm:' + schoolTerm, 'alpha'];
+
+    var res = {
+        count: 0,
+        data: []
+    }
+
     // 获取当前学期开设的课程
     var getCourse = async () => {
         return await new Promise((resolve) => {
@@ -29,7 +34,17 @@ async function list(msg, done){
                     done(new Error('数据库访问失败，请稍后再试...'))
                 }
                 else{
-                    resolve(keys)
+                    res.count = keys.length;
+                    options = options.concat(['limit', ((page-1)*size).toString(), size.toString()]);
+                    redis.sort(options, (err, keys) => {
+                        if(err){
+                            logger.error('(class-list):' + err.message);
+                            done(new Error('数据库访问失败，请稍后再试...'))
+                        }
+                        else{
+                            resolve(keys)
+                        }
+                    })
                 }
             })
         })
@@ -111,7 +126,8 @@ async function list(msg, done){
         result = result.filter(item => {
             return item.course != null;
         })
-        done(null, result)
+        res.data = result;
+        done(null, res)
     })
 }
 

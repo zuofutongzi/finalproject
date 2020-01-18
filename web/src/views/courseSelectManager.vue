@@ -4,7 +4,8 @@
             <el-button type="primary" :size="buttonSize" plain @click="classAdd()">开课添加</el-button>
             <el-button type="success" :size="buttonSize" plain @click="classImport()">开课导入</el-button>
             <el-button type="danger" :size="buttonSize" plain @click="classDelete()">开课删除</el-button>
-            <el-button type="primary" :size="buttonSize" plain @click="selectSet()">选课设置</el-button>
+            <el-button type="primary" :size="buttonSize" plain @click="classControllSet()">选课设置</el-button>
+            <!-- 课程抽签移到选课设置dialog里，选课结束前不能抽签，尚未抽签就设置新的选课则弹出提示框提醒还没抽签，是否开启新的选课 -->
             <el-button type="success" :size="buttonSize" plain @click="drawLots()">课程抽签</el-button>
             <el-cascader class="hidden-xs-only" v-model="filterSchoolYear" :options="schoolYearSelect" @change="handleSelectChange" :show-all-levels="true" placeholder="学年选择"></el-cascader>
         </el-row>
@@ -30,6 +31,15 @@
                 </div>
             </el-collapse-transition>
         </el-row>
+        <el-pagination
+            layout="prev, pager, next"
+            @current-change="handleCurrentChange"
+            :small="pageSmall"
+            :hide-on-single-page="true"
+            :current-page.sync="currentPage"
+            :page-size="listPageSize"
+            :total="listTotal">
+        </el-pagination>
 
         <!-- 开课添加 -->
         <el-dialog
@@ -174,6 +184,68 @@
 				</el-col>
 			</el-row>
 		</el-dialog>
+
+        <!-- 选课设置 -->
+        <el-dialog
+            width="760px"
+			:visible.sync="controllDialogVisible"
+			title="选课设置"
+            :fullscreen="addDialogFullScreen"
+			center>
+			<el-row class="classControll">
+				<el-col :md='{span: 16, offset: 4}'>
+                    <el-progress :text-inside="true" :stroke-width="20" :percentage="progressPercentage" :format="progressFormat" style="margin-bottom: 30px;"></el-progress>
+                    <el-form :model="controllForm" :rules="controllRules" ref="controllForm" label-position="left" label-width="80px" class="controllForm">
+                        <el-form-item label="开课学年" prop="schoolYear">
+                            <el-select v-model="controllForm.schoolYear" filterable :disabled="isDisabled">
+                                <el-option
+                                    v-for="item in schoolYearSelect"
+                                    :key="item.value"
+                                    :label="item.label"
+                                    :value="item.value">
+                                </el-option>
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item label="开课学期" prop="schoolTerm">
+                            <el-select v-model="controllForm.schoolTerm" filterable :disabled="isDisabled">
+                                <el-option
+                                    v-for="item in 2"
+                                    :key="item"
+                                    :label="item"
+                                    :value="item">
+                                </el-option>
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item label="起止时间" prop="start2end">
+                            <el-date-picker
+                                :disabled="isDisabled"
+                                v-model="controllForm.start2end"
+                                type="datetimerange"
+                                value-format="yyyy-MM-dd HH:mm:ss"
+                                range-separator="至"
+                                start-placeholder="开始日期"
+                                end-placeholder="结束日期">
+                            </el-date-picker>
+                        </el-form-item>
+                        <el-form-item label="是否限容" prop="isCapacityLimit">
+                            <el-radio-group v-model="controllForm.isCapacityLimit" :disabled="isDisabled">
+                                <el-radio label="1">是</el-radio>
+                                <el-radio label="0">否</el-radio>
+                            </el-radio-group>
+                        </el-form-item>
+                        <el-form-item label="是否可退" prop="isDrop">
+                            <el-radio-group v-model="controllForm.isDrop" :disabled="isDisabled">
+                                <el-radio label="1">是</el-radio>
+                                <el-radio label="0">否</el-radio>
+                            </el-radio-group>
+                        </el-form-item>
+                        <el-form-item>
+					    	<el-button type="primary" class="submit_btn" @click="submitControllForm('controllForm')" :disabled="isDisabled">设置</el-button>
+					  	</el-form-item>
+                    </el-form>
+				</el-col>
+			</el-row>
+		</el-dialog>
     </div>
 </template>
 
@@ -195,6 +267,17 @@ export default {
             }
             else{
                 callback(new Error('请填写数字'))
+            }
+        }
+        var validateStart2End = (rule, value, callback) => {
+            var now = new Date();
+            var start = new Date(value[0]);
+            var end = new Date(value[1]);
+            if(now < start){
+                callback();
+            }
+            else{
+                callback(new Error('开始时间必须晚于当前时间'))
             }
         }
         return {
@@ -221,13 +304,21 @@ export default {
             courseTableTopBar: ['一', '二', '三', '四', '五', '六', '七'],
             buttonSize: 'medium',
             file: '',
+            currentPage: 1,
+            listPageSize: 10,
+            listTotal: 0,
             loading: null,
             detailLineShow: false,
             detailShow: false,
+            pageSmall: false,
             addDialogFullScreen: false,
             addDialogVisible: false,
             importDialogVisible: false,
             detailDialogVisible: false,
+            controllDialogVisible: false,
+            progressPercentage: 0,
+            controllForm: {},
+            isDisabled: false,
             addRules: {
                 course: [
                     {
@@ -253,7 +344,7 @@ export default {
                 schoolTerm: [
                     {
                         required: true,
-                        message: '开课学年不能为空',
+                        message: '开课学期不能为空',
                         trigger: 'blur'
                     }
                 ],
@@ -268,14 +359,62 @@ export default {
                         trigger: 'blur'
                     }
                 ]
+            },
+            controllRules: {
+                schoolYear: [
+                    {
+                        required: true,
+                        message: '开课学年不能为空',
+                        trigger: 'blur'
+                    }
+                ],
+                schoolTerm: [
+                    {
+                        required: true,
+                        message: '开课学期不能为空',
+                        trigger: 'blur'
+                    }
+                ],
+                start2end: [
+                    {
+                        required: true,
+                        message: '起止时间不能为空',
+                        trigger: 'blur'
+                    },
+                    {
+                        validator: validateStart2End,
+                        trigger: 'blur'
+                    }
+                ],
+                isCapacityLimit: [
+                    {
+                        required: true,
+                        message: '是否限容不能为空',
+                        trigger: 'blur'
+                    }
+                ],
+                isDrop: [
+                    {
+                        required: true,
+                        message: '是否可退不能为空',
+                        trigger: 'blur'
+                    }
+                ],
             }
         };
     },
     watch: {},
     computed: {},
     methods: {
+        handleCurrentChange(val){
+            // 分页切换
+            this.currentPage = val;
+            this.multipleSelection.splice(0, this.multipleSelection.length);
+            this.handleSelectChange();
+        },
         handleSelectChange(){
             // 学年选择切换
+            this.multipleSelection.splice(0, this.multipleSelection.length);
             this.detailShow = false;
             setTimeout(() => {
                 this.detailLineShow = false;
@@ -283,14 +422,15 @@ export default {
             var options = {
                 schoolYear: this.filterSchoolYear[0],
                 schoolTerm: this.filterSchoolYear[1],
-                page: 1,
-                size: 10
+                page: this.currentPage,
+                size: this.listPageSize
             }
             this.$axios
                 .get('/api/class', {headers: {'showLoading': false}, params: options})
                 .then(res => {
                     if(res.status == 200){
-                        if(this.isEmpty(res.data)){
+                        if(this.isEmpty(res.data.data)){
+                            this.listTotal = res.data.count;
                             this.$message({
                                 message: '当前学期没有开课',
                                 type: "error"
@@ -301,7 +441,8 @@ export default {
                         }
                         else{
                             setTimeout(() => {
-                                this.classList = res.data;
+                                this.listTotal = res.data.count;
+                                this.classList = res.data.data;
                                 var color = ['#a0cfff', '#b3e19d', '#f3d19e', '#fab6b6'];
                                 var tagType = ['', 'success', 'danger', 'warning'];
 
@@ -417,6 +558,7 @@ export default {
                                 this.$refs.courseTable.cleanSelect();
 
                                 this.addDialogVisible = false;
+                                this.multipleSelection.splice(0, this.multipleSelection.length);
 
                                 setTimeout(() => {
                                     // 获取最新开课列表
@@ -473,11 +615,13 @@ export default {
             // 文件上传成功
             this.loading.close();
             this.importDialogVisible = false;
+            this.currentPage = 1;
             this.$refs.upload.clearFiles();
             this.$message({
                 message: response.msg,
                 type: "success"
             });
+            this.multipleSelection.splice(0, this.multipleSelection.length);
             setTimeout(() => {
                 // 获取最新开课列表
                 this.handleSelectChange();
@@ -534,25 +678,139 @@ export default {
         },
         classDelete(){
             // 开课删除
-            var options = {
-                classid: this.multipleSelection
+            if(this.isEmpty(this.multipleSelection)){
+                this.$message({
+                    message: '选项不能为空',
+                    type: "error"
+                });
             }
+            else{
+                var options = {
+                    classid: this.multipleSelection
+                }
+                this.$axios
+                    .delete('/api/class', {data: options})
+                    .then(res => {
+                        if(res.status == 200){
+                            var data = res.data;
+                            this.$message({
+                                message: data.msg,
+                                type: "success"
+                            });
+
+                            this.multipleSelection.splice(0, this.multipleSelection.length);
+
+                            setTimeout(() => {
+                                // 获取最新开课列表
+                                this.handleSelectChange();
+                            },1000)
+                        }
+                    })
+            }
+        },
+        progressFormat(percentage){
+            // 选课设置
+            // 进度条显示
+            if(percentage == 0){
+                return '选课未开始'
+            }
+            else if(percentage != 100){
+                return '选课已结束'
+            }
+            else{
+                return '选课进行中'
+            }
+        },
+        classControllSet(){
+            // 选课设置
+            // 选课情况获取
             this.$axios
-                .delete('/api/class', {data: options})
+                .get('/api/select/controll', {headers: {'showLoading': false}})
                 .then(res => {
                     if(res.status == 200){
                         var data = res.data;
-                        this.$message({
-                            message: data.msg,
-                            type: "success"
-                        });
-
-                        setTimeout(() => {
-                            // 获取最新开课列表
-                            this.handleSelectChange();
-                        },1000)
+                        var now = new Date();
+                        var start = new Date(data.selectStart);
+                        var end = new Date(data.selectEnd);
+                        if(data.schoolYear == '0'){
+                            this.progressPercentage = 0;
+                        }
+                        else if(now < start){
+                            this.progressPercentage = 0;
+                            this.controllForm = {
+                                schoolYear: data.schoolYear,
+                                schoolTerm: data.schoolTerm,
+                                start2end:[start, end],
+                                isCapacityLimit: data.isCapacityLimit,
+                                isDrop: data.isDrop
+                            }
+                        }
+                        else if(start <= now <= end){
+                            this.disabled = true;
+                            this.progressPercentage = parseInt((now - start) / (end - start));
+                            this.controllForm = {
+                                schoolYear: data.schoolYear,
+                                schoolTerm: data.schoolTerm,
+                                start2end:[start, end],
+                                isCapacityLimit: data.isCapacityLimit,
+                                isDrop: data.isDrop
+                            }
+                        }
+                        else{
+                            this.progressPercentage = 100;
+                        }
+                        this.controllDialogVisible = true;
                     }
                 })
+        },
+        submitControllForm(formName){
+            // 选课设置
+			this.$refs[formName].validate(valid => {
+                if(valid){
+                    this.controllForm.selectStart = this.controllForm.start2end[0];
+                    this.controllForm.selectEnd = this.controllForm.start2end[1];
+                    var options = {
+                        schoolYear: this.controllForm.schoolYear,
+                        schoolTerm: this.controllForm.schoolTerm,
+                        page: 1,
+                        size: 1
+                    }
+                    this.$axios
+                        .get('/api/class', {headers: {'showLoading': false}, params: options})
+                        .then(res => {
+                            if(res.status == 200){
+                                var data = res.data;
+                                if(data.count == 0){
+                                    this.$message({
+                                        message: "该学期没有开课，选课设置失败！",
+                                        type: "error"
+                                    });
+                                }
+                                else{
+                                    this.$axios
+                                        .post('/api/select/controll', this.controllForm)
+                                        .then(res => {
+                                            if(res.status == 200){
+                                                var data = res.data;
+                                                this.$message({
+                                                    message: data.msg,
+                                                    type: "success"
+                                                });
+                                                this.controllDialogVisible = false;
+                                            }
+                                        })
+                                }
+                            }
+                        })
+				}
+				else{
+					this.$message({
+						message: "填写格式错误！",
+						type: "error"
+					});
+					return false;
+				}
+			})
         },
         isEmpty(value){
 			return (
@@ -583,6 +841,7 @@ export default {
             });
         }
         this.classSelectAddForm.schoolYear = nowYear.toString() + '-' + (nowYear + 1).toString();
+        this.controllForm.schoolYear = nowYear.toString() + '-' + (nowYear + 1).toString();
         this.filterSchoolYear = [nowYear.toString() + '-' + (nowYear + 1).toString(), '1'];
 
         // 时间选择设置
@@ -598,8 +857,8 @@ export default {
         var options = {
             schoolYear: nowYear.toString() + '-' + (nowYear + 1).toString(),
             schoolTerm: '1',
-            page: 1,
-            size: 10
+            page: this.currentPage,
+            size: this.listPageSize
         }
         this.$axios
             .get('/api/class', {headers: {'showLoading': false}, params: options})
@@ -613,7 +872,8 @@ export default {
                     }
                     else{
                         setTimeout(() => {
-                            this.classList = res.data;
+                            this.listTotal = res.data.count;
+                            this.classList = res.data.data;
                             var color = ['#a0cfff', '#b3e19d', '#f3d19e', '#fab6b6'];
                             var tagType = ['', 'success', 'danger', 'warning'];
 
@@ -691,6 +951,7 @@ export default {
         var width = $(window).width();
         if(width < 768){
             this.addDialogFullScreen = true;
+            this.pageSmall = true;
             var buttonParentWidth = $('.classSelectTop .el-button').parent().width() - 20;
             var buttonWith = buttonParentWidth/3;
             $('.classSelectTop .el-button').eq(0).css({'margin-left':'0','width':buttonWith.toString(),'padding':'12px 10px'});
@@ -778,4 +1039,13 @@ export default {
         margin-right: 10px;
         margin-bottom: 10px;
     }
+    .controllForm .el-cascader{
+        width: 100%;
+    }
+    .controllForm .el-select{
+        width: 100%;
+    }
+    .controllForm .submit_btn{
+		width: 100%;
+	}
 </style>

@@ -259,6 +259,8 @@ export default {
         },
         handleCurrentChange(val) {
             // 分页切换
+            this.multipleSelection.splice(0, this.multipleSelection.length);
+            this.$refs.multipleTable.clearSelection();
             this.currentPage = val;
             var options = {
                 filter: {
@@ -279,6 +281,8 @@ export default {
         },
         handleSelectChange(){
             // 分院筛选切换
+            this.multipleSelection.splice(0, this.multipleSelection.length);
+            this.$refs.multipleTable.clearSelection();
             var options = {
                 filter: {
                     isFirst: true,
@@ -377,6 +381,8 @@ export default {
                                                 var data = res.data;
                                                 _this.listTotal = data.count;
                                                 _this.classList = data.data;
+                                                _this.multipleSelection.splice(0, this.multipleSelection.length);
+                                                _this.$refs.multipleTable.clearSelection();
                                             }
                                         })
                                 },1000);
@@ -454,6 +460,8 @@ export default {
                             var data = res.data;
                             _this.listTotal = data.count;
                             _this.classList = data.data;
+                            _this.multipleSelection.splice(0, this.multipleSelection.length);
+                            _this.$refs.multipleTable.clearSelection();
                         }
                     })
             },1000);
@@ -516,6 +524,7 @@ export default {
                                     })
                             },1000);
 
+                            this.multipleSelection.splice(0, this.multipleSelection.length);
                             this.$refs.multipleTable.clearSelection();
                         }
                     })

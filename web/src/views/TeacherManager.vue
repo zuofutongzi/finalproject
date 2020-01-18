@@ -463,6 +463,8 @@ export default {
         },
         handleCurrentChange(val) {
             // 分页切换
+            this.multipleSelection.splice(0, this.multipleSelection.length);
+            this.$refs.multipleTable.clearSelection();
             this.currentPage = val;
             var options = {
                 identity: 'teacher',
@@ -488,6 +490,8 @@ export default {
         },
         handleSelectChange(){
             // 分院筛选切换
+            this.multipleSelection.splice(0, this.multipleSelection.length);
+            this.$refs.multipleTable.clearSelection();
             var options = {
                 identity: 'teacher',
                 filter: {
@@ -623,6 +627,7 @@ export default {
                                     })
                             },1000);
 
+                            this.multipleSelection.splice(0, this.multipleSelection.length);
                             this.$refs.multipleTable.clearSelection();
                         }
                     })
@@ -664,6 +669,9 @@ export default {
                                         this.userList.push(this.userAdd);
                                     }
                                 })
+
+                                this.multipleSelection.splice(0, this.multipleSelection.length);
+                                this.$refs.multipleTable.clearSelection();
                                 
                                 this.addDialogVisible = false;
                                 this.userAdd = {
@@ -752,6 +760,8 @@ export default {
                             _this.userList = res.data.data;
                             _this.listTotal = res.data.count;
                             _this.currentPage = 1;
+                            _this.multipleSelection.splice(0, this.multipleSelection.length);
+                            _this.$refs.multipleTable.clearSelection();
                         }
                     })
             },1000);

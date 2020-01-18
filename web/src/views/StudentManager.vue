@@ -89,8 +89,8 @@
                         <el-form-item label="身份证" prop="IDcard">
                             <el-input v-model="userAdd.IDcard"></el-input>
                         </el-form-item>
-                        <el-form-item label="班级" prop="classid">
-                            <el-cascader v-model="userAdd.classid" :options="majorList" @change="studentAddMajorChange" :show-all-levels="false"></el-cascader>
+                        <el-form-item label="班级" prop="class">
+                            <el-cascader v-model="userAdd.class" :options="majorList" @change="studentAddMajorChange" :show-all-levels="false"></el-cascader>
                         </el-form-item>
                         <el-form-item>
 					    	<el-button type="primary" class="submit_btn" @click="submitAddForm('addForm')">添加</el-button>
@@ -350,7 +350,7 @@ export default {
                         trigger: 'blur'
                     }
                 ],
-                classid: [{
+                class: [{
                     required: true,
                     message: '班级不能为空',
                     trigger: 'blur'
@@ -369,6 +369,8 @@ export default {
         },
         handleCurrentChange(val) {
             // 分页切换
+            this.multipleSelection.splice(0, this.multipleSelection.length);
+            this.$refs.multipleTable.clearSelection();
             this.currentPage = val;
             var options = {
                 identity: 'student',
@@ -390,6 +392,8 @@ export default {
         },
         handleSelectChange(){
             // 筛选切换
+            this.multipleSelection.splice(0, this.multipleSelection.length);
+            this.$refs.multipleTable.clearSelection();
              var options = {
                 identity: 'student',
                 filter: {
@@ -457,7 +461,7 @@ export default {
 			this.$refs[formName].validate(valid => {
 				if(valid){
                     this.userAdd.identity = 'student';
-                    this.userAdd.classid = this.userAdd.classid[2];
+                    this.userAdd.classid = this.userAdd.class[2];
                     this.$axios
                         .post('/api/user', this.userAdd)
                         .then(res => {
@@ -477,7 +481,8 @@ export default {
                                     nation: '',
                                     politicalStatus: '',
                                     IDcard: '',
-                                    classid: []
+                                    class: [],
+                                    classid: ''
                                 }
 
                                 var options = {
@@ -499,6 +504,8 @@ export default {
                                                 _this.userList = res.data.data;
                                                 _this.listTotal = res.data.count;
                                                 _this.currentPage = 1;
+                                                _this.multipleSelection.splice(0, this.multipleSelection.length);
+                                                _this.$refs.multipleTable.clearSelection();
                                             }
                                         })
                                 },1000)
@@ -579,6 +586,8 @@ export default {
                             _this.userList = res.data.data;
                             _this.listTotal = res.data.count;
                             _this.currentPage = 1;
+                            _this.multipleSelection.splice(0, this.multipleSelection.length);
+                            _this.$refs.multipleTable.clearSelection();
                         }
                     })
             },1000);
@@ -638,6 +647,7 @@ export default {
                                     })
                             },1000);
 
+                            this.multipleSelection.splice(0, this.multipleSelection.length);
                             this.$refs.multipleTable.clearSelection();
                         }
                     })
