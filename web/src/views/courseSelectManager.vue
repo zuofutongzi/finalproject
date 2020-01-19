@@ -5,8 +5,6 @@
             <el-button type="success" :size="buttonSize" plain @click="classImport()">开课导入</el-button>
             <el-button type="danger" :size="buttonSize" plain @click="classDelete()">开课删除</el-button>
             <el-button type="primary" :size="buttonSize" plain @click="classControllSet()">选课设置</el-button>
-            <!-- 课程抽签移到选课设置dialog里，选课结束前不能抽签，尚未抽签就设置新的选课则弹出提示框提醒还没抽签，是否开启新的选课 -->
-            <el-button type="success" :size="buttonSize" plain @click="drawLots()">课程抽签</el-button>
             <el-cascader class="hidden-xs-only" v-model="filterSchoolYear" :options="schoolYearSelect" @change="handleSelectChange" :show-all-levels="true" placeholder="学年选择"></el-cascader>
         </el-row>
         <el-row class="classSelectXsTop">
@@ -43,6 +41,7 @@
 
         <!-- 开课添加 -->
         <el-dialog
+            width="760px"
 			:visible.sync="addDialogVisible"
 			title="开课添加"
             :fullscreen="addDialogFullScreen"
@@ -187,7 +186,6 @@
 
         <!-- 选课设置 -->
         <el-dialog
-            width="760px"
 			:visible.sync="controllDialogVisible"
 			title="选课设置"
             :fullscreen="addDialogFullScreen"
@@ -240,7 +238,19 @@
                             </el-radio-group>
                         </el-form-item>
                         <el-form-item>
-					    	<el-button type="primary" class="submit_btn" @click="submitControllForm('controllForm')" :disabled="isDisabled">设置</el-button>
+                            <el-popover
+                                :disabled="drawLotsTipIsDisabled"
+                                placement="top"
+                                width="230"
+                                v-model="drawLotsTipDialogVisible">
+                                <p>上一阶段选课尚未抽签，开启新阶段选课后将无法抽签，是否继续</p>
+                                <div style="text-align: right; margin: 0">
+                                    <el-button size="mini" type="text" @click="drawLotsTipDialogVisible = false">取消</el-button>
+                                    <el-button type="primary" size="mini" @click="submitControllForm('controllForm')">确定</el-button>
+                                </div>
+                                <el-button slot="reference" type="primary" class="submit_btn" @click="submitSet('controllForm')" :disabled="isDisabled">设置</el-button>
+                            </el-popover>
+					    	<el-button type="success" class="submit_btn" style="margin-left: 10px;" @click="drawLots()" :disabled="isDisabled">抽签</el-button>
 					  	</el-form-item>
                     </el-form>
 				</el-col>
@@ -316,9 +326,12 @@ export default {
             importDialogVisible: false,
             detailDialogVisible: false,
             controllDialogVisible: false,
+            drawLotsTipDialogVisible: false,
             progressPercentage: 0,
             controllForm: {},
+            controllDetail: {},
             isDisabled: false,
+            drawLotsTipIsDisabled: false,
             addRules: {
                 course: [
                     {
@@ -635,11 +648,16 @@ export default {
                         if(citem.classid == value.classid){
                             if(citem.tagType != 'info'){
                                 citem.tagType = 'info';
-                                this.multipleSelection.push(citem.classid);
+                                this.multipleSelection.push({
+                                    classid: citem.classid,
+                                    schoolTime: citem.schoolYear + '-' + citem.schoolTerm
+                                });
                             }
                             else{
                                 citem.tagType = item.tagType;
-                                var index = this.multipleSelection.indexOf(citem.classid);
+                                var index = this.multipleSelection.findIndex(sitem => {
+                                    return sitem.classid == citem.classid;
+                                })
                                 if(index != -1){
                                     this.multipleSelection.splice(index, 1);
                                 }
@@ -678,15 +696,33 @@ export default {
         },
         classDelete(){
             // 开课删除
+            var schoolTime = [];
+            var classid = [];
+            this.multipleSelection.forEach(item => {
+                var time = item.schoolYear + '-' + item.schoolTerm;
+                if(schoolTime.indexOf(time) == -1){
+                    schoolTime.push(time);
+                }
+                classid.push(item.classid);
+            })
+            var now = new Date();
+            var start = new Date(this.controllDetail.selectStart);
+            var end = new Date(this.controllDetail.selectEnd);
             if(this.isEmpty(this.multipleSelection)){
                 this.$message({
                     message: '选项不能为空',
                     type: "error"
                 });
             }
+            else if(start <= now && now <= end && schoolTime.indexOf(this.controllDetail.schoolTerm + '-' + this.controllDetail.schoolYear)){
+                this.$message({
+                    message: '所选开课正在进行选课，不能删除',
+                    type: "error"
+                });
+            }
             else{
                 var options = {
-                    classid: this.multipleSelection
+                    classid: classid
                 }
                 this.$axios
                     .delete('/api/class', {data: options})
@@ -714,7 +750,7 @@ export default {
             if(percentage == 0){
                 return '选课未开始'
             }
-            else if(percentage != 100){
+            else if(percentage >= 100){
                 return '选课已结束'
             }
             else{
@@ -732,40 +768,57 @@ export default {
                         var now = new Date();
                         var start = new Date(data.selectStart);
                         var end = new Date(data.selectEnd);
+                        this.controllDetail = data;
                         if(data.schoolYear == '0'){
+                            this.isDisabled = false;
                             this.progressPercentage = 0;
                         }
                         else if(now < start){
+                            this.isDisabled = false;
                             this.progressPercentage = 0;
                             this.controllForm = {
                                 schoolYear: data.schoolYear,
                                 schoolTerm: data.schoolTerm,
-                                start2end:[start, end],
+                                start2end: [data.selectStart, data.selectEnd],
                                 isCapacityLimit: data.isCapacityLimit,
                                 isDrop: data.isDrop
                             }
                         }
-                        else if(start <= now <= end){
-                            this.disabled = true;
-                            this.progressPercentage = parseInt((now - start) / (end - start));
+                        else if(start <= now && now <= end){
+                            this.isDisabled = true;
+                            this.progressPercentage = ((now - start) / (end - start))*100;
                             this.controllForm = {
                                 schoolYear: data.schoolYear,
                                 schoolTerm: data.schoolTerm,
-                                start2end:[start, end],
+                                start2end: [data.selectStart, data.selectEnd],
                                 isCapacityLimit: data.isCapacityLimit,
                                 isDrop: data.isDrop
                             }
                         }
                         else{
+                            this.isDisabled = false;
                             this.progressPercentage = 100;
                         }
                         this.controllDialogVisible = true;
                     }
                 })
         },
+        submitSet(formName){
+            // 选课设置
+            var now = new Date();
+            var end = new Date(this.controllDetail.selectEnd);
+            if(this.controllDetail.schoolYear != '0' && now > end && this.controllDetail.isDrawLots == '0'){
+                // 有数据，选课结束，并还未抽签，提醒还未抽签
+                this.drawLotsTipIsDisabled = false;
+            }
+            else{
+                this.drawLotsTipIsDisabled = true;
+                this.submitControllForm(formName);
+            }
+        },
         submitControllForm(formName){
             // 选课设置
-			this.$refs[formName].validate(valid => {
+            this.$refs[formName].validate(valid => {
                 if(valid){
                     this.controllForm.selectStart = this.controllForm.start2end[0];
                     this.controllForm.selectEnd = this.controllForm.start2end[1];
@@ -802,15 +855,28 @@ export default {
                                 }
                             }
                         })
-				}
-				else{
-					this.$message({
-						message: "填写格式错误！",
-						type: "error"
-					});
-					return false;
-				}
-			})
+                }
+                else{
+                    this.$message({
+                        message: "填写格式错误！",
+                        type: "error"
+                    });
+                    return false;
+                }
+            })
+        },
+        drawLots(){
+            // 课程抽签
+            if(this.controllDetail.isDrawLots == '1'){
+                this.$message({
+                    message: "上一阶段选课已抽过签！",
+                    type: "error"
+                });
+            }
+            else{
+                // 访问抽签接口
+                
+            }
         },
         isEmpty(value){
 			return (
@@ -871,41 +937,34 @@ export default {
                         });
                     }
                     else{
-                        setTimeout(() => {
-                            this.listTotal = res.data.count;
-                            this.classList = res.data.data;
-                            var color = ['#a0cfff', '#b3e19d', '#f3d19e', '#fab6b6'];
-                            var tagType = ['', 'success', 'danger', 'warning'];
+                        this.listTotal = res.data.count;
+                        this.classList = res.data.data;
+                        var color = ['#a0cfff', '#b3e19d', '#f3d19e', '#fab6b6'];
+                        var tagType = ['', 'success', 'danger', 'warning'];
 
-                            this.classList.map((item, index) => {
-                                item.tagType = tagType[index%4];
-                                item.color = color[index%4];
-                                item.class.map(citem => {
-                                    citem.tagType = item.tagType;
-                                    return citem;
-                                })
-                                return item;
+                        this.classList.map((item, index) => {
+                            item.tagType = tagType[index%4];
+                            item.color = color[index%4];
+                            item.class.map(citem => {
+                                citem.tagType = item.tagType;
+                                return citem;
                             })
+                            return item;
+                        })
 
-                            
-                            setTimeout(() => {
-                                this.detailLineShow = true;
-                                setTimeout(() => {
-                                    this.detailShow = true;
-                                    var width = $(window).width();
-                                    if(width < 768){
-                                        $('.tag-courseid').css({'width':'80px', 'margin-bottom':'10px', 'overflow':'hidden', 'text-overflow':'ellipsis', 'white-space':'nowrap'});
-                                        $('.tag-course').css({'width':'calc(100% - 90px)', 'margin-bottom':'10px', 'overflow':'hidden', 'text-overflow':'ellipsis', 'white-space':'nowrap'});
-                                    }
-                                    for(let i in $('.el-card__body')){
-                                        $('.el-card__body').eq(i).children('.tag-course:last').css({'margin-bottom':'0'});
-                                        if(width < 786){
-                                            $('.el-card__body').eq(i).children('.tag-courseid:last').css({'margin-bottom':'0'});
-                                        }
-                                    }
-                                },500)
-                            },500)
-                        },500)
+                        this.detailLineShow = true;
+                        this.detailShow = true;
+                        var width = $(window).width();
+                        if(width < 768){
+                            $('.tag-courseid').css({'width':'80px', 'margin-bottom':'10px', 'overflow':'hidden', 'text-overflow':'ellipsis', 'white-space':'nowrap'});
+                            $('.tag-course').css({'width':'calc(100% - 90px)', 'margin-bottom':'10px', 'overflow':'hidden', 'text-overflow':'ellipsis', 'white-space':'nowrap'});
+                        }
+                        for(let i in $('.el-card__body')){
+                            $('.el-card__body').eq(i).children('.tag-course:last').css({'margin-bottom':'0'});
+                            if(width < 786){
+                                $('.el-card__body').eq(i).children('.tag-courseid:last').css({'margin-bottom':'0'});
+                            }
+                        }
                     }
                 }
             })
@@ -945,6 +1004,49 @@ export default {
                                 })
                             }
                         })
+                }
+            })
+
+        // 选课情况获取
+        this.$axios
+            .get('/api/select/controll', {headers: {'showLoading': false}})
+            .then(res => {
+                if(res.status == 200){
+                    var data = res.data;
+                    var now = new Date();
+                    var start = new Date(data.selectStart);
+                    var end = new Date(data.selectEnd);
+                    this.controllDetail = data;
+                    if(data.schoolYear == '0'){
+                        this.isDisabled = false;
+                        this.progressPercentage = 0;
+                    }
+                    else if(now < start){
+                        this.isDisabled = false;
+                        this.progressPercentage = 0;
+                        this.controllForm = {
+                            schoolYear: data.schoolYear,
+                            schoolTerm: data.schoolTerm,
+                            start2end: [data.selectStart, data.selectEnd],
+                            isCapacityLimit: data.isCapacityLimit,
+                            isDrop: data.isDrop
+                        }
+                    }
+                    else if(start <= now && now <= end){
+                        this.isDisabled = true;
+                        this.progressPercentage = ((now - start) / (end - start))*100;
+                        this.controllForm = {
+                            schoolYear: data.schoolYear,
+                            schoolTerm: data.schoolTerm,
+                            start2end: [data.selectStart, data.selectEnd],
+                            isCapacityLimit: data.isCapacityLimit,
+                            isDrop: data.isDrop
+                        }
+                    }
+                    else{
+                        this.isDisabled = false;
+                        this.progressPercentage = 100;
+                    }
                 }
             })
 
@@ -1045,7 +1147,10 @@ export default {
     .controllForm .el-select{
         width: 100%;
     }
-    .controllForm .submit_btn{
+    .controllForm .el-range-editor{
 		width: 100%;
+	}
+    .controllForm .submit_btn{
+		width: calc(50% - 5px);
 	}
 </style>

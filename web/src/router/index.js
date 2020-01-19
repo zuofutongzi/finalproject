@@ -12,7 +12,8 @@ import TeacherManager from '../views/TeacherManager.vue'
 import ClassManager from '../views/ClassManager.vue'
 import CourseManager from '../views/CourseManager.vue'
 import CourseScheduleManager from '../views/CourseScheduleManager.vue'
-import CourseSelectManager from '../views/courseSelectManager.vue'
+import CourseSelectManager from '../views/CourseSelectManager.vue'
+import TcourseManager from '../views/TcourseManager.vue'
 import NotFound from '../views/404.vue'
 
 Vue.use(VueRouter)
@@ -90,6 +91,11 @@ const routes = [
 				path: '/courseSelectManager',
 				name: 'courseSelectManager',
 				component: CourseSelectManager
+			},
+			{
+				path: '/tcourseManager',
+				name: 'tcourseManager',
+				component: TcourseManager
 			}
 		]
 	},

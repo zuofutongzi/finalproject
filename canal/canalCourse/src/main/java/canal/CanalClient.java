@@ -26,7 +26,7 @@ public class CanalClient {
                 int size = message.getEntries().size();
                 if (batchId == -1 || size == 0) {
                     try {
-                        Thread.sleep(1000);
+                        Thread.sleep(500);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }

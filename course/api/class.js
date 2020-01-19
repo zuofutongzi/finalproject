@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const xlsx = require('node-xlsx').default;
+const fs = require('fs')
 const logger = require('../logger')
 const key = require('../key')
 
@@ -54,7 +55,7 @@ async function list(msg, done){
     Promise.all(courseList.map(item => {
         // 根据课程号获取开课号
         return new Promise((resolve) => {
-            redis.sort('idx:class:course:' + item, 'alpha', (err, keys) => {
+            redis.sinter('idx:class:course:' + item, 'idx:class:schoolYear:' + schoolYear + ':schoolTerm:' + schoolTerm, (err, keys) => {
                 if(err){
                     logger.error('(class-list):' + err.message);
                     done(new Error('数据库访问失败，请稍后再试...'))
@@ -76,9 +77,6 @@ async function list(msg, done){
                         })
                     }))
                     .then(result => {
-                        result = result.filter(rvalue => {
-                            return rvalue != null && rvalue.schoolYear == schoolYear && rvalue.schoolTerm == schoolTerm;
-                        })
                         classList.class = result;
                         // 获取教师信息
                         var teacherid = [];
@@ -223,6 +221,8 @@ async function mydelete(msg, done){
     })
     deleteSql = deleteSql.slice(0, deleteSql.length - 1);
     deleteSql += ')';
+
+    // 开课取消连同学生的选课一起删除
 
     const mysql = await connectHandler();
     mysql.query(deleteSql, classid, (err, result) => {
@@ -456,9 +456,77 @@ router.post('/class/import', async (msg, done) => {
     }
 })
 
+// 教师开课列表
+// var options = {
+//     teacherid: String, 
+//     schoolYear: String, 
+//     schoolTerm: String, 
+//     isPage: Boolean, 
+//     page: int/null, 
+//     size: int/null
+// }
+async function tlist(msg, done){
+    var { teacherid, schoolYear, schoolTerm, isPage } = msg;
+    var { page, size } = msg;
+    var res = {
+        count: 0,
+        data: []
+    }
+
+    var getClass = async () => {
+        return await new Promise((resolve) => {
+            redis.sinter('idx:class:schoolYear:' + schoolYear + ':schoolTerm:' + schoolTerm, 'idx:class:teacher:' + teacherid, (err, keys) => {
+                if(err){
+                    logger.error('(class-tlist):' + err.message);
+                    done(new Error('数据库访问失败，请稍后再试...'))
+                }
+                else{
+                    res.count = keys.length;
+                    resolve(keys)
+                }
+            })
+        })
+    }
+    var classList = await getClass();
+
+    // 分页
+    if(isPage){
+        classList.slice((page-1)*size, page*size);
+    }
+
+    var classid = [];
+    classList.forEach(item => {
+        classid.push('class:' + item);
+    })
+    redis.mget(classid, (err, keys) => {
+        if(err){
+            logger.error('(class-tlist):' + err.message);
+            done(new Error('数据库访问失败，请稍后再试...'))
+        }
+        else{
+            res.data = keys.map(item => {
+                return JSON.parse(item)
+            })
+            done(null, res)
+        }
+    })
+}
+
+// 获取开课图片
+router.get('/class/img/:img', (msg, done) => {
+    var imgPath = key.appendixDir + msg.params.img;
+    fs.readFile(imgPath, (err, imgbuffer) => {
+        var type = msg.params.img.split('.');
+        type = type[type.length - 1];
+        done.type(type);
+        done.send(imgbuffer);
+    })
+})
+
 module.exports = {
     list: list,
     add: add,
     delete: mydelete,
+    tlist: tlist,
     router: router
 }

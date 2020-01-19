@@ -1757,3 +1757,5 @@
 2020-01-17 18:37:18 [error]: (class-import):ReferenceError: item is not defined
 2020-01-17 18:39:23 [error]: (class-import):C11691教师在Mon-1已经排课，请重新检查文件内容是否符合要求！
 2020-01-18 14:24:34 [error]: (class-import):C11691教师在Mon-1已经排课，请重新检查文件内容是否符合要求！
+2020-01-19 14:21:14 [error]: (select-controllSet):ER_DATA_TOO_LONG: Data too long for column 'selectStart' at row 1
+2020-01-19 17:15:06 [error]: (class-import):C11691教师在Mon-1已经排课，请重新检查文件内容是否符合要求！

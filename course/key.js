@@ -40,5 +40,6 @@ module.exports = {
     mysql: mysqlConnection,
     redis: redisClient,
     userSeneca: userSeneca,
+    appendixDir: './附件/',
     saltRounds: 10
 }

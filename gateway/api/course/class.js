@@ -106,4 +106,47 @@ router.post('/class/import', passport.authenticate('jwt', {session: false}), upl
     }
 })
 
+// @route  GET /api/class/teacher
+// @desc   教师开课列表
+// @token  true
+// @return classList
+// @access public
+// @params {teacherid: String, schoolYear: String, schoolTerm: String, isPage: Boolean, page: int/null, size: int/null}
+router.get('/class/teacher', passport.authenticate('jwt', {session: false}), (req, done) => {
+    courseSeneca.act('target:server-course,module:class,if:tlist', req.query,
+    (err,res) => {
+        if(err){
+            done.status(500).send(err.data.payload.details.message)
+        }
+        else{
+            done.send(res)
+        }
+    })
+})
+
+// @route  GET /api/class/img/:img
+// @desc   获取开课图片
+// @token  false
+// @return msg
+// @access public
+router.get('/class/img/:img', async (req, done) => {
+    var img = req.params.img;
+    var uri = key.courseServerRequest + '/class/img/' + img;
+    // url中文转换处理
+    uri = encodeURI(uri);
+    request({        
+        url: uri,        
+        method: "GET",        
+        encoding: null,
+        headers: {            
+            'Accept-Encoding': 'gzip, deflate'        
+        }    
+    }, function (error, response, body) {        
+        if (!error && response.statusCode == 200) {            
+            done.set('Content-Type', 'image/png;');     
+            done.send(body);        
+        }    
+    })
+})
+
 module.exports = router;
