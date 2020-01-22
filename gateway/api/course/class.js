@@ -113,6 +113,7 @@ router.post('/class/import', passport.authenticate('jwt', {session: false}), upl
 // @access public
 // @params {teacherid: String, schoolYear: String, schoolTerm: String, isPage: Boolean, page: int/null, size: int/null}
 router.get('/class/teacher', passport.authenticate('jwt', {session: false}), (req, done) => {
+    req.query.askerid = req.user.userid;
     courseSeneca.act('target:server-course,module:class,if:tlist', req.query,
     (err,res) => {
         if(err){
@@ -121,6 +122,32 @@ router.get('/class/teacher', passport.authenticate('jwt', {session: false}), (re
         else{
             done.send(res)
         }
+    })
+})
+
+// @route  POST /api/class/img
+// @desc   图片上传
+// @token  false
+// @return msg
+// @access public
+// @params {classid: String}
+router.post('/class/img', passport.authenticate('jwt', {session: false}), upload.single('file'), async (req, done) => {
+    var file = req.file;
+    var options = req.body;
+    var uri = key.courseServerRequest + '/class/img';
+    request.post({
+        url: uri,
+        json: {file: file, options: options},
+        gzip:true
+    }).then((response) => {
+        if(response.status == 500){
+            done.status(500).send(response.msg)
+        }
+        else{
+            done.send(response)
+        }
+    }).catch((err) => {
+        done.status(500).send('图片上传失败！')
     })
 })
 

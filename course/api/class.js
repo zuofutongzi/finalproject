@@ -281,8 +281,6 @@ router.post('/class/import', async (msg, done) => {
         var getCourse = new Promise((resolve, reject) => {
             redis.sort('idx:course', 'alpha', (err, keys) => {
                 if(err){
-                    // logger.error('(class-import):' + err.message);
-                    // throw new Error('数据库访问失败，请稍后再试...')
                     reject('数据库访问失败，请稍后再试...')
                 }
                 else{
@@ -297,9 +295,7 @@ router.post('/class/import', async (msg, done) => {
             userSeneca.act('target:server-user,module:user,if:idList', options,
             (err,res) => {
                 if(err){
-                    // logger.error('(class-import):server-user访问失败');
-                    // done.send({status: 500, msg: err.data.payload.details.message})
-                    reject('(class-import):server-user访问失败')
+                    reject('server-user访问失败')
                 }
                 else{
                     resolve(res)
@@ -468,6 +464,7 @@ router.post('/class/import', async (msg, done) => {
 async function tlist(msg, done){
     var { teacherid, schoolYear, schoolTerm, isPage } = msg;
     var { page, size } = msg;
+    var { askerid } = msg;
     var res = {
         count: 0,
         data: []
@@ -494,33 +491,132 @@ async function tlist(msg, done){
         classList.slice((page-1)*size, page*size);
     }
 
+    // 获取教师信息
+    var getTeacher = (teacherid) => {
+        return new Promise((resolve, reject) => {
+            var options = {
+                askerid: askerid,
+                userid: teacherid,
+                identity: 'teacher'
+            }
+            userSeneca.act('target:server-user,module:user,if:detail', options,
+            (err, res) => {
+                if(err){
+                    reject('server-user访问失败')
+                }
+                else{
+                    resolve(res)
+                }
+            })
+        })
+    }
+    var teacher = await getTeacher(teacherid).catch(err => {
+        logger.error('(class-tlist):' + err);
+        done(new Error(err))
+    });
+    
+    // 获取课程信息
+    var getCourse = (courseid) => {
+        return new Promise((resolve, reject) => {
+            redis.mget('course:' + courseid, (err, res) => {
+                if(err){
+                    reject('数据库访问失败，请稍后再试...')
+                }
+                else{
+                    resolve(JSON.parse(res))
+                }
+            })
+        })
+    }
+
     var classid = [];
     classList.forEach(item => {
         classid.push('class:' + item);
     })
-    redis.mget(classid, (err, keys) => {
-        if(err){
-            logger.error('(class-tlist):' + err.message);
-            done(new Error('数据库访问失败，请稍后再试...'))
-        }
-        else{
-            res.data = keys.map(item => {
-                return JSON.parse(item)
-            })
-            done(null, res)
-        }
-    })
+    if(classid.length != 0){
+        redis.mget(classid, (err, keys) => {
+            if(err){
+                logger.error('(class-tlist):' + err.message);
+                done(new Error('数据库访问失败，请稍后再试...'))
+            }
+            else{
+                Promise.all(keys.map(item => {
+                    return new Promise(async (resolve, reject) => {
+                        item = JSON.parse(item);
+                        item.teacher = teacher;
+                        item.course = await getCourse(item.courseid).catch(err => {
+                            reject(err)
+                        });
+                        resolve(item)
+                    })
+                }))
+                .then(result => {
+                    res.data = result;
+                    done(null, res)
+                })
+                .catch(err => {
+                    logger.error('(class-tlist):' + err);
+                    done(new Error(err))
+                })
+            }
+        })
+    }
+    else{
+        done(null, [])
+    }
 }
+
+// 上传图片
+// var options = {
+//     classid: String
+// }
+router.post('/class/img', async (msg, done) => {
+    try{
+        var file = msg.body.file;
+        var { classid } = msg.body.options;
+        // 数组转buffer
+        var copy = Buffer.from(file.buffer.data)
+        var tail = '.' + file.originalname.split('.')[1];
+        var filename = (new Date()).getTime();
+        var ws = fs.createWriteStream(key.appendixDir + filename + tail);
+        ws.write(copy);
+        ws.end();
+        
+        // 修改数据库
+        const mysql = await connectHandler();
+        var updateSql = 'update class set img = ? where classid = ?';
+        var update_params = [filename + tail, classid];
+        mysql.query(updateSql, update_params, (err, result) => {
+            if(err){
+                logger.error('(class-img):' + err.message);
+                done.send({status: 500, msg: '图片上传失败！'})
+            }
+            else{
+                done.send({msg: "图片上传成功！"})
+            }
+        })
+        mysql.release();
+    }
+    catch(err){
+        logger.error('(class-img):' + err.message);
+        done.send(err)
+    }
+})
 
 // 获取开课图片
 router.get('/class/img/:img', (msg, done) => {
     var imgPath = key.appendixDir + msg.params.img;
-    fs.readFile(imgPath, (err, imgbuffer) => {
-        var type = msg.params.img.split('.');
-        type = type[type.length - 1];
-        done.type(type);
-        done.send(imgbuffer);
-    })
+    fs.exists(imgPath, (exists) => {
+        if(!exists){
+            imgPath = key.appendixDir + 'default.jpg';
+        }
+        fs.readFile(imgPath, (err, imgbuffer) => {
+            var type = msg.params.img.split('.');
+            type = type[type.length - 1];
+            done.type(type);
+            done.send(imgbuffer);
+        })
+    });
 })
 
 module.exports = {
