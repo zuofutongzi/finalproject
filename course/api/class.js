@@ -199,12 +199,41 @@ async function add(msg, done){
                             done(new Error('课程添加失败！'))
                         }
                         else{
+                            logger.info('(class-add):课程添加成功');
                             done({msg: '课程添加成功'})
                         }
                     })
                     break;
             }
         })
+    mysql.release();
+}
+
+// 开课编辑
+// var options = {
+//     classid: String,
+//     courseDescription: String, 
+//     courseObjectives: String, 
+//     courseOutline: String, 
+//     preknowledge: String, 
+//     referenceMaterial: String
+// }
+async function edit(msg, done){
+    var { classid, courseDescription, courseObjectives, courseOutline, preknowledge, referenceMaterial } = msg;
+    var updateSql = 'update class set courseDescription = ?, courseObjectives = ?, courseOutline = ?, preknowledge = ?, referenceMaterial = ? where classid = ?';
+    var update_params = [courseDescription, courseObjectives, courseOutline, preknowledge, referenceMaterial, classid];
+
+    const mysql = await connectHandler();
+    mysql.query(updateSql, update_params, (err, res) => {
+        if(err){
+            logger.error('(class-edit):' + err.message);
+            done(new Error('开课信息修改失败！'))
+        }
+        else{
+            logger.info('(class-edit):' + classid + '开课信息修改成功');
+            done(null, {msg: '开课信息修改成功！'})
+        }
+    })
     mysql.release();
 }
 
@@ -231,6 +260,7 @@ async function mydelete(msg, done){
             done(new Error('开课删除失败！'))
         }
         else{
+            logger.info('(class-delete):' + classid + '开课删除成功');
             done(null, {msg: '开课删除成功'})
         }
     })
@@ -431,6 +461,7 @@ router.post('/class/import', async (msg, done) => {
                             done.send({status: 500, msg: '开课导入失败！'})
                         }
                         else{
+                            logger.info('(class-import):开课导入成功');
                             done.send({msg: '开课导入成功'})
                         }
                     })
@@ -457,13 +488,15 @@ router.post('/class/import', async (msg, done) => {
 //     teacherid: String, 
 //     schoolYear: String, 
 //     schoolTerm: String, 
-//     isPage: Boolean, 
-//     page: int/null, 
-//     size: int/null
+//     filter: {
+//         isPage: Boolean, 
+//         page: int/null, 
+//         size: int/null
+//     }
 // }
 async function tlist(msg, done){
-    var { teacherid, schoolYear, schoolTerm, isPage } = msg;
-    var { page, size } = msg;
+    var { teacherid, schoolYear, schoolTerm } = msg;
+    var filter = JSON.parse(msg.filter);
     var { askerid } = msg;
     var res = {
         count: 0,
@@ -487,8 +520,8 @@ async function tlist(msg, done){
     var classList = await getClass();
 
     // 分页
-    if(isPage){
-        classList.slice((page-1)*size, page*size);
+    if(filter.isPage){
+        classList = classList.slice((filter.page-1)*filter.size, filter.page*filter.size);
     }
 
     // 获取教师信息
@@ -592,6 +625,7 @@ router.post('/class/img', async (msg, done) => {
                 done.send({status: 500, msg: '图片上传失败！'})
             }
             else{
+                logger.info('(class-img):图片上传成功！');
                 done.send({msg: "图片上传成功！"})
             }
         })
@@ -622,6 +656,7 @@ router.get('/class/img/:img', (msg, done) => {
 module.exports = {
     list: list,
     add: add,
+    edit: edit,
     delete: mydelete,
     tlist: tlist,
     router: router

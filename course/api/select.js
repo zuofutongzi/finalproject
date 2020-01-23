@@ -41,6 +41,7 @@ async function controllSet(msg, done){
             done(new Error('课程设置失败！'))
         }
         else{
+            logger.info('(course-controllSet):课程设置成功');
             done(null, {msg: '课程设置成功'})
         }
     })

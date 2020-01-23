@@ -699,9 +699,8 @@ export default {
             var schoolTime = [];
             var classid = [];
             this.multipleSelection.forEach(item => {
-                var time = item.schoolYear + '-' + item.schoolTerm;
-                if(schoolTime.indexOf(time) == -1){
-                    schoolTime.push(time);
+                if(schoolTime.indexOf(item.schoolTime) == -1){
+                    schoolTime.push(item.schoolTime);
                 }
                 classid.push(item.classid);
             })
@@ -714,7 +713,7 @@ export default {
                     type: "error"
                 });
             }
-            else if(start <= now && now <= end && schoolTime.indexOf(this.controllDetail.schoolTerm + '-' + this.controllDetail.schoolYear)){
+            else if(start <= now && now <= end && schoolTime.indexOf(this.controllDetail.schoolYear + '-' + this.controllDetail.schoolTerm) != -1){
                 this.$message({
                     message: '所选开课正在进行选课，不能删除',
                     type: "error"

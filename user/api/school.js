@@ -224,6 +224,7 @@ async function classAdd(msg, done){
                                                     });
                                                 }
                                             });
+                                            logger.info('(school-classAdd):班级添加成功！');
                                             done(null, {msg: '班级添加成功！'})
                                         }
                                     })
@@ -363,6 +364,7 @@ async function classDelete(msg, done){
                                                 });
                                             }
                                         });
+                                        logger.info('(school-classDelete):班级删除成功！');
                                         done(null, {msg: '班级删除成功！'})
                                     }
                                 })
@@ -390,6 +392,7 @@ async function classDelete(msg, done){
                                         });
                                     }
                                 });
+                                logger.info('(school-classDelete):班级删除成功！');
                                 done(null, {msg: '班级删除成功！'})
                             }
                         })
@@ -603,6 +606,7 @@ router.post('/school/class/import', async (msg, done) => {
                                         });
                                     }
                                 });
+                                logger.info('(school-classImport):班级导入成功！');
                                 done.send({msg: '班级导入成功！'})
                             }
                         })

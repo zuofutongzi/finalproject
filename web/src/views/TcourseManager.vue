@@ -1,10 +1,12 @@
 <template>
     <div class="tcourseManager">
-        <el-row class="tcourseManagerTop">
-            <el-cascader class="hidden-xs-only" v-model="filterSchoolYear" :options="schoolYearSelect" @change="handleSelectChange" :show-all-levels="true" placeholder="学年选择"></el-cascader>
+        <el-row class="tcourseManagerTop hidden-xs-only">
+            <el-button type="primary" plain @click="courseTable()">课表查询</el-button>
+            <el-cascader v-model="filterSchoolYear" :options="schoolYearSelect" @change="handleSelectChange" :show-all-levels="true" placeholder="学年选择"></el-cascader>
         </el-row>
-        <el-row class="tcourseManagerXsTop">
-            <el-cascader class="hidden-sm-and-up" v-model="filterSchoolYear" :options="schoolYearSelect" @change="handleSelectChange" :show-all-levels="true" placeholder="学年选择"></el-cascader>
+        <el-row class="tcourseManagerXsTop hidden-sm-and-up">
+            <el-button class="ct-bnt" type="primary" plain @click="courseTable()">课表查询</el-button>
+            <el-cascader v-model="filterSchoolYear" :options="schoolYearSelect" @change="handleSelectChange" :show-all-levels="true" placeholder="学年选择"></el-cascader>
         </el-row>
         <div v-for="item in classList" :key="'c' + item.classid" @click="editClass(item)">
             <class-card
@@ -55,6 +57,25 @@
                 </el-col>
             </el-row>
 		</el-dialog>
+
+        <!-- 课表 -->
+        <el-dialog
+            width="760px"
+			:visible.sync="courseTableVisible"
+			:fullscreen="isFullScreen"
+            :before-close="handleCourseTableClose"
+			title="课表"
+			center>
+            <el-row>
+                <course-table
+                    ref="tcourseTable"
+                    id="tcourseTable"
+                    :data="courseTableData"
+                    :showBackgroundColor="true">
+
+                </course-table>
+            </el-row>
+		</el-dialog>
     </div>
 </template>
 
@@ -62,10 +83,12 @@
 import $ from 'jquery'
 import Editor from 'mditor'
 import ClassCard from '../components/ClassCard'
+import CourseTable from '../components/CourseTable'
 
 export default {
     components: {
-        ClassCard
+        ClassCard,
+        CourseTable
     },
     props: {},
     data() {
@@ -81,32 +104,57 @@ export default {
             schoolYearSelect: [],
             filterSchoolYear: [],
             myclass: {},
+            courseTableData: [],
             activeName: 'edit',
             file: '',
-            currentPage: 1,
-            listPageSize: 10,
-            listTotal: 0,
             courseDescriptionMditor: null,
             courseObjectiveMditor: null,
             courseOutlineMditor: null,
             preknowledgeMditor: null,
             referenceMaterialMditor: null,
-            editDialogVisible: false
+            isFullScreen: false,
+            editDialogVisible: false,
+            courseTableVisible: false
         };
     },
     watch: {},
     computed: {},
     methods: {
+        courseTable(){
+            // 课表查询
+            this.courseTableData.splice(0, this.courseTableData.length);
+            this.courseTableVisible = true;
+            var courseid = [];
+            this.classList.forEach(item => {
+                var session = item.session.split(';');
+                courseid.push(item.course.courseid);
+                session.forEach(sitem => {
+                    if(!this.isEmpty(sitem)){
+                        var property = sitem.split('-')[0];
+                        var options = {
+                            session: sitem.split('-')[1]
+                        }
+                        var count = courseid.reduce((a, v) => v === item.course.courseid ? a + 1 : a + 0, 0);
+                        options[property] = '(' + item.course.courseid + ')' + item.course.name + '-' + count;
+                        this.courseTableData.push(options);
+                    }
+                })
+            });
+        },
+        handleCourseTableClose(done){
+            // 课表关闭前的操作
+            this.$refs.tcourseTable.cleanSelect();
+            done()
+        },
         handleSelectChange(){
             // 学年选择切换
-            this.currentPage = 1;
             var options = {
                 teacherid: this.user.userid,
                 schoolYear: this.filterSchoolYear[0],
                 schoolTerm: this.filterSchoolYear[1],
-                isPage: true,
-                page: this.currentPage,
-                size: this.listPageSize
+                filter: {
+                    isPage: false
+                }
             }
             this.$axios
                 .get('/api/class/teacher', {params: options})
@@ -206,18 +254,6 @@ export default {
 				this.referenceMaterialMditor.value = this.myclass.referenceMaterial;
 			}
         },
-        // submitUpload() {
-        //     // 图片导入
-        //     if(this.isEmpty(this.file)){
-        //         this.$message({
-        //             message: '文件不能为空',
-        //             type: "error"
-        //         });
-        //     }
-        //     else{
-        //         this.$refs.upload.submit();
-        //     }
-        // },
         handleChange(file,fileList){
 			// 文件添加
             if(!this.isEmpty(file) && file.status == 'ready'){
@@ -227,6 +263,9 @@ export default {
         },
         handleError(err, file, fileList){
             // 文件上传失败
+            this.$refs.upload.clearFiles();
+            this.file = '';
+            this.uploadOption.classid = '';
             this.$message({
                 message: err.message,
                 type: "error"
@@ -245,13 +284,33 @@ export default {
         submitEdit(){
             // 提交修改
             var options = {
+                classid: this.myclass.classid,
                 courseObjectives: this.courseObjectivesMditor.value,
                 courseDescription: this.courseDescriptionMditor.value,
                 courseOutline: this.courseOutlineMditor.value,
                 preknowledge: this.preknowledgeMditor.value,
                 referenceMaterial: this.referenceMaterialMditor.value
             }
-            console.log(options)
+            this.$axios
+                .put('/api/class', options)
+                .then(res => {
+                    if(res.status == 200){
+                        var data = res.data;
+                        this.$message({
+                            message: data.msg,
+                            type: "success"
+                        });
+                        if(!this.isEmpty(this.file)){
+                            this.$refs.upload.submit();
+                            this.editDialogVisible = false;
+                        }
+                        setTimeout(() => {
+                            // 重新获取开课信息
+                            this.currentPage = 1;
+                            this.handleSelectChange();
+                        }, 1000)
+                    }
+                })
         },
         isEmpty(value){
             return (
@@ -288,9 +347,9 @@ export default {
             teacherid: this.user.userid,
             schoolYear: this.filterSchoolYear[0],
             schoolTerm: this.filterSchoolYear[1],
-            isPage: true,
-            page: this.currentPage,
-            size: this.listPageSize
+            filter: {
+                isPage: false
+            }
         }
         this.$axios
             .get('/api/class/teacher', {params: options})
@@ -308,12 +367,24 @@ export default {
                     }
                 }
             })
+
+        var width = $(window).width();
+        if(width < 768){
+            this.isFullScreen = true;
+        }
     }
 };
 </script>
 
 <style scoped>
+    .tcourseManagerTop .el-cascader{
+        margin-left: 10px;
+    }
     .tcourseManagerXsTop .el-cascader{
+        margin-top: 10px;
+        width: 100%;
+    }
+    .tcourseManagerXsTop .ct-bnt{
         width: 100%;
     }
     .el-divider__text{

@@ -118,6 +118,7 @@ function add(msg, done){
                     done(new Error('课程添加失败！'))
                 }
                 else{
+                    logger.info('(course-add):课程添加成功');
                     done(null, {msg: '课程添加成功'})
                 }
             })
@@ -195,6 +196,7 @@ async function mydelete(msg, done){
                             done(new Error('课程删除失败！'))
                         }
                         else{
+                            logger.info('(course-delete):课程删除成功');
                             done(null, {msg: '课程删除成功'})
                         }
                     })
@@ -337,6 +339,7 @@ router.post('/course/import', async (msg, done) => {
                 done.send({status: 500, msg: '课程导入失败！'})
             }
             else{
+                logger.info('(course-import):课程导入成功');
                 done.send({msg: '课程导入成功'})
             }
         })
@@ -359,7 +362,7 @@ function scheduleList(msg, done){
     var { major, isAll } = msg;
     var options = [];
 
-    if(isAll){
+    if(isAll == 'true'){
         options = options.concat(['idx:courseSchedule:course:major:' + major, 'alpha', 'get', 'courseSchedule:' + major + ':*']);
     }
     else{
@@ -424,6 +427,7 @@ async function scheduleAdd(msg, done){
                     done(new Error('课程计划添加失败！'))
                 }
                 else{
+                    logger.info('(course-scheduleAdd):课程计划添加成功');
                     done(null, {msg: '课程计划添加成功'})
                 }
             })
@@ -461,6 +465,7 @@ async function scheduleDelete(msg, done){
             done(new Error('课程计划删除失败！'))
         }
         else{
+            logger.info('(course-scheduleDelete):课程计划删除成功');
             done(null, {msg: '课程计划删除成功'})
         }
     })
@@ -638,6 +643,7 @@ router.post('/course/schedule/import', async (msg, done) => {
                 done.send({status: 500, msg: '课程计划导入失败！'})
             }
             else{
+                logger.info('(course-import):课程计划导入成功');
                 done.send({msg: '课程计划导入成功'})
             }
         })

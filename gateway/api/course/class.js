@@ -54,6 +54,29 @@ router.post('/class', passport.authenticate('jwt', {session: false}), (req, done
     }
 })
 
+// @route  PUT /api/class
+// @desc   开课修改
+// @token  true
+// @return msg
+// @access teacher
+// @params {classid: String, courseDescription: String, courseObjectives: String, courseOutline: String, preknowledge: String, referenceMaterial: String}
+router.put('/class', passport.authenticate('jwt', {session: false}), (req, done) => {
+    if(req.user.identity !== 'teacher'){
+        done.status(500).send("没有权限！")
+    }
+    else{
+        courseSeneca.act('target:server-course,module:class,if:edit', req.body,
+        (err,res) => {
+            if(err){
+                done.status(500).send(err.data.payload.details.message)
+            }
+            else{
+                done.send(res)
+            }
+        })
+    }
+})
+
 // @route  DELETE /api/class
 // @desc   开课删除
 // @token  true
@@ -111,7 +134,7 @@ router.post('/class/import', passport.authenticate('jwt', {session: false}), upl
 // @token  true
 // @return classList
 // @access public
-// @params {teacherid: String, schoolYear: String, schoolTerm: String, isPage: Boolean, page: int/null, size: int/null}
+// @params {teacherid: String, schoolYear: String, schoolTerm: String, filter: Object}
 router.get('/class/teacher', passport.authenticate('jwt', {session: false}), (req, done) => {
     req.query.askerid = req.user.userid;
     courseSeneca.act('target:server-course,module:class,if:tlist', req.query,

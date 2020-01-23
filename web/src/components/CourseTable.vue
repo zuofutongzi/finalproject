@@ -13,7 +13,7 @@
                 align="center"
                 prop="session"
                 label=""
-                width="50">
+                width="55">
             </el-table-column>
             <el-table-column
                 v-for="item in columns"
@@ -42,7 +42,7 @@ export default{
             type: Array,
             required: false,
             default: function(){
-                return ['一', '二', '三', '四', '五', '六', '日'];
+                return ['一', '二', '三', '四', '五', '六', '七'];
             }
         },
         sidebar: {
@@ -123,30 +123,29 @@ export default{
             // 表格数据显示
             var temp = [];
 
-            for(var i in this.sidebar){
-                var option = {};
-                var index = this.data.findIndex(item => {
-                    return item.session == this.sidebar[i];
+            this.sidebar.forEach(item => {
+                temp.push({
+                    session: item,
+                    Mon: '',
+                    Tue: '',
+                    Wed: '',
+                    Thur: '',
+                    Fri: '',
+                    Sat: '',
+                    Sun: ''
+                })
+            })
+
+            this.data.forEach(item => {
+                var index = temp.findIndex(citem => {
+                    return item.session == citem.session;
                 })
                 if(index != -1){
-                    option.session = this.data[index].session;
-                    for(let j in this.weekday){
-                        if(!this.isEmpty(this.data[index][this.weekday[j]])){
-                            option[this.weekday[j]] = this.data[index][this.weekday[j]];
-                        }
-                        else{
-                            option[this.weekday[j]] = '';
-                        }
+                    for(let key in item){
+                        temp[index][key] = item[key];
                     }
                 }
-                else{
-                    option.session = this.sidebar[i];
-                    for(let j in this.weekday){
-                        option[this.weekday[j]] = '';
-                    }
-                }
-                temp.push(option)
-            }
+            })
 
             return temp;
         },

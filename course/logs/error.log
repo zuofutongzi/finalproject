@@ -1,7 +1,0 @@
-2020-01-22 14:17:04 [error]: (class-tlist):数据库访问失败，请稍后再试...
-2020-01-22 14:24:25 [error]: (class-tlist):ReferenceError: courseid is not defined
-2020-01-22 16:22:07 [error]: (class-tlist):ERR wrong number of arguments for 'mget' command
-2020-01-22 17:19:37 [error]: (class-img):ER_BAD_FIELD_ERROR: Unknown column 'classd' in 'where clause'
-2020-01-22 17:20:53 [error]: (class-img):ER_BAD_FIELD_ERROR: Unknown column 'classd' in 'where clause'
-2020-01-22 17:22:19 [error]: (class-img):ER_BAD_FIELD_ERROR: Unknown column 'classd' in 'where clause'
-2020-01-22 17:22:36 [error]: (class-img):ER_BAD_FIELD_ERROR: Unknown column 'classd' in 'where clause'
