@@ -8,3 +8,12 @@
 2020-01-23 14:38:36 [info]: (class-img):图片上传成功！
 2020-01-23 14:40:35 [info]: (class-edit):1671开课信息修改成功
 2020-01-23 14:40:35 [info]: (class-img):图片上传成功！
+2020-01-24 13:55:59 [error]: (class-tlist):server-user访问失败
+2020-01-24 13:56:08 [error]: (class-tlist):server-user访问失败
+2020-01-24 13:58:55 [error]: (class-tlist):server-user访问失败
+2020-01-24 14:28:56 [error]: (class-tlist):server-user访问失败
+2020-01-24 16:26:18 [error]: (class-slist):ERR One or more scores can't be converted into double
+2020-01-25 16:22:26 [info]: (course-slist):当前学期没有开课
+2020-01-25 18:22:49 [info]: (course-scheduleAdd):课程计划添加成功
+2020-01-25 18:22:55 [info]: (course-scheduleDelete):课程计划删除成功
+2020-01-25 18:23:21 [info]: (class-delete):1541开课删除成功

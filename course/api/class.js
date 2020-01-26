@@ -267,6 +267,89 @@ async function mydelete(msg, done){
     mysql.release();
 }
 
+// 根据课程号获取开课列表
+// var options = {
+//     courseid: String,
+//     schoolYear: String,
+//     schoolTerm: String
+// }
+function course(msg, done){
+    var { courseid, schoolYear, schoolTerm } = msg;
+
+    var teacherDetail = [];
+    var union = () => {
+        return new Promise((resolve, reject) => {
+            redis.sinter('idx:class:course:' + courseid, 'idx:class:schoolYear:' + schoolYear + ':schoolTerm:' + schoolTerm, (err, keys) => {
+                if(err){
+                    reject('数据库访问失败，请稍后再试...')
+                }
+                else{
+                    resolve(keys)
+                }
+            })
+        })
+    }
+    // 获取当前学期该课程的开课编号
+    union().then(result => {
+        return new Promise((resolve, reject) => {
+            result = result.map(item => {
+                return 'class:' + item;
+            })
+            if(result.length == 0){
+                reject('该课程没有开课')
+            }
+            redis.mget(result, (err, keys) => {
+                if(err){
+                    reject('数据库访问失败，请稍后再试...')
+                }
+                else{
+                    resolve(keys)
+                }
+            })
+        })
+    })
+    .then(result => {
+        return new Promise((resolve, reject) => {
+            var teacherid = [];
+            result = result.map(item => {
+                item = JSON.parse(item);
+                if(teacherid.indexOf(item.teacherid) == -1){
+                    teacherid.push(item.teacherid);
+                }
+                return item;
+            })
+            options = {
+                identity: 'teacher',
+                userid: teacherid
+            }
+            userSeneca.act('target:server-user,module:user,if:id2name', options,
+            (err, res) => {
+                if(err){
+                    reject('server-user访问失败')
+                }
+                else{
+                    teacherDetail = res;
+                    resolve(result)
+                }
+            })
+        })
+    })
+    .then(result => {
+        result = result.map(item => {
+            var index = teacherDetail.findIndex(citem => {
+                return item.teacherid == citem.userid;
+            })
+            item.teacher = teacherDetail[index];
+            return item;
+        })
+        done(null, result)
+    })
+    .catch(err => {
+        logger.info('(class-course):' + err);
+        done(null, err)
+    })
+}
+
 // 开课导入
 router.post('/class/import', async (msg, done) => {
     try{
@@ -658,6 +741,7 @@ module.exports = {
     add: add,
     edit: edit,
     delete: mydelete,
+    course: course,
     tlist: tlist,
     router: router
 }

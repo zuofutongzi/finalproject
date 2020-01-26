@@ -61,7 +61,7 @@ export default{
 					{
 						icon: 'el-icon-reading',
 						title: '选课',
-						path: 'selectClass'
+						path: 'courseSelect'
 					}
 				];
 				break;
@@ -76,11 +76,6 @@ export default{
 						icon: 'el-icon-user',
 						title: '个人信息',
 						path: 'teacherDetail'
-					},
-					{
-						icon: 'el-icon-collection',
-						title: '班级管理',
-						path: 'tclassManager'
 					},
 					{
 						icon: 'el-icon-notebook-2',

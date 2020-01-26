@@ -44,6 +44,7 @@ app.use('/', school.router)
 // user
 seneca.add('target:server-user,module:user,if:idList', user.idList)
 seneca.add('target:server-user,module:user,if:id2name', user.id2name)
+seneca.add('target:server-user,module:user,if:class2major', user.class2major)
 
 app.listen(8002)
 seneca.listen(8001)

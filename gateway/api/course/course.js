@@ -72,6 +72,25 @@ router.delete('/course', passport.authenticate('jwt', {session: false}), (req, d
     }
 })
 
+// @route  GET /api/course/student
+// @desc   学生获取课程列表
+// @token  true
+// @return courseList
+// @access public
+// @params {classid: String, schoolYear: String, schoolTerm: String, filter: Object}
+router.get('/course/student', passport.authenticate('jwt', {session: false}), (req, done) => {
+    // req.query请求对象的信息 req.user是token解析结果
+    courseSeneca.act('target:server-course,module:course,if:slist', req.query,
+    (err,res) => {
+        if(err){
+            done.status(500).send(err.data.payload.details.message)
+        }
+        else{
+            done.send(res)
+        }
+    })
+})
+
 // @route  POST /api/course/import
 // @desc   课程导入
 // @token  true

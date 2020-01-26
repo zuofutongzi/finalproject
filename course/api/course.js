@@ -209,6 +209,98 @@ async function mydelete(msg, done){
     mysql.release()
 }
 
+// 课程列表
+// var options = {
+//     classid: String,
+//     schoolYear: String,
+//     schoolTerm: String   
+//     filter: {
+//         isFirst: Boolean,
+//         isPage: Boolean,
+//         page: int/null,
+//         size: int/null
+//     }
+// }
+function slist(msg, done){
+    var { classid, schoolYear, schoolTerm } = msg;
+    var filter = JSON.parse(msg.filter);
+    var resData = {
+        count: 0,
+        data: []
+    }
+
+    var getMajor = () => {
+        return new Promise((resolve, reject) => {
+            userSeneca.act('target:server-user,module:user,if:class2major', { classid: classid },
+            (err, res) => {
+                if(err){
+                    reject('server-user访问失败')
+                }
+                else{
+                    resolve(res)
+                }
+            })
+        })
+    }
+    // 根据班级id获取学生专业
+    getMajor().then(result => {
+        // 学期开设课程和专业计划课程取交集
+        return new Promise((resolve, reject) => {
+            redis.sinter('idx:class:course:schoolYear:' + schoolYear + ':schoolTerm:' + schoolTerm, 'idx:courseSchedule:course:major:' + result.majorid, (err, keys) => {
+                if(err){
+                    reject('数据库访问失败，请稍后再试...')
+                }
+                else{
+                    resolve(keys)
+                }
+            })
+        })
+    })
+    .then(result => {
+        return new Promise((resolve, reject) => {
+            result.sort((a, b) => {
+                if(a > b){
+                    return 1;
+                }
+                else{
+                    return -1;
+                }
+            })
+            if(filter.isFirst){
+                resData.count = result.length;
+            }
+            if(filter.isPage){
+                result = result.slice((filter.page-1)*filter.size, filter.page*filter.size);
+            }
+            result = result.map(item => {
+                return 'course:' + item;
+            })
+            if(result.length == 0){
+                reject('当前学期没有开课')
+            }
+            redis.mget(result, (err, keys) => {
+                if(err){
+                    reject('数据库访问失败，请稍后再试...')
+                }
+                else{
+                    keys = keys.map(item => {
+                        return JSON.parse(item);
+                    })
+                    resolve(keys)
+                }
+            })
+        })
+    })
+    .then(result => {
+        resData.data = result;
+        done(null, resData)
+    })
+    .catch(err => {
+        logger.info('(course-slist):' + err);
+        done(null, err)
+    })
+}
+
 // 课程导入
 router.post('/course/import', async (msg, done) => {
     try{
@@ -659,6 +751,7 @@ module.exports = {
     list: list,
     add: add,
     delete: mydelete,
+    slist: slist,
     scheduleList: scheduleList,
     scheduleAdd: scheduleAdd,
     scheduleDelete: scheduleDelete,

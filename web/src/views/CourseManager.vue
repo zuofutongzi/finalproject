@@ -560,20 +560,23 @@ export default {
                     })
                 }
             })
-        var width = $(window).width();
-        if(width < 768){
-            this.addDialogFullScreen = true;
-            this.pageSmall = true;
-            var buttonParentWidth = $('.courseTop .el-button').parent().width() - 20;
-            var buttonWith = buttonParentWidth/3;
-            $('.courseTop .el-button').eq(0).css({'margin-left':'0','width':buttonWith.toString(),'padding':'12px 10px'});
-            $('.courseTop .el-button').eq(1).css({'margin-left':'10px','width':buttonWith.toString(),'padding':'12px 10px'});
-            $('.courseTop .el-button').eq(2).css({'margin-left':'10px','width':buttonWith.toString(),'padding':'12px 10px'});
-            var buttonTextWidth = $('.courseTop .el-button span').width();
-            if(buttonWith-20 < buttonTextWidth){
-                this.buttonSize = 'mini';
+        
+        setTimeout(() => {
+            var width = $(window).width();
+            if(width < 768){
+                this.addDialogFullScreen = true;
+                this.pageSmall = true;
+                var buttonParentWidth = $('.courseTop .el-button').parent().width() - 20;
+                var buttonWith = buttonParentWidth/3;
+                $('.courseTop .el-button').eq(0).css({'margin-left':'0','width':buttonWith.toString(),'padding':'12px 10px'});
+                $('.courseTop .el-button').eq(1).css({'margin-left':'10px','width':buttonWith.toString(),'padding':'12px 10px'});
+                $('.courseTop .el-button').eq(2).css({'margin-left':'10px','width':buttonWith.toString(),'padding':'12px 10px'});
+                var buttonTextWidth = $('.courseTop .el-button span').width();
+                if(buttonWith-20 < buttonTextWidth){
+                    this.buttonSize = 'mini';
+                }
             }
-        }
+        }, 0)
     }
 };
 </script>

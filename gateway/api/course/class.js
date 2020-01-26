@@ -100,6 +100,24 @@ router.delete('/class', passport.authenticate('jwt', {session: false}), (req, do
     }
 })
 
+// @route  GET /api/class/course
+// @desc   根据课程号获取开课列表
+// @token  true
+// @return classList
+// @access manager
+// @params {courseid: String, schoolYear: String, schoolTerm: String}
+router.get('/class/course', passport.authenticate('jwt', {session: false}), (req, done) => {
+    courseSeneca.act('target:server-course,module:class,if:course', req.query,
+    (err,res) => {
+        if(err){
+            done.status(500).send(err.data.payload.details.message)
+        }
+        else{
+            done.send(res)
+        }
+    })
+})
+
 // @route  POST /api/class/import
 // @desc   开课导入
 // @token  true
@@ -133,19 +151,24 @@ router.post('/class/import', passport.authenticate('jwt', {session: false}), upl
 // @desc   教师开课列表
 // @token  true
 // @return classList
-// @access public
+// @access teacher
 // @params {teacherid: String, schoolYear: String, schoolTerm: String, filter: Object}
 router.get('/class/teacher', passport.authenticate('jwt', {session: false}), (req, done) => {
-    req.query.askerid = req.user.userid;
-    courseSeneca.act('target:server-course,module:class,if:tlist', req.query,
-    (err,res) => {
-        if(err){
-            done.status(500).send(err.data.payload.details.message)
-        }
-        else{
-            done.send(res)
-        }
-    })
+    if(req.user.identity !== 'teacher'){
+        done.status(500).send("没有权限！")
+    }
+    else{
+        req.query.askerid = req.user.userid;
+        courseSeneca.act('target:server-course,module:class,if:tlist', req.query,
+        (err,res) => {
+            if(err){
+                done.status(500).send(err.data.payload.details.message)
+            }
+            else{
+                done.send(res)
+            }
+        })
+    }
 })
 
 // @route  POST /api/class/img

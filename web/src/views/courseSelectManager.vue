@@ -953,17 +953,19 @@ export default {
 
                         this.detailLineShow = true;
                         this.detailShow = true;
-                        var width = $(window).width();
-                        if(width < 768){
-                            $('.tag-courseid').css({'width':'80px', 'margin-bottom':'10px', 'overflow':'hidden', 'text-overflow':'ellipsis', 'white-space':'nowrap'});
-                            $('.tag-course').css({'width':'calc(100% - 90px)', 'margin-bottom':'10px', 'overflow':'hidden', 'text-overflow':'ellipsis', 'white-space':'nowrap'});
-                        }
-                        for(let i in $('.el-card__body')){
-                            $('.el-card__body').eq(i).children('.tag-course:last').css({'margin-bottom':'0'});
-                            if(width < 786){
-                                $('.el-card__body').eq(i).children('.tag-courseid:last').css({'margin-bottom':'0'});
+                        setTimeout(() => {
+                            var width = $(window).width();
+                            if(width < 768){
+                                $('.tag-courseid').css({'width':'80px', 'margin-bottom':'10px', 'overflow':'hidden', 'text-overflow':'ellipsis', 'white-space':'nowrap'});
+                                $('.tag-course').css({'width':'calc(100% - 90px)', 'margin-bottom':'10px', 'overflow':'hidden', 'text-overflow':'ellipsis', 'white-space':'nowrap'});
                             }
-                        }
+                            for(let i in $('.el-card__body')){
+                                $('.el-card__body').eq(i).children('.tag-course:last').css({'margin-bottom':'0'});
+                                if(width < 786){
+                                    $('.el-card__body').eq(i).children('.tag-courseid:last').css({'margin-bottom':'0'});
+                                }
+                            }
+                        },0)
                     }
                 }
             })
@@ -1049,30 +1051,32 @@ export default {
                 }
             })
 
-        var width = $(window).width();
-        if(width < 768){
-            this.addDialogFullScreen = true;
-            this.pageSmall = true;
-            var buttonParentWidth = $('.classSelectTop .el-button').parent().width() - 20;
-            var buttonWith = buttonParentWidth/3;
-            $('.classSelectTop .el-button').eq(0).css({'margin-left':'0','width':buttonWith.toString(),'padding':'12px 10px'});
-            $('.classSelectTop .el-button').eq(1).css({'margin-left':'10px','width':buttonWith.toString(),'padding':'12px 10px'});
-            $('.classSelectTop .el-button').eq(2).css({'margin-left':'10px','width':buttonWith.toString(),'padding':'12px 10px'});
-            $('.classSelectTop .el-button').eq(3).css({'margin-left':'0','margin-top':'10px','width':'100%','padding':'12px 10px'});
-            $('.classSelectTop .el-button').eq(4).css({'margin-left':'0','margin-top':'10px','width':'100%','padding':'12px 10px'});
-            var buttonTextWidth = $('.classSelectTop .el-button span').width();
-            if(buttonWith-20 < buttonTextWidth){
-                this.buttonSize = 'mini';
+        setTimeout(() => {
+            var width = $(window).width();
+            if(width < 768){
+                this.addDialogFullScreen = true;
+                this.pageSmall = true;
+                var buttonParentWidth = $('.classSelectTop .el-button').parent().width() - 20;
+                var buttonWith = buttonParentWidth/3;
+                $('.classSelectTop .el-button').eq(0).css({'margin-left':'0','width':buttonWith.toString(),'padding':'12px 10px'});
+                $('.classSelectTop .el-button').eq(1).css({'margin-left':'10px','width':buttonWith.toString(),'padding':'12px 10px'});
+                $('.classSelectTop .el-button').eq(2).css({'margin-left':'10px','width':buttonWith.toString(),'padding':'12px 10px'});
+                $('.classSelectTop .el-button').eq(3).css({'margin-left':'0','margin-top':'10px','width':'100%','padding':'12px 10px'});
+                $('.classSelectTop .el-button').eq(4).css({'margin-left':'0','margin-top':'10px','width':'100%','padding':'12px 10px'});
+                var buttonTextWidth = $('.classSelectTop .el-button span').width();
+                if(buttonWith-20 < buttonTextWidth){
+                    this.buttonSize = 'mini';
+                }
             }
-        }
-        else if(width > 991 && width - 186 - 80 - 98*5 - 50 < 221.4){
-            var elcascaderWidth = width - 186 - 80 - 98*5 - 50;
-            $('.classSelectTop .el-cascader').css({'width':elcascaderWidth.toString()});
-        }
-        else if(width - 80 - 98*5 - 50 < 221.4){
-            var elcascaderWidth = width - 80 - 98*5 - 50;
-            $('.classSelectTop .el-cascader').css({'width':elcascaderWidth.toString()});
-        }
+            else if(width > 991 && width - 186 - 80 - 98*5 - 50 < 221.4){
+                var elcascaderWidth = width - 186 - 80 - 98*5 - 50;
+                $('.classSelectTop .el-cascader').css({'width':elcascaderWidth.toString()});
+            }
+            else if(width - 80 - 98*5 - 50 < 221.4){
+                var elcascaderWidth = width - 80 - 98*5 - 50;
+                $('.classSelectTop .el-cascader').css({'width':elcascaderWidth.toString()});
+            }
+        }, 0)
     }
 };
 </script>

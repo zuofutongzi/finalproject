@@ -195,6 +195,10 @@ export default {
                                     if(width < 768){
                                         $('.tag-course').css({'width':'100%', 'margin-left':'0', 'overflow':'hidden', 'text-overflow':'ellipsis', 'white-space':'nowrap'});
                                     }
+                                    var length = $('.scheduleDetail .el-card__body').length;
+                                    for(let i = 0; i < length; i++){
+                                        $('.scheduleDetail .el-card__body').eq(i).children('.tag-course:last').css({'margin-bottom': '0'});
+                                    }
                                 },500)
                             })
                         },500)
@@ -435,19 +439,21 @@ export default {
                 }
             })
 
-        var width = $(window).width();
-        if(width < 768){
-            this.addDialogFullScreen = true;
-            var buttonParentWidth = $('.scheduleTop .el-button').parent().width() - 20;
-            var buttonWith = buttonParentWidth/3;
-            $('.scheduleTop .el-button').eq(0).css({'margin-left':'0','width':buttonWith.toString(),'padding':'12px 10px'});
-            $('.scheduleTop .el-button').eq(1).css({'margin-left':'10px','width':buttonWith.toString(),'padding':'12px 10px'});
-            $('.scheduleTop .el-button').eq(2).css({'margin-left':'10px','width':buttonWith.toString(),'padding':'12px 10px'});
-            var buttonTextWidth = $('.scheduleTop .el-button span').width();
-            if(buttonWith-20 < buttonTextWidth){
-                this.buttonSize = 'mini';
+        setTimeout(() => {
+            var width = $(window).width();
+            if(width < 768){
+                this.addDialogFullScreen = true;
+                var buttonParentWidth = $('.scheduleTop .el-button').parent().width() - 20;
+                var buttonWith = buttonParentWidth/3;
+                $('.scheduleTop .el-button').eq(0).css({'margin-left':'0','width':buttonWith.toString(),'padding':'12px 10px'});
+                $('.scheduleTop .el-button').eq(1).css({'margin-left':'10px','width':buttonWith.toString(),'padding':'12px 10px'});
+                $('.scheduleTop .el-button').eq(2).css({'margin-left':'10px','width':buttonWith.toString(),'padding':'12px 10px'});
+                var buttonTextWidth = $('.scheduleTop .el-button span').width();
+                if(buttonWith-20 < buttonTextWidth){
+                    this.buttonSize = 'mini';
+                }
             }
-        }
+        }, 0)
     }
 };
 </script>

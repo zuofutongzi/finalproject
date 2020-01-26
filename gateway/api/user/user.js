@@ -152,7 +152,8 @@ router.post('/user/:id', (req, done) => {
             var rule = {
                 userid: res.userid, 
                 identity: options.identity, 
-                name: res.name
+                name: res.name,
+                classid: res.classid
             }
             jwt.sign(rule, key.secretOrKey, {expiresIn: 3600}, (err, token) => {
                 if(err){

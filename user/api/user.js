@@ -896,6 +896,7 @@ function idList(msg, done){
         }
     })
 }
+
 // 用户id转姓名
 // var options = {
 //     identity: String,
@@ -926,6 +927,24 @@ function id2name(msg, done){
     })
 }
 
+// 学生专业获取
+// var options = {
+//     classid: String
+// }
+function class2major(msg, done){
+    var { classid } = msg;
+    redis.mget('class:' + classid, (err, res) => {
+        if(err){
+            logger.error('(user-class2major):' + err.message);
+            done(new Error('数据库访问失败，请稍后再试...'))
+        }
+        else{
+            res = JSON.parse(res);
+            done(null, {majorid: res.majorid})
+        }
+    })
+}
+
 module.exports = {
     list: list,
     register: register,
@@ -937,5 +956,6 @@ module.exports = {
     router: router,
 
     idList: idList,
-    id2name: id2name
+    id2name: id2name,
+    class2major: class2major
 }
