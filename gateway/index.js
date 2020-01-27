@@ -31,7 +31,9 @@ const school = require('./api/user/school')
 const course = require('./api/course/course')
 const type = require('./api/course/type')
 const myclass = require('./api/course/class')
-const select = require('./api/course/select')
+// select
+const selectControll = require('./api/select/select-controll')
+const select = require('./api/select/select')
 
 // 使用api
 // user
@@ -43,6 +45,8 @@ app.use('/api', school)
 app.use('/api', course)
 app.use('/api', type)
 app.use('/api', myclass)
+// select
+app.use('/api', selectControll)
 app.use('/api', select)
 
 const port = process.env.PORT || 5000;

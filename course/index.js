@@ -10,7 +10,6 @@ app.use(bodyParser.json({limit: '20mb'}));
 const course = require('./api/course')
 const type = require('./api/type')
 const myclass = require('./api/class')
-const select = require('./api/select')
 
 // course
 seneca.add('target:server-course,module:course,if:list', course.list)
@@ -33,10 +32,6 @@ seneca.add('target:server-course,module:class,if:delete', myclass.delete)
 seneca.add('target:server-course,module:class,if:course', myclass.course)
 seneca.add('target:server-course,module:class,if:tlist', myclass.tlist)
 app.use('/', myclass.router)
-
-// select
-seneca.add('target:server-course,module:select,if:controllDetail', select.controllDetail)
-seneca.add('target:server-course,module:select,if:controllSet', select.controllSet)
 
 app.listen(8004)
 seneca.listen(8003)

@@ -760,7 +760,7 @@ export default {
             // 选课设置
             // 选课情况获取
             this.$axios
-                .get('/api/select/controll', {headers: {'showLoading': false}})
+                .get('/api/select-controll', {headers: {'showLoading': false}})
                 .then(res => {
                     if(res.status == 200){
                         var data = res.data;
@@ -840,7 +840,7 @@ export default {
                                 }
                                 else{
                                     this.$axios
-                                        .post('/api/select/controll', this.controllForm)
+                                        .post('/api/select-controll', this.controllForm)
                                         .then(res => {
                                             if(res.status == 200){
                                                 var data = res.data;
@@ -1010,7 +1010,7 @@ export default {
 
         // 选课情况获取
         this.$axios
-            .get('/api/select/controll', {headers: {'showLoading': false}})
+            .get('/api/select-controll', {headers: {'showLoading': false}})
             .then(res => {
                 if(res.status == 200){
                     var data = res.data;

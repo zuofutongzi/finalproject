@@ -36,12 +36,14 @@
                         :on-error="handleError"
                         :on-change="handleChange"
                         :on-success="handleSuccess"
+                        :before-upload="beforeUpload"
                         :limit="1"
                         :auto-upload="false"
+                        :file-list="fileList"
                         list-type="picture">
                         <el-button slot="trigger" size="small" type="primary">选取文件</el-button>
-                        <!-- <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload">上传到服务器</el-button> -->
-                        <div slot="tip" class="el-upload__tip">只接收.xls/.xlsx文件，上传文件不超过1mb</div>
+                        <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload">上传到服务器</el-button>
+                        <div slot="tip" class="el-upload__tip">只接收.jpg/.png文件，上传文件不超过500kb</div>
                     </el-upload>
                     <el-divider content-position="left"><i class="el-icon-menu" style="margin-right: 10px; color: #409EFF;"></i>课程概述</el-divider>
                     <textarea name="courseDescription" id="courseDescription"></textarea>
@@ -107,6 +109,7 @@ export default {
             courseTableData: [],
             activeName: 'edit',
             file: '',
+            fileList: [],
             courseDescriptionMditor: null,
             courseObjectiveMditor: null,
             courseOutlineMditor: null,
@@ -177,12 +180,16 @@ export default {
         handleClose(done){
             // dialog关闭前的操作
             this.$refs.upload.clearFiles();
+            this.fileList.splice(0, this.fileList.length);
             done();
         },
         editClass(value){
             // 编辑开课信息
             this.myclass = value;
             this.editDialogVisible = true;
+            this.fileList.push({
+                url: 'http://127.0.0.1:5000/api/class/img/' + this.myclass.img
+            })
             // 课程概述
             if(this.isEmpty(this.courseDescriptionMditor)){
 				// 延迟，解决elementui组件中dialog的懒渲染问题
@@ -261,6 +268,17 @@ export default {
                 this.uploadOption.classid = this.myclass.classid;
             }
         },
+        beforeUpload(file){
+            // 文件上传前
+            const isLt500Kb = file.size / 1024 < 500;
+            if (!isLt500Kb) {
+                this.$message({
+                    message: '上传头像图片大小不能超过500KB!',
+                    type: "error"
+                });
+            }
+            return isLt500Kb;
+        },
         handleError(err, file, fileList){
             // 文件上传失败
             this.$refs.upload.clearFiles();
@@ -273,13 +291,22 @@ export default {
         },
         handleSuccess(response, file, fileList){
             // 文件上传成功
-            this.$refs.upload.clearFiles();
             this.file = '';
             this.uploadOption.classid = '';
             this.$message({
                 message: response.msg,
                 type: "success"
             });
+        },
+        submitUpload() {
+            // 文件上传服务器
+            if(!this.isEmpty(this.file)){
+                this.$refs.upload.submit();
+                setTimeout(() => {
+                    // 重新获取开课信息
+                    this.handleSelectChange();
+                }, 1000)
+            }
         },
         submitEdit(){
             // 提交修改
@@ -300,13 +327,9 @@ export default {
                             message: data.msg,
                             type: "success"
                         });
-                        if(!this.isEmpty(this.file)){
-                            this.$refs.upload.submit();
-                            this.editDialogVisible = false;
-                        }
+                        this.editDialogVisible = false;
                         setTimeout(() => {
                             // 重新获取开课信息
-                            this.currentPage = 1;
                             this.handleSelectChange();
                         }, 1000)
                     }

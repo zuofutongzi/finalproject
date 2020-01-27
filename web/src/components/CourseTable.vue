@@ -6,6 +6,7 @@
             :row-class-name="tableRowClassName"
             @cell-click="courseTableCellClick"
             :highlight-current-row="false"
+            :stripe="false"
             style="width: 100%">
             <el-table-column
                 fixed
@@ -13,7 +14,7 @@
                 align="center"
                 prop="session"
                 label=""
-                width="55">
+                :width="sidebarWidth">
             </el-table-column>
             <el-table-column
                 v-for="item in columns"
@@ -51,6 +52,14 @@ export default{
             required: false,
             default: function(){
                 return ['1','2','3','4','5','6','7','8','9','10','11','12'];
+            }
+        },
+        sidebarWidth: {
+            // 左边栏宽度
+            type: Number,
+            require: false,
+            default: function(){
+                return 55
             }
         },
         data: {

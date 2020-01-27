@@ -17,3 +17,31 @@
 2020-01-25 18:22:49 [info]: (course-scheduleAdd):课程计划添加成功
 2020-01-25 18:22:55 [info]: (course-scheduleDelete):课程计划删除成功
 2020-01-25 18:23:21 [info]: (class-delete):1541开课删除成功
+2020-01-27 14:00:19 [info]: (class-edit):1357开课信息修改成功
+2020-01-27 14:00:20 [info]: (class-img):图片上传成功！
+2020-01-27 14:23:35 [info]: (class-edit):1357开课信息修改成功
+2020-01-27 14:23:35 [info]: (class-img):图片上传成功！
+2020-01-27 14:25:05 [info]: (class-edit):1357开课信息修改成功
+2020-01-27 14:25:29 [info]: (class-edit):1357开课信息修改成功
+2020-01-27 14:26:30 [info]: (class-edit):1357开课信息修改成功
+2020-01-27 14:30:05 [info]: (class-edit):1357开课信息修改成功
+2020-01-27 14:40:07 [error]: (class-img):write EOF
+2020-01-27 14:43:44 [error]: (class-img):write EOF
+2020-01-27 14:45:07 [error]: (class-img):write EOF
+2020-01-27 14:45:29 [error]: (class-img):write EOF
+2020-01-27 14:47:43 [error]: (class-img):write EOF
+2020-01-27 14:48:00 [error]: (class-img):write EOF
+2020-01-27 14:48:37 [error]: (class-img):write EOF
+2020-01-27 14:54:29 [error]: (class-img):write EOF
+2020-01-27 14:57:48 [info]: (class-img):图片上传成功！
+2020-01-27 15:00:09 [info]: (class-img):图片上传成功！
+2020-01-27 15:00:45 [info]: (class-img):图片上传成功！
+2020-01-27 15:02:58 [info]: (class-img):图片上传成功！
+2020-01-27 15:04:20 [info]: (class-img):图片上传成功！
+2020-01-27 15:04:59 [info]: (class-img):图片上传成功！
+2020-01-27 15:13:06 [info]: (class-img):图片上传成功！
+2020-01-27 15:13:21 [info]: (class-img):图片上传成功！
+2020-01-27 15:14:09 [info]: (class-img):图片上传成功！
+2020-01-27 15:14:25 [info]: (class-img):图片上传成功！
+2020-01-27 15:14:39 [info]: (class-img):图片上传成功！
+2020-01-27 15:14:52 [info]: (class-img):图片上传成功！
