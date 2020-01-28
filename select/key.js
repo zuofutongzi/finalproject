@@ -8,7 +8,8 @@ const pool = mysql.createPool({
     port: '3307',
     user: 'root',
     password: '123456',
-    database: 'course'
+    database: 'course',
+    connectionLimit: 800
 })
 // 返回一个Promise链接
 const mysqlConnection = () => new Promise((resolve, reject) => {

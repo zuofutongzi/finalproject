@@ -319,18 +319,31 @@ export default {
         },
         selectClass(){
             // 选课
-            var options = {
-                studentid: this.user.userid,
-                classid: this.classDetail.classid,
-                teacherid: this.classDetail.teacherid
+            if(this.selectControll.isCapacityLimit == 1){
+                // 限容选课
             }
-            this.$axios
-                .post('/api/select', options)
-                .then(res => {
-                    if(res.status == 200){
-                        console.log(1)
-                    }
-                })
+            else{
+                // 不限容选课
+                var options = {
+                    stuclassid: this.user.classid,
+                    studentid: this.user.userid,
+                    classid: this.classDetail.classid,
+                    teacherid: this.classDetail.teacherid,
+                    courseid: this.classDetail.courseid,
+                    schoolYear: this.selectControll.schoolYear,
+                    schoolTerm: this.selectControll.schoolTerm
+                }
+                this.$axios
+                    .post('/api/select', options, {headers: {'showLoading': false}})
+                    .then(res => {
+                        if(res.status == 200){
+                            this.$message({
+                                message: '进入选课队列',
+                                type: "success"
+                            });
+                        }
+                    })
+                }
         },
         isEmpty(value){
             return (

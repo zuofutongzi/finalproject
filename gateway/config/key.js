@@ -1,6 +1,7 @@
 const userSeneca = require('seneca')()
 const courseSeneca = require('seneca')()
 const selectSeneca = require('seneca')()
+const mqselectSeneca = require('seneca')()
 
 // user服务
 const userServer = {
@@ -31,9 +32,15 @@ const selectServer = {
     //host: '192.168.99.100' // docker启动
     host: '127.0.0.1'
 }
+const mqselectServer = {
+    type: 'amqp',
+    pin: 'target:server-select',
+    url: 'amqp://guest:guest@192.168.99.100:5672'
+}
 //const selectServerRequest = 'http://192.168.99.100:8006' // docker启动
 const selectServerRequest = 'http://127.0.0.1:8006'
 selectSeneca.client(selectServer)
+mqselectSeneca.use('seneca-amqp-transport').client(mqselectServer)
 
 module.exports = {
     userServerRequest: userServerRequest,
@@ -42,5 +49,6 @@ module.exports = {
     courseSeneca: courseSeneca,
     selectServerRequest: selectServerRequest,
     selectSeneca: selectSeneca,
+    mqselectSeneca: mqselectSeneca,
     secretOrKey: 'secret'
 }

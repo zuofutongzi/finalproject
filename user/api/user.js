@@ -933,13 +933,17 @@ function id2name(msg, done){
 // }
 function class2major(msg, done){
     var { classid } = msg;
+
     redis.mget('class:' + classid, (err, res) => {
         if(err){
             logger.error('(user-class2major):' + err.message);
             done(new Error('数据库访问失败，请稍后再试...'))
         }
+        else if(res[0] == null){
+            done(new Error('班级不存在'))
+        }
         else{
-            res = JSON.parse(res);
+            res = JSON.parse(res)
             done(null, {majorid: res.majorid})
         }
     })

@@ -83,6 +83,7 @@ public class CanalClient {
 
     private static void redisInsert(String table,List<Column> columns) {
         JSONObject json = new JSONObject();
+        JSONObject classSelectJson = new JSONObject();
         String key = null;
         // course
         String ccollege = null;
@@ -104,6 +105,7 @@ public class CanalClient {
             json.put(column.getName(), column.getValue());
             if (column.getIsKey()) {
             	key = column.getValue();
+            	classSelectJson.put(column.getName(), column.getValue());
             }
             if(table.equals("course")) {
             	if(column.getName().equals("collegeid")) {
@@ -130,6 +132,7 @@ public class CanalClient {
             	}
             	else if(column.getName().equals("classid")) {
             		csclass = column.getValue();
+            		classSelectJson.put(column.getName(), column.getValue());
             	}
             	else if(column.getName().equals("csteacher")) {
             		csteacher = column.getValue();
@@ -168,7 +171,7 @@ public class CanalClient {
             	RedisUtil.sadd("idx:class:course:schoolYear:" + cschoolYear + ":schoolTerm:" + cschoolTerm, ccourse);
             }
             else if(table.equals("classSelect")) {
-            	RedisUtil.sadd("idx:classSelect:student:" + csstudent, key);
+            	RedisUtil.sadd("idx:classSelect:student:" + csstudent, classSelectJson.toString());
             	RedisUtil.sadd("idx:classSelect:class:" + csclass, key);
             	RedisUtil.sadd("idx:classSelect:teacher:" + csteacher, key);
             }
@@ -181,6 +184,7 @@ public class CanalClient {
     }
     
     private static void redisUpdatePre(String table,List<Column> columns) {
+    	JSONObject classSelectJson = new JSONObject();
     	String key = null;
     	// course
         String ccollege = null;
@@ -201,6 +205,7 @@ public class CanalClient {
     	for (Column column : columns) {
     		if (column.getIsKey()) {
             	key = column.getValue();
+            	classSelectJson.put(column.getName(), column.getValue());
             }
     		if(table.equals("course")) {
             	if(column.getName().equals("collegeid")) {
@@ -227,6 +232,7 @@ public class CanalClient {
             	}
             	else if(column.getName().equals("classid")) {
             		csclass = column.getValue();
+            		classSelectJson.put(column.getName(), column.getValue());
             	}
             	else if(column.getName().equals("csteacher")) {
             		csteacher = column.getValue();
@@ -258,7 +264,7 @@ public class CanalClient {
             	}
             }
             else if(table.equals("classSelect")) {
-            	RedisUtil.srem("idx:classSelect:student:" + csstudent, key);
+            	RedisUtil.srem("idx:classSelect:student:" + csstudent, classSelectJson.toString());
             	RedisUtil.srem("idx:classSelect:class:" + csclass, key);
             	RedisUtil.srem("idx:classSelect:teacher:" + csteacher, key);
             }
@@ -272,6 +278,7 @@ public class CanalClient {
 
     private static void redisUpdate(String table,List<Column> columns) {
         JSONObject json = new JSONObject();
+        JSONObject classSelectJson = new JSONObject();
         String key = null;
         // course
         String ccollege = null;
@@ -293,6 +300,7 @@ public class CanalClient {
             json.put(column.getName(), column.getValue());
             if (column.getIsKey()) {
             	key = column.getValue();
+            	classSelectJson.put(column.getName(), column.getValue());
             }
             if(table.equals("course")) {
             	if(column.getName().equals("collegeid")) {
@@ -319,6 +327,7 @@ public class CanalClient {
             	}
             	else if(column.getName().equals("classid")) {
             		csclass = column.getValue();
+            		classSelectJson.put(column.getName(), column.getValue());
             	}
             	else if(column.getName().equals("csteacher")) {
             		csteacher = column.getValue();
@@ -355,7 +364,7 @@ public class CanalClient {
             	RedisUtil.sadd("idx:class:course:schoolYear:" + cschoolYear + ":schoolTerm:" + cschoolTerm, ccourse);
             }
             else if(table.equals("classSelect")) {
-            	RedisUtil.sadd("idx:classSelect:student:" + csstudent, key);
+            	RedisUtil.sadd("idx:classSelect:student:" + csstudent, classSelectJson.toString());
             	RedisUtil.sadd("idx:classSelect:class:" + csclass, key);
             	RedisUtil.sadd("idx:classSelect:teacher:" + csteacher, key);
             }
@@ -369,6 +378,7 @@ public class CanalClient {
 
     private static void redisDelete(String table,List<Column> columns) {
         JSONObject json = new JSONObject();
+        JSONObject classSelectJson = new JSONObject();
         String key = null;
         // course
         String ccollege = null;
@@ -390,6 +400,7 @@ public class CanalClient {
             json.put(column.getName(), column.getValue());
             if (column.getIsKey()) {
             	key = column.getValue();
+            	classSelectJson.put(column.getName(), column.getValue());
             }
             if(table.equals("course")) {
             	if(column.getName().equals("collegeid")) {
@@ -416,6 +427,7 @@ public class CanalClient {
             	}
             	else if(column.getName().equals("classid")) {
             		csclass = column.getValue();
+            		classSelectJson.put(column.getName(), column.getValue());
             	}
             	else if(column.getName().equals("csteacher")) {
             		csteacher = column.getValue();
@@ -457,7 +469,7 @@ public class CanalClient {
             	}
             }
             else if(table.equals("classSelect")) {
-            	RedisUtil.srem("idx:classSelect:student:" + csstudent, key);
+            	RedisUtil.srem("idx:classSelect:student:" + csstudent, classSelectJson.toString());
             	RedisUtil.srem("idx:classSelect:class:" + csclass, key);
             	RedisUtil.srem("idx:classSelect:teacher:" + csteacher, key);
             }
