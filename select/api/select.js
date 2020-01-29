@@ -15,7 +15,81 @@ function list(msg, done){
     var { studentid } = msg;
     var { schoolYear, schoolTerm } = msg;
 
-    done(null, {a: 1})
+    var getClass = () => {
+        return new Promise((resolve, reject) => {
+            if(schoolYear){
+                redis.sort('idx:class:schoolYear:' + schoolYear + ':schoolTerm:' + schoolTerm, 'alpha', (err, keys) => {
+                    if(err){
+                        reject('数据库访问失败，请稍后再试...')
+                    }
+                    else{
+                        resolve(keys)
+                    }
+                })
+            }
+            else{
+                resolve([])
+            }
+        })
+    }
+    // 获取学期开课号
+    getClass().then(result => {
+        // 获取学生选课，判断学生该学期的选课
+        return new Promise((resolve, reject) => {
+            redis.smembers('idx:classSelect:student:' + studentid, (err, keys) => {
+                if(err){
+                    reject('数据库访问失败，请稍后再试...')
+                }
+                else{
+                    keys = keys.map(item => {
+                        return JSON.parse(item).classid
+                    })
+                    if(schoolYear){
+                        var classid = [];
+                        keys.forEach(item => {
+                            if(result.indexOf(item) != -1){
+                                classid.push(item);
+                            }
+                        })
+                        resolve(classid)
+                    }
+                    else{
+                        resolve(keys)
+                    }
+                }
+            })
+        })
+    })
+    .then(result => {
+        return new Promise((resolve, reject) => {
+            result = result.map(item => {
+                return 'class:' + item;
+            })
+            if(result.length != 0){
+                redis.mget(result, (err, keys) => {
+                    if(err){
+                        reject('数据库访问失败，请稍后再试...')
+                    }
+                    else{
+                        keys = keys.map(item => {
+                            return JSON.parse(item);
+                        })
+                        resolve(keys)
+                    }
+                })
+            }
+            else{
+                resolve([])
+            }
+        })
+    })
+    .then(result => {
+        done(null, result)
+    })
+    .catch(err => {
+        logger.error('(select-list):' + err);
+        done(new Error(err))
+    })
 }
 
 // 学生选课
@@ -53,6 +127,7 @@ function select(msg, done){
                     reject(studentid + '选课' + classid + '失败')
                 }
                 else if(res[0] == null){
+                    type = '通识选修课程';
                     resolve('通识选修课程')
                 }
                 else{
@@ -149,20 +224,51 @@ function select(msg, done){
         return new Promise(async (resolve, reject) => {
             var insertSql = 'insert into classSelect (studentid, classid, teacherid, type) values(?, ?, ?, ?)';
             var insert_params = [studentid, classid, teacherid, type];
+            var updateSql = 'update class set capacityReal = capacityReal + 1 where classid = ?';
+            var update_params = [classid];
 
             const mysql = await connectHandler();
-            mysql.query(insertSql, insert_params, (err, res) => {
+            mysql.beginTransaction(err => {
                 if(err){
                     reject(studentid + '选课' + classid + '失败')
                 }
                 else{
-                    resolve('success')
+                    mysql.query(insertSql, insert_params, (err, result) => {
+                        if(err){
+                            //回滚事务
+                            mysql.rollback(() => {
+                                reject(studentid + '选课' + classid + '失败')
+                            });
+                        }
+                        else{
+                            mysql.query(updateSql, update_params, (err, result) => {
+                                if(err){
+                                    //回滚事务
+                                    mysql.rollback(() => {
+                                        reject(studentid + '选课' + classid + '失败')
+                                    });
+                                }
+                                else{
+                                    //提交事务
+                                    mysql.commit(function(err) {
+                                        if(err){
+                                            mysql.rollback(() => {
+                                                reject(studentid + '选课' + classid + '失败')
+                                            });
+                                        }
+                                    });
+                                    resolve(studentid + '选课' + classid + '成功')
+                                }
+                            })
+                        }
+                    })
                 }
             })
             mysql.release()
         })
     })
     .then(result => {
+        logger.info('(select-select):' + result)
         done(null, {code: 200, msg: '选课成功'})
     })
     .catch(err => {
@@ -171,7 +277,66 @@ function select(msg, done){
     })
 }
 
+// 学生退课
+// var options = {
+//     studentid: String,
+//     classid: String
+// }
+async function mydelete(msg, done){
+    var { studentid, classid } = msg;
+
+    var deleteSql = 'delete from classSelect where studentid = ? and classid = ?';
+    var delete_params = [studentid, classid];
+
+    const mysql = await connectHandler();
+    mysql.beginTransaction(err => {
+        if(err){
+            logger.error('(select-delete):' + studentid + '退课' + classid + '失败')
+            done(null, {code: 500, msg: '退课失败'})
+        }
+        else{
+            mysql.query(deleteSql, delete_params, (err, result) => {
+                if(err){
+                    //回滚事务
+                    mysql.rollback(() => {
+                        logger.error('(select-delete):' + studentid + '退课' + classid + '失败')
+                        done(null, {code: 500, msg: '退课失败'})
+                    });
+                }
+                else{
+                    var updateSql = 'update class set capacityReal = capacityReal - ' + result.affectedRows + ' where classid = ?';
+                    var update_params = [classid];
+                    mysql.query(updateSql, update_params, (err, result) => {
+                        if(err){
+                            //回滚事务
+                            mysql.rollback(() => {
+                                logger.error('(select-delete):' + studentid + '退课' + classid + '失败')
+                                done(null, {code: 500, msg: '退课失败'})
+                            });
+                        }
+                        else{
+                            //提交事务
+                            mysql.commit(function(err) {
+                                if(err){
+                                    mysql.rollback(() => {
+                                        logger.error('(select-delete):' + studentid + '退课' + classid + '失败')
+                                        done(null, {code: 500, msg: '退课失败'})
+                                    });
+                                }
+                            });
+                            logger.info('(select-delete):' + studentid + '退课' + classid + '成功')
+                            done(null, {code: 500, msg: '退课成功'})
+                        }
+                    })
+                }
+            })
+        }
+    })
+    mysql.release()
+}
+
 module.exports = {
     list: list,
-    select: select
+    select: select,
+    mydelete: mydelete
 }

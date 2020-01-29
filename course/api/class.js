@@ -345,8 +345,8 @@ function course(msg, done){
         done(null, result)
     })
     .catch(err => {
-        logger.info('(class-course):' + err);
-        done(null, err)
+        logger.error('(class-course):' + err);
+        done(new Error(err))
     })
 }
 

@@ -18,6 +18,7 @@ seneca.add('target:server-select,module:controll,if:set', select_controll.set)
 // select
 seneca.add('target:server-select,module:select,if:list', select.list)
 mqseneca.add('target:server-select,module:select,if:select', select.select)
+mqseneca.add('target:server-select,module:select,if:delete', select.mydelete)
 
 // socket 没有经过网关
 app.listen(8006)

@@ -209,9 +209,39 @@ async function mydelete(msg, done){
     mysql.release()
 }
 
-// 课程列表
+// 根据课程id获取课程列表
 // var options = {
-//     classid: String,
+//     courseid: Array
+// }
+function id2list(msg, done){
+    var { courseid } = msg;
+
+    courseid = courseid.map(item => {
+        return 'course:' + item;
+    })
+    if(courseid.length != 0){
+        redis.mget(courseid, (err, keys) => {
+            if(err){
+                logger.error('(course-id2list):' + err.message);
+                done(new Error('数据库访问失败，请稍后再试...'))
+            }
+            else{
+                keys = keys.map(item => {
+                    return JSON.parse(item);
+                })
+                done(null, keys)
+            }
+        })
+    }
+    else{
+        done(null, [])
+    }
+}
+
+// 学生获取课程列表
+// var options = {
+//     classid: String/null, // 班级id
+//     majorid: String/null, // 班级和专业选填
 //     schoolYear: String,
 //     schoolTerm: String   
 //     filter: {
@@ -222,7 +252,7 @@ async function mydelete(msg, done){
 //     }
 // }
 function slist(msg, done){
-    var { classid, schoolYear, schoolTerm } = msg;
+    var { classid, majorid, schoolYear, schoolTerm } = msg;
     var filter = JSON.parse(msg.filter);
     var resData = {
         count: 0,
@@ -231,15 +261,20 @@ function slist(msg, done){
 
     var getMajor = () => {
         return new Promise((resolve, reject) => {
-            userSeneca.act('target:server-user,module:user,if:class2major', { classid: classid },
-            (err, res) => {
-                if(err){
-                    reject('server-user访问失败')
-                }
-                else{
-                    resolve(res)
-                }
-            })
+            if(classid){
+                userSeneca.act('target:server-user,module:user,if:class2major', { classid: classid },
+                (err, res) => {
+                    if(err){
+                        reject('server-user访问失败')
+                    }
+                    else{
+                        resolve(res)
+                    }
+                })
+            }
+            else{
+                resolve({majorid: majorid})
+            }
         })
     }
     // 根据班级id获取学生专业
@@ -296,8 +331,8 @@ function slist(msg, done){
         done(null, resData)
     })
     .catch(err => {
-        logger.info('(course-slist):' + err);
-        done(null, err)
+        logger.error('(course-slist):' + err);
+        done(new Error(err))
     })
 }
 
@@ -751,6 +786,7 @@ module.exports = {
     list: list,
     add: add,
     delete: mydelete,
+    id2list: id2list,
     slist: slist,
     scheduleList: scheduleList,
     scheduleAdd: scheduleAdd,

@@ -16,8 +16,15 @@ router.get('/select', passport.authenticate('jwt', {session: false}), (req, done
         done.status(500).send("没有权限！")
     }
     else{
-        mqselectSeneca.act('target:server-select,module:select,if:list', req.body)
-        done.send({msg: 'success'})
+        selectSeneca.act('target:server-select,module:select,if:list', req.query, 
+        (err, res) => {
+            if(err){
+                done.status(500).send(err.data.payload.details.message)
+            }
+            else{
+                done.send(res)
+            }
+        })
     }
 })
 
@@ -33,6 +40,22 @@ router.post('/select', passport.authenticate('jwt', {session: false}), (req, don
     }
     else{
         mqselectSeneca.act('target:server-select,module:select,if:select', req.body)
+        done.send({msg: 'success'})
+    }
+})
+
+// @route  DELETE /api/select
+// @desc   学生退课
+// @token  true
+// @return msg
+// @access student
+// @params {studentid: String, classid: String}
+router.delete('/select', passport.authenticate('jwt', {session: false}), (req, done) => {
+    if(req.user.identity !== 'student'){
+        done.status(500).send("没有权限！")
+    }
+    else{
+        mqselectSeneca.act('target:server-select,module:select,if:delete', req.body)
         done.send({msg: 'success'})
     }
 })

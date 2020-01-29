@@ -74,7 +74,6 @@
                     id="tcourseTable"
                     :data="courseTableData"
                     :showBackgroundColor="true">
-
                 </course-table>
             </el-row>
 		</el-dialog>

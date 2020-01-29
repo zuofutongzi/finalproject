@@ -90,7 +90,7 @@ export default{
             type: Array,
             required: false,
             default: function(){
-                return ['#a0cfff', '#b3e19d', '#f3d19e', '#fab6b6'];
+                return ['#a0cfff', '#b3e19d', '#f3d19e', '#fab6b6', '#c6e2ff', '#f0f9eb', '#fdf6ec', '#fef0f0'];
             }
         },
         selectChangeColor: {
