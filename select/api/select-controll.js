@@ -33,6 +33,9 @@ async function set(msg, done){
     var updateSql = 'update classControll set schoolYear = ?, schoolTerm = ?, selectStart = ?, selectEnd = ?, isCapacityLimit = ?, isDrop = ?, isDrawLots = ?';
     var update_params = [ schoolYear, schoolTerm, selectStart, selectEnd, isCapacityLimit, isDrop, 0];
 
+    // 清空等候队列
+    redis.del('select:waitingDQueue', 'select:waitingSQueue')
+
     const mysql = await connectHandler();
     mysql.query(updateSql, update_params, (err, res) => {
         if(err){

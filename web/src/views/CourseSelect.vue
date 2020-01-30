@@ -72,8 +72,10 @@
                                     </div>
                                 </el-row>
                                 <el-row>
-                                    <el-button v-show="selectBtnShow" @click="selectClass()" type="primary" plain style="width: 100px;">选 课</el-button>
-                                    <el-button v-show="!selectBtnShow" @click="deleteClass()" type="danger" plain style="width: 100px; margin-left: 0;">退 课</el-button>
+                                    <el-button v-show="selectBtnShow && !selectBtnShowDisable" @click="selectClass()" type="primary" plain style="width: 100px;">选 课</el-button>
+                                    <el-button v-show="!selectBtnShow && !selectBtnShowDisable" @click="deleteClass()" type="danger" plain style="width: 100px; margin-left: 0;">退 课</el-button>
+                                    <el-button v-show="selectBtnShow && selectBtnShowDisable" :disabled="selectBtnShowDisable" @click="selectClass()" type="primary" plain style="width: 100px; margin-left: 0;">选 课 中</el-button>
+                                    <el-button v-show="!selectBtnShow && selectBtnShowDisable" :disabled="selectBtnShowDisable" @click="deleteClass()" type="danger" plain style="width: 100px; margin-left: 0;">退 课 中</el-button>
                                     <span class="tail">已有{{ classDetail.capacityReal }}人选课，容量上限为{{ classDetail.capacityLimit }}</span>
                                 </el-row>
                             </el-col>
@@ -163,7 +165,7 @@
 			center>
             <el-row>
                 <el-card style="margin-bottom: 10px;">
-                    若选课后没有显示，可能是由于还在排队，请稍后重新查看
+                    在退课完成前同时间段不能选课
                 </el-card>
                 <course-table
                     ref="scourseTable"
@@ -195,6 +197,7 @@ export default {
             stuSelectSession: [],
             courseTableData: [],
             majorList: [],
+            selectWaiting: {},
             classDetail: {
                 course: {},
                 teacher: {}
@@ -210,7 +213,9 @@ export default {
             classDialogVisible: false,
             courseTableVisible: false,
             isFullScreen: false,
-            selectBtnShow: true
+            selectBtnShow: true,
+            selectBtnShowDisable: false,
+            interval: null
         };
     },
     watch: {},
@@ -291,6 +296,7 @@ export default {
         },
         courseTable(){
             // 课表查看
+            this.courseTableData = [];
             // 获取学生选课
             var options = {
                 studentid: this.user.userid,
@@ -303,8 +309,18 @@ export default {
                     if(res.status == 200){
                         var myclass = res.data;
                         var courseid = [];
+                        this.stuSelectClass = [];
+                        this.stuSelectSession = [];
                         myclass.forEach(item => {
                             courseid.push(item.courseid);
+
+                            this.stuSelectClass.push(item.classid);
+                            var session = item.session.split(';');
+                            session.forEach(citem => {
+                                if(!this.isEmpty(citem)){
+                                    this.stuSelectSession.push(citem);
+                                }
+                            })
                         })
                         this.$axios
                             .get('/api/course/id', {params: {courseid: courseid}})
@@ -328,8 +344,51 @@ export default {
                                                 this.courseTableData.push(options)
                                             }
                                         })
-                                        this.courseTableVisible = true;
                                     })
+                                    // 等待列表的也放入data
+                                    // 获取等待队列
+                                    this.$axios
+                                        .get('/api/select/waiting', {params: {studentid: this.user.userid}})
+                                        .then(res => {
+                                            if(res.status == 200){
+                                                var select = res.data.select;
+                                                var mydelete = res.data.delete;
+                                                this.selectWaiting = res.data;
+
+                                                select.forEach(item => {
+                                                    this.stuSelectClass.push(item.classid);
+                                                    var session = item.session.split(';');
+                                                    session.forEach(citem => {
+                                                        if(!this.isEmpty(citem)){
+                                                            this.stuSelectSession.push(citem);
+                                                            var options = {
+                                                                session: citem.split('-')[1]
+                                                            }
+                                                            var day = citem.split('-')[0];
+                                                            options[day] = '(' + item.courseid + ')' + item.courseName + '-选课中';
+                                                            this.courseTableData.push(options)
+                                                        }
+                                                    })
+                                                })
+                                                mydelete.forEach(item => {
+                                                    this.stuSelectClass.push(item.classid);
+                                                    var session = item.session.split(';');
+                                                    session.forEach(citem => {
+                                                        if(!this.isEmpty(citem)){
+                                                            this.stuSelectSession.push(citem);
+                                                            var index = this.courseTableData.findIndex(sitem => {
+                                                                return sitem.session == citem.split('-')[1] && sitem[citem.split('-')[0]] == '(' + item.courseid + ')' + item.courseName;
+                                                            })
+                                                            if(index != -1){
+                                                                this.courseTableData[index][citem.split('-')[0]] += '-退课中';
+                                                            }
+                                                        }
+                                                    })
+                                                })
+
+                                                this.courseTableVisible = true;
+                                            }
+                                        })
                                 }
                             })
                     }
@@ -344,6 +403,7 @@ export default {
                 })
             }
             else{
+                // 获取开课列表
                 var options = {
                     courseid: this.classList[index].courseid,
                     schoolYear: this.selectControll.schoolYear,
@@ -353,8 +413,8 @@ export default {
                     .get('/api/class/course', {headers: {'showLoading': false}, params: options})
                     .then(res => {
                         if(res.status == 200){
-                            var data = res.data;
-                            data.sort((a, b) => {
+                            var classList = res.data;
+                            classList.sort((a, b) => {
                                 if(a.teacherid > b.teacherid){
                                     return 1;
                                 }
@@ -362,15 +422,22 @@ export default {
                                     return -1;
                                 }
                             })
+
                             this.classList = this.classList.map((item, cindex) => {
                                 if(index == cindex){
-                                    item.children = data;
+                                    item.children = classList;
                                     item.children = item.children.map(citem => {
-                                        if(this.stuSelectClass.indexOf(citem.classid) != -1){
+                                        if(this.stuSelectClass.indexOf(citem.classid) != -1 ||
+                                            this.selectWaiting.select.findIndex(sitem => {
+                                                return sitem.classid == citem.classid;
+                                            }) != -1 ||
+                                            this.selectWaiting.delete.findIndex(sitem => {
+                                                return sitem.classid == citem.classid;
+                                            }) != -1){
                                             citem.color = item.color;
                                         }
                                         else{
-                                            citem.color = 'white'
+                                            citem.color = 'white';
                                         }
                                         return citem;
                                     })
@@ -423,11 +490,25 @@ export default {
                 }
             })
 
-            if(this.stuSelectClass.indexOf(this.classDetail.classid) != -1){
-                this.selectBtnShow = false;
+            if(this.stuSelectClass.indexOf(this.classDetail.classid) == -1){
+                this.selectBtnShow = true;
             }
             else{
+                this.selectBtnShow = false;
+            }
+            this.selectBtnShowDisable = false;
+
+            if(this.selectWaiting.select.findIndex(item => {
+                return item.classid == this.classDetail.classid;
+            }) != -1){
                 this.selectBtnShow = true;
+                this.selectBtnShowDisable = true;
+            }
+            if(this.selectWaiting.delete.findIndex(item => {
+                return item.classid == this.classDetail.classid;
+            }) != -1){
+                this.selectBtnShow = false;
+                this.selectBtnShowDisable = true;
             }
 
             this.classDialogVisible = true;
@@ -463,6 +544,45 @@ export default {
             }
             else if(this.selectControll.isCapacityLimit == 1){
                 // 限容选课
+                var options = {
+                    stuclassid: this.user.classid,
+                    studentid: this.user.userid,
+                    classid: this.classDetail.classid,
+                    teacherid: this.classDetail.teacherid,
+                    courseid: this.classDetail.courseid,
+                    schoolYear: this.selectControll.schoolYear,
+                    schoolTerm: this.selectControll.schoolTerm
+                }
+                this.$axios
+                    .post('/api/select/limit', options, {headers: {'showLoading': false}})
+                    .then(res => {
+                        if(res.status == 200){
+                            this.$message({
+                                message: res.data.msg,
+                                type: "success"
+                            });
+                            this.selectBtnShow = false;
+                            this.selectBtnShowDisable = false;
+                            this.stuSelectClass.push(this.classDetail.classid);
+                            var session = this.classDetail.session.split(';');
+                            session.forEach(item => {
+                                if(!this.isEmpty(item)){
+                                    this.stuSelectSession.push(item);
+                                }
+                            })
+                            this.classList = this.classList.map(item => {
+                                if(item.courseid == this.classDetail.courseid){
+                                    item.children = item.children.map(citem => {
+                                        if(citem.classid == this.classDetail.classid){
+                                            citem.color = item.color;
+                                        }
+                                        return citem;
+                                    })
+                                }
+                                return item;
+                            })
+                        }
+                    })
             }
             else{
                 // 不限容选课
@@ -480,11 +600,18 @@ export default {
                     .then(res => {
                         if(res.status == 200){
                             this.$message({
-                                message: '进入选课队列，请勿重复选课',
+                                message: res.data.msg,
                                 type: "success"
                             });
-                            this.selectBtnShow = false;
-                            this.stuSelectClass.push(this.classDetail.classid);
+                            this.selectBtnShow = true;
+                            this.selectBtnShowDisable = true;
+                            this.selectWaiting.select.push({
+                                classid: this.classDetail.classid,
+                                courseName: this.classDetail.course.name,
+                                courseid: this.classDetail.courseid,
+                                session: this.classDetail.session,
+                                studentid: this.user.userid
+                            })
                             var session = this.classDetail.session.split(';');
                             session.forEach(item => {
                                 if(!this.isEmpty(item)){
@@ -510,37 +637,84 @@ export default {
             // 退课
             var options = {
                 studentid: this.user.userid,
-                classid: this.classDetail.classid
+                classid: this.classDetail.classid,
+                courseid: this.classDetail.courseid
             }
             this.$axios
-                .delete('/api/select', {data: options})
+                .delete('/api/select', {headers: {'showLoading': false}, data: options})
                 .then(res => {
                     if(res.status == 200){
                         this.$message({
-                            message: '进入退课队列，请勿重复退课',
+                            message: res.data.msg,
                             type: "success"
                         });
-                        this.selectBtnShow = true;
+                        this.selectBtnShow = false;
+                        this.selectBtnShowDisable = true;
+                        this.selectWaiting.delete.push({
+                            classid: this.classDetail.classid,
+                            courseName: this.classDetail.course.name,
+                            courseid: this.classDetail.courseid,
+                            session: this.classDetail.session,
+                            studentid: this.user.userid
+                        })
                         var index = this.stuSelectClass.indexOf(this.classDetail.classid);
-                        this.stuSelectClass.splice(index, 1);
-                        var session = this.classDetail.session.split(';');
-                        session.forEach(item => {
-                            var index = this.stuSelectSession.indexOf(item);
-                            if(index != -1){
-                                this.stuSelectSession.splice(index, 1);
-                            }
+                        if(index != -1){
+                            this.stuSelectClass.splice(index, 1);
+                        }
+                    }
+                })
+        },
+        getStuSelect(){
+            // 获取学生选课
+            var options = {
+                studentid: this.user.userid,
+                schoolYear: this.selectControll.schoolYear,
+                schoolTerm: this.selectControll.schoolTerm
+            }
+            this.$axios
+                .get('/api/select', {headers: {'showLoading': false}, params: options})
+                .then(res => {
+                    if(res.status == 200){
+                        this.stuSelectClass = [];
+                        this.stuSelectSession = [];
+                        res.data.forEach(item => {
+                            this.stuSelectClass.push(item.classid);
+                            var session = item.session.split(';');
+                            session.forEach(citem => {
+                                if(!this.isEmpty(citem)){
+                                    this.stuSelectSession.push(citem);
+                                }
+                            })
                         })
-                        this.classList = this.classList.map(item => {
-                            if(item.courseid == this.classDetail.courseid){
-                                item.children = item.children.map(citem => {
-                                    if(citem.classid == this.classDetail.classid){
-                                        citem.color = 'white';
-                                    }
-                                    return citem;
-                                })
-                            }
-                            return item;
-                        })
+                        // 获取等待队列
+                        this.$axios
+                            .get('/api/select/waiting', {headers: {'showLoading': false}, params: {studentid: this.user.userid}})
+                            .then(res => {
+                                if(res.status == 200){
+                                    var select = res.data.select;
+                                    var mydelete = res.data.delete;
+                                    this.selectWaiting = res.data;
+
+                                    select.forEach(item => {
+                                        this.stuSelectClass.push(item.classid);
+                                        var session = item.session.split(';');
+                                        session.forEach(citem => {
+                                            if(!this.isEmpty(citem)){
+                                                this.stuSelectSession.push(citem);
+                                            }
+                                        })
+                                    })
+                                    mydelete.forEach(item => {
+                                        this.stuSelectClass.push(item.classid);
+                                        var session = item.session.split(';');
+                                        session.forEach(citem => {
+                                            if(!this.isEmpty(citem)){
+                                                this.stuSelectSession.push(citem);
+                                            }
+                                        })
+                                    })
+                                }
+                            })
                     }
                 })
         },
@@ -568,53 +742,33 @@ export default {
                     var end = new Date(data.selectEnd);
                     var now = new Date();
                     if(start <= now && now <= end){
-                        // 获取学生选课
+                        this.getStuSelect();
+                        // 获取开课列表
                         var options = {
-                            studentid: this.user.userid,
+                            classid: this.user.classid,
                             schoolYear: data.schoolYear,
                             schoolTerm: data.schoolTerm,
+                            filter: {
+                                isFirst: true,
+                                isPage: true,
+                                page: this.currentPage,
+                                size: this.listPageSize
+                            }
                         }
                         this.$axios
-                            .get('/api/select', {params: options})
+                            .get('/api/course/student', {params: options})
                             .then(res => {
                                 if(res.status == 200){
-                                    res.data.forEach(item => {
-                                        this.stuSelectClass.push(item.classid);
-                                        var session = item.session.split(';');
-                                        session.forEach(citem => {
-                                            if(!this.isEmpty(citem)){
-                                                this.stuSelectSession.push(citem);
-                                            }
-                                        })
+                                    this.classList = res.data.data;
+                                    this.listTotal = res.data.count;
+                                    this.classList = this.classList.map((item, index) => {
+                                        item.type = this.type[index % 4];
+                                        item.color = this.color[index % 4];
+                                        item.show = false;
+                                        item.children = [];
+                                        return item;
                                     })
                                 }
-                                // 获取开课列表
-                                var options = {
-                                    classid: this.user.classid,
-                                    schoolYear: data.schoolYear,
-                                    schoolTerm: data.schoolTerm,
-                                    filter: {
-                                        isFirst: true,
-                                        isPage: true,
-                                        page: this.currentPage,
-                                        size: this.listPageSize
-                                    }
-                                }
-                                this.$axios
-                                    .get('/api/course/student', {params: options})
-                                    .then(res => {
-                                        if(res.status == 200){
-                                            this.classList = res.data.data;
-                                            this.listTotal = res.data.count;
-                                            this.classList = this.classList.map((item, index) => {
-                                                item.type = this.type[index % 4];
-                                                item.color = this.color[index % 4];
-                                                item.show = false;
-                                                item.children = [];
-                                                return item;
-                                            })
-                                        }
-                                    })
                             })
                     }
                     else{
@@ -661,11 +815,23 @@ export default {
                 }
             })
 
+        // 每分钟获取一次学生选课信息
+        this.interval = setInterval(() => {
+            this.getStuSelect();
+        }, 60*1000)
+
         var width = $(window).width();
         if(width < 768){
             this.pageSmall = true;
             this.isFullScreen = true;
         }
+    },
+    beforeRouteLeave (to, from, next) {
+        clearInterval(this.interval)
+        next()
+    },
+    beforeDestroy() {
+        clearInterval(this.interval)
     }
 };
 </script>

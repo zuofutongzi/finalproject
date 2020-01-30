@@ -251,7 +251,7 @@ async function mydelete(msg, done){
     deleteSql = deleteSql.slice(0, deleteSql.length - 1);
     deleteSql += ')';
 
-    // 开课取消连同学生的选课一起删除
+    // 开课删除连同学生的选课一起删除
 
     const mysql = await connectHandler();
     mysql.query(deleteSql, classid, (err, result) => {

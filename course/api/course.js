@@ -216,10 +216,10 @@ async function mydelete(msg, done){
 function id2list(msg, done){
     var { courseid } = msg;
 
-    courseid = courseid.map(item => {
-        return 'course:' + item;
-    })
-    if(courseid.length != 0){
+    if(courseid){
+        courseid = courseid.map(item => {
+            return 'course:' + item;
+        })
         redis.mget(courseid, (err, keys) => {
             if(err){
                 logger.error('(course-id2list):' + err.message);
