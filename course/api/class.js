@@ -243,28 +243,142 @@ async function edit(msg, done){
 // }
 async function mydelete(msg, done){
     var { classid } = msg;
-    var deleteSql = 'delete from class where classid in (';
+    var cdeleteSql = 'delete from class where classid in (';
+    var csdeleteSql = 'delete from classSelect where classid in (';
 
     classid.forEach(item => {
-        deleteSql += '?,';
+        cdeleteSql += '?,';
+        csdeleteSql += '?,';
     })
-    deleteSql = deleteSql.slice(0, deleteSql.length - 1);
-    deleteSql += ')';
+    cdeleteSql = cdeleteSql.slice(0, cdeleteSql.length - 1);
+    cdeleteSql += ')';
+    csdeleteSql = csdeleteSql.slice(0, csdeleteSql.length - 1);
+    csdeleteSql += ')';
 
     // 开课删除连同学生的选课一起删除
-
     const mysql = await connectHandler();
-    mysql.query(deleteSql, classid, (err, result) => {
+    mysql.beginTransaction(err => {
         if(err){
             logger.error('(class-delete):' + err.message);
             done(new Error('开课删除失败！'))
         }
         else{
-            logger.info('(class-delete):' + classid + '开课删除成功');
-            done(null, {msg: '开课删除成功'})
+            mysql.query(csdeleteSql, classid, (err, result) => {
+                if(err){
+                    //回滚事务
+                    mysql.rollback(() => {
+                        logger.error('(class-delete):' + err.message);
+                        done(new Error('开课删除失败！'))
+                    });
+                }
+                else{
+                    mysql.query(cdeleteSql, classid, (err, result) => {
+                        if(err){
+                            //回滚事务
+                            mysql.rollback(() => {
+                                logger.error('(class-delete):' + err.message);
+                                done(new Error('开课删除失败！'))
+                            });
+                        }
+                        else{
+                            //提交事务
+                            mysql.commit(function(err) {
+                                if(err){
+                                    mysql.rollback(() => {
+                                        logger.error('(class-delete):' + err.message);
+                                        done(new Error('开课删除失败！'))
+                                    });
+                                }
+                            });
+                            logger.info('(class-delete):' + classid + '开课删除成功');
+                            done(null, {msg: '开课删除成功'})
+                        }
+                    })
+                }
+            })
         }
     })
-    mysql.release();
+    mysql.release()
+
+    // const mysql = await connectHandler();
+    // mysql.query(deleteSql, classid, (err, result) => {
+    //     if(err){
+    //         logger.error('(class-delete):' + err.message);
+    //         done(new Error('开课删除失败！'))
+    //     }
+    //     else{
+    //         logger.info('(class-delete):' + classid + '开课删除成功');
+    //         done(null, {msg: '开课删除成功'})
+    //     }
+    // })
+    // mysql.release();
+}
+
+// 根据开课号获取开课信息
+// var options = {
+//     classid: String
+// }
+function id2detail(msg, done){
+    var { classid, askerid } = msg;
+
+    var getClass = () => {
+        return new Promise((resolve, reject) => {
+            if(classid){
+                redis.mget('class:' + classid, (err, res) => {
+                    if(err){
+                        reject('数据库访问失败，请稍后再试...')
+                    }
+                    else{
+                        res = JSON.parse(res);
+                        resolve(res)
+                    }
+                })
+            }
+            else{
+                reject('classid不能为空')
+            }
+        })
+    }
+    getClass().then(result => {
+        return new Promise((resolve, reject) => {
+            var options = {
+                askerid: askerid,
+                userid: result.teacherid,
+                identity: 'teacher'
+            }
+            userSeneca.act('target:server-user,module:user,if:detail', options,
+            (err, res) => {
+                if(err){
+                    reject('server-user访问失败')
+                }
+                else{
+                    result.teacher = res;
+                    resolve(result)
+                }
+            })
+        })
+    })
+    .then(result => {
+        return new Promise((resolve, reject) => {
+            redis.mget('course:' + result.courseid, (err, res) => {
+                if(err){
+                    reject('数据库访问失败，请稍后再试...')
+                }
+                else{
+                    res = JSON.parse(res);
+                    result.course = res;
+                    resolve(result)
+                }
+            })
+        })
+    })
+    .then(result => {
+        done(null, result)
+    })
+    .catch(err => {
+        logger.error('(class-id2detail):' + err);
+        done(new Error(err))
+    })
 }
 
 // 根据课程号获取开课列表
@@ -741,6 +855,7 @@ module.exports = {
     add: add,
     edit: edit,
     delete: mydelete,
+    id2detail: id2detail,
     course: course,
     tlist: tlist,
     router: router

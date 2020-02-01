@@ -220,24 +220,6 @@ function select(msg, done){
         })
     })
     .then(result => {
-        // 将选课从等候队列删除
-        return new Promise((resolve, reject) => {
-            var options = {
-                studentid: studentid,
-                classid: classid,
-                courseid: courseid
-            }
-            redis.srem('select:waitingSQueue', JSON.stringify(options), (err, res) => {
-                if(err){
-                    reject(studentid + '选课' + classid + '失败，停留在选课等候队列')
-                }
-                else{
-                    resolve('success')
-                }
-            })
-        })
-    })
-    .then(result => {
         // 插入数据库
         return new Promise(async (resolve, reject) => {
             var insertSql = 'insert into classSelect (studentid, classid, teacherid, type) values(?, ?, ?, ?)';
@@ -293,6 +275,15 @@ function select(msg, done){
         logger.error('(select-select):' + err)
         done(null, {code: 500, msg: '选课失败'})
     })
+    .finally(() => {
+        // 将选课从等候队列删除
+        var options = {
+            studentid: studentid,
+            classid: classid,
+            courseid: courseid
+        }
+        redis.srem('select:waitingSQueue', JSON.stringify(options))
+    })
 }
 
 // 学生退课
@@ -307,24 +298,7 @@ async function mydelete(msg, done){
     var deleteSql = 'delete from classSelect where studentid = ? and classid = ?';
     var delete_params = [studentid, classid];
 
-    var deleteWaiting = () => {
-        return new Promise((resolve, reject) => {
-            var options = {
-                studentid: studentid,
-                classid: classid,
-                courseid: courseid
-            }
-            redis.srem('select:waitingDQueue', JSON.stringify(options), (err, res) => {
-                if(err){
-                    reject(studentid + '退课' + classid + '失败，停留在退课等候队列')
-                }
-                else{
-                    resolve('success')
-                }
-            })
-        })
-    }
-    deleteWaiting().then(result => {
+    var deleteFromMysql = () => {
         return new Promise(async (resolve, reject) => {
             const mysql = await connectHandler();
             mysql.beginTransaction(err => {
@@ -367,14 +341,22 @@ async function mydelete(msg, done){
             })
             mysql.release()
         })
-    })
-    .then(result => {
+    }
+    deleteFromMysql().then(result => {
         logger.info('(select-delete):' + result)
         done(null, {code: 200, msg: '退课成功'})
     })
     .catch(err => {
         logger.error('(select-delete):' + err)
         done(null, {code: 500, msg: '退课失败'})
+    })
+    .finally(() => {
+        var options = {
+            studentid: studentid,
+            classid: classid,
+            courseid: courseid
+        }
+        redis.srem('select:waitingDQueue', JSON.stringify(options))
     })
 }
 

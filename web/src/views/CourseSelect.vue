@@ -1,12 +1,12 @@
 <template>
     <div class="courseSelect">
         <el-row class="courseSelectTop hidden-xs-only">
-            <el-button type="primary" plain @click="courseTable()">课表查看</el-button>
-            <el-cascader v-model="filterMajor" :options="majorList" @change="handleSelectChange" :show-all-levels="false" clearable placeholder="非计划内选课"></el-cascader>
+            <el-button type="primary" plain :disabled="topDisable" @click="courseTable()">课表查看</el-button>
+            <el-cascader v-model="filterMajor" :options="majorList" :disabled="topDisable" @change="handleSelectChange" :show-all-levels="false" clearable placeholder="非计划内选课"></el-cascader>
         </el-row>
         <el-row class="courseSelectXsTop hidden-sm-and-up">
-            <el-button type="primary" plain @click="courseTable()">课表查看</el-button>
-            <el-cascader v-model="filterMajor" :options="majorList" @change="handleSelectChange" :show-all-levels="false" clearable placeholder="非计划内选课"></el-cascader>
+            <el-button type="primary" plain :disabled="topDisable" @click="courseTable()">课表查看</el-button>
+            <el-cascader v-model="filterMajor" :options="majorList" :disabled="topDisable" @change="handleSelectChange" :show-all-levels="false" clearable placeholder="非计划内选课"></el-cascader>
         </el-row>
         <el-timeline style="margin-top: 30px;">
             <template v-for="(item, index) in classList">
@@ -73,7 +73,7 @@
                                 </el-row>
                                 <el-row>
                                     <el-button v-show="selectBtnShow && !selectBtnShowDisable" @click="selectClass()" type="primary" plain style="width: 100px;">选 课</el-button>
-                                    <el-button v-show="!selectBtnShow && !selectBtnShowDisable" @click="deleteClass()" type="danger" plain style="width: 100px; margin-left: 0;">退 课</el-button>
+                                    <el-button v-show="!selectBtnShow && !selectBtnShowDisable" :disabled="deleteBtnDisable" @click="deleteClass()" type="danger" plain style="width: 100px; margin-left: 0;">退 课</el-button>
                                     <el-button v-show="selectBtnShow && selectBtnShowDisable" :disabled="selectBtnShowDisable" @click="selectClass()" type="primary" plain style="width: 100px; margin-left: 0;">选 课 中</el-button>
                                     <el-button v-show="!selectBtnShow && selectBtnShowDisable" :disabled="selectBtnShowDisable" @click="deleteClass()" type="danger" plain style="width: 100px; margin-left: 0;">退 课 中</el-button>
                                     <span class="tail">已有{{ classDetail.capacityReal }}人选课，容量上限为{{ classDetail.capacityLimit }}</span>
@@ -170,6 +170,7 @@
                 <course-table
                     ref="scourseTable"
                     id="scourseTable"
+                    v-model="clickClass"
                     :data="courseTableData"
                     :showBackgroundColor="true">
                 </course-table>
@@ -202,6 +203,7 @@ export default {
                 course: {},
                 teacher: {}
             },
+            clickClass: {},
             type: ['', 'success', 'warning', 'danger'],
             color: ['#a0cfff', '#b3e19d', '#f3d19e', '#fab6b6'],
             activeName: 'class',
@@ -215,6 +217,8 @@ export default {
             isFullScreen: false,
             selectBtnShow: true,
             selectBtnShowDisable: false,
+            deleteBtnDisable: false,
+            topDisable: false,
             interval: null
         };
     },
@@ -340,6 +344,7 @@ export default {
                                                 })
                                                 if(index != -1){
                                                     options[day] = '(' + item.courseid + ')' + course[index].name;
+                                                    options[day+'_classid'] = item.classid;
                                                 }
                                                 this.courseTableData.push(options)
                                             }
@@ -366,6 +371,7 @@ export default {
                                                             }
                                                             var day = citem.split('-')[0];
                                                             options[day] = '(' + item.courseid + ')' + item.courseName + '-选课中';
+                                                            options[day + '_classid'] = item.classid;
                                                             this.courseTableData.push(options)
                                                         }
                                                     })
@@ -509,6 +515,13 @@ export default {
             }) != -1){
                 this.selectBtnShow = false;
                 this.selectBtnShowDisable = true;
+            }
+
+            if(this.selectControll.isDrop == '0'){
+                this.deleteBtnDisable = true;
+            }
+            else{
+                this.deleteBtnDisable = false;
             }
 
             this.classDialogVisible = true;
@@ -770,12 +783,17 @@ export default {
                                     })
                                 }
                             })
+                        // 每分钟获取一次学生选课信息
+                        this.interval = setInterval(() => {
+                            this.getStuSelect();
+                        }, 60*1000)
                     }
                     else{
                         this.$message({
                             message: '当前不在选课时间',
                             type: "error"
                         });
+                        this.topDisable = true;
                     }
                 }
             })
@@ -815,15 +833,27 @@ export default {
                 }
             })
 
-        // 每分钟获取一次学生选课信息
-        this.interval = setInterval(() => {
-            this.getStuSelect();
-        }, 60*1000)
-
         var width = $(window).width();
         if(width < 768){
             this.pageSmall = true;
             this.isFullScreen = true;
+        }
+    },
+    watch: {
+        clickClass(){
+            if(this.clickClass.classid){
+                var options = {
+                    classid: this.clickClass.classid
+                }
+                this.$axios
+                    .get('/api/class/id', {headers: {'showLoading': false}, params: options})
+                    .then(res => {
+                        if(res.status == 200){
+                            var data = res.data;
+                            this.showClassDetail(data.course, data);
+                        }
+                    })
+            }
         }
     },
     beforeRouteLeave (to, from, next) {

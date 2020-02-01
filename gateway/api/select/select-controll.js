@@ -44,4 +44,27 @@ router.post('/select-controll', passport.authenticate('jwt', {session: false}), 
     }
 })
 
+// @route  POST /api/select-controll/drawlots
+// @desc   选课抽签
+// @token  true
+// @return msg
+// @access manager
+// @params {schoolYear: String, schoolTerm: String}
+router.post('/select-controll/drawlots', passport.authenticate('jwt', {session: false}), (req, done) => {
+    if(req.user.identity !== 'manager'){
+        done.status(500).send("没有权限！")
+    }
+    else{
+        selectSeneca.act('target:server-select,module:controll,if:drawlots', req.body,
+        (err,res) => {
+            if(err){
+                done.status(500).send(err.data.payload.details.message)
+            }
+            else{
+                done.send(res)
+            }
+        })
+    }
+})
+
 module.exports = router;

@@ -100,11 +100,30 @@ router.delete('/class', passport.authenticate('jwt', {session: false}), (req, do
     }
 })
 
+// @route  GET /api/class/id
+// @desc   根据开课号获取开课信息
+// @token  true
+// @return class
+// @access public
+// @params {classid: String}
+router.get('/class/id', passport.authenticate('jwt', {session: false}), (req, done) => {
+    req.query.askerid = req.user.userid;
+    courseSeneca.act('target:server-course,module:class,if:id2detail', req.query,
+    (err,res) => {
+        if(err){
+            done.status(500).send(err.data.payload.details.message)
+        }
+        else{
+            done.send(res)
+        }
+    })
+})
+
 // @route  GET /api/class/course
 // @desc   根据课程号获取开课列表
 // @token  true
 // @return classList
-// @access manager
+// @access public
 // @params {courseid: String, schoolYear: String, schoolTerm: String}
 router.get('/class/course', passport.authenticate('jwt', {session: false}), (req, done) => {
     courseSeneca.act('target:server-course,module:class,if:course', req.query,

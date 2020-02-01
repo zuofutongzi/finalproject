@@ -874,7 +874,21 @@ export default {
             }
             else{
                 // 访问抽签接口
-                
+                var options = {
+                    schoolYear: this.controllDetail.schoolYear,
+                    schoolTerm: this.controllDetail.schoolTerm
+                }
+                this.$axios
+                    .post('/api/select-controll/drawlots', options)
+                    .then(res => {
+                        if(res.status == 200){
+                            this.$message({
+                                message: res.data.msg,
+                                type: "success"
+                            });
+                            this.controllDetail.isDrawLots = '1';
+                        }
+                    })
             }
         },
         isEmpty(value){

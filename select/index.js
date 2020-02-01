@@ -14,6 +14,7 @@ const select = require('./api/select')
 // controll
 seneca.add('target:server-select,module:controll,if:detail', select_controll.detail)
 seneca.add('target:server-select,module:controll,if:set', select_controll.set)
+seneca.add('target:server-select,module:controll,if:drawlots', select_controll.drawlots)
 // select
 seneca.add('target:server-select,module:select,if:list', select.list)
 mqseneca.add('target:server-select,module:select,if:select', select.select)

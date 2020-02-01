@@ -79,7 +79,15 @@ export default{
                         Thur: '',
                         Fri: '',
                         Sat: '',
-                        Sun: ''
+                        Sun: '',
+                        // 选填
+                        // Mon_classid: '',
+                        // Tue_classid: '',
+                        // Wed_classid: '',
+                        // Thur_classid: '',
+                        // Fri_classid: '',
+                        // Sat_classid: '',
+                        // Sun_classid: ''
                     })
                 }
                 return data;
@@ -216,7 +224,8 @@ export default{
                         $('#'+ this.id +' .el-table__row').eq(row.index).children('td').eq(cindex).css({'background':this.selectColor});
                         this.selectData.push({
                             coordinate: column.property + '-' + row.session, 
-                            data: this.courseData[row.index][column.property]
+                            data: this.courseData[row.index][column.property],
+                            classid: this.courseData[row.index][column.property + '_classid']
                         })
                         this.$emit('input', this.selectData);
                     }
@@ -226,7 +235,8 @@ export default{
                     // 返回点击的格
                     this.selectData = {
                         coordinate: column.property + '-' + row.session,
-                        data: this.courseData[row.index][column.property]
+                        data: this.courseData[row.index][column.property],
+                        classid: this.courseData[row.index][column.property + '_classid']
                     }
                     this.$emit('input', this.selectData);
                 }
@@ -271,16 +281,18 @@ export default{
                                     var index = temp.findIndex(citem => {
                                         return citem.data == item[key];
                                     })
-                                    if(index == -1){
+                                    if(index == -1 && cindex != 0){
                                         temp.push({
                                             data: item[key],
                                             color: this.color[temp.length%this.color.length]
                                         })
                                     }
-                                    else{
+                                    else if(index != -1){
                                         color = temp[index].color;
                                     }
-                                    $('#'+ this.id +' .el-table__row').eq(rindex).children('td').eq(cindex).css({'background':color});
+                                    if(cindex != 0){
+                                        $('#'+ this.id +' .el-table__row').eq(rindex).children('td').eq(cindex).css({'background':color});
+                                    }
                                 }
                             }
                         })
