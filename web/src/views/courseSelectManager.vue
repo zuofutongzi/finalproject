@@ -261,7 +261,6 @@
 
 <script>
 import $ from 'jquery'
-import Timetables from 'timetables'
 import CourseTable from '../components/CourseTable'
 
 export default {

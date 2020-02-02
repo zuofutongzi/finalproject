@@ -51,7 +51,7 @@ export default{
 					{
 						icon: 'el-icon-notebook-1',
 						title: '课表查询',
-						path: 'classTable'
+						path: 'courseTable'
 					},
 					{
 						icon: 'el-icon-document-checked',

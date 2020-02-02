@@ -15,6 +15,7 @@ import CourseScheduleManager from '../views/CourseScheduleManager.vue'
 import CourseSelectManager from '../views/CourseSelectManager.vue'
 import TcourseManager from '../views/TcourseManager.vue'
 import CourseSelect from '../views/CourseSelect.vue'
+import CourseTable from '../views/CourseTable.vue'
 import NotFound from '../views/404.vue'
 
 Vue.use(VueRouter)
@@ -102,6 +103,11 @@ const routes = [
 				path: '/courseSelect',
 				name: 'courseSelect',
 				component: CourseSelect
+			},
+			{
+				path: '/courseTable',
+				name: 'courseTable',
+				component: CourseTable
 			}
 		]
 	},

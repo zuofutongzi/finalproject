@@ -607,107 +607,150 @@ router.post('/user/import', async (msg, done) => {
 function detail(msg, done){
     var { userid, identity, askerid } = msg;
     var redisKey = identity + ':' + userid;
-    redis.mget(redisKey, async (err, res) => {
-        if(err){
-            logger.error('(user-detail):' + err.message);
-            done(new Error('数据库访问失败，请稍后再试...'))
-        }
-        else if(res[0] == null){
-            done(new Error('用户不存在！'))
-        }
-        else{
-            var data = JSON.parse(res);
-            var college = async (value) => {
-                var name = await new Promise((resolve) => {
-                    redis.mget('college:' + value.collegeid, (err, res) => {
-                        if(err){
-                            logger.error('(user-detail):' + err.message);
-                            done(new Error('数据库访问失败，请稍后再试...'))
-                        }
-                        else{
-                            resolve(JSON.parse(res[0]).name);
-                        }
-                    })
-                })
-                return name;
-            }
-            var getclass = async (value) => {
-                var myclass = await new Promise((resolve) => {
-                    redis.mget('class:' + value.classid, (err, res) => {
-                        if(err){
-                            logger.error('(user-detail):' + err.message);
-                            done(new Error('数据库访问失败，请稍后再试...'))
-                        }
-                        else{
-                            resolve(JSON.parse(res[0]))
-                        }
-                    })
-                })
-                return myclass
-            }
-            var studentDetail = async (value) => {
-                var myclass = await getclass(value);
-                var classTeacher = await new Promise((resolve) => {
-                    redis.mget('teacher:' + myclass.teacherid, (err, res) => {
-                        if(err){
-                            logger.error('(user-list):' + err.message);
-                            done(new Error('数据库访问失败，请稍后再试...'))
-                        }
-                        else{
-                            resolve(JSON.parse(res[0]).name)
-                        }
-                    })
-                })
-                var major = await new Promise((resolve) => {
-                    redis.mget('major:' + myclass.majorid, (err, res) => {
-                        if(err){
-                            logger.error('(user-list):' + err.message);
-                            done(new Error('数据库访问失败，请稍后再试...'))
-                        }
-                        else{
-                            resolve(JSON.parse(res[0]))
-                        }
-                    })
-                })
-                var collegeName = await college({collegeid: major.collegeid});
-                return {
-                    enrol: myclass.enrol,
-                    className: myclass.name,
-                    majorName: major.name,
-                    collegeName: collegeName,
-                    classTeacher: classTeacher
+    
+    var getUser = () => {
+        return new Promise((resolve, reject) => {
+            redis.mget(redisKey, async (err, res) => {
+                if(err){
+                    logger.error('(user-detail):' + err.message);
+                    reject('数据库访问失败，请稍后再试...')
                 }
+                else if(res[0] == null){
+                    reject('用户不存在！')
+                }
+                else{
+                    resolve(JSON.parse(res))
+                }
+            })
+        })
+    }
+    var getCollege = (value) => {
+        return new Promise((resolve, reject) => {
+            redis.mget('college:' + value.collegeid, (err, res) => {
+                if(err){
+                    logger.error('(user-detail):' + err.message);
+                    reject('数据库访问失败，请稍后再试...')
+                }
+                else{
+                    resolve(JSON.parse(res[0]).name);
+                }
+            })
+        })
+    }
+    var getClass = (value) => {
+        return new Promise((resolve, reject) => {
+            redis.mget('class:' + value.classid, (err, res) => {
+                if(err){
+                    logger.error('(user-detail):' + err.message);
+                    reject('数据库访问失败，请稍后再试...')
+                }
+                else{
+                    resolve(JSON.parse(res[0]))
+                }
+            })
+        })
+    }
+    var classTeacher = (value) => {
+        return new Promise((resolve, reject) => {
+            redis.mget('teacher:' + value.teacherid, (err, res) => {
+                if(err){
+                    logger.error('(user-list):' + err.message);
+                    reject('数据库访问失败，请稍后再试...')
+                }
+                else{
+                    resolve(JSON.parse(res[0]).name)
+                }
+            })
+        })
+    }
+    var major = (value) => {
+        return new Promise((resolve, reject) => {
+            redis.mget('major:' + value.majorid, (err, res) => {
+                if(err){
+                    logger.error('(user-list):' + err.message);
+                    reject('数据库访问失败，请稍后再试...')
+                }
+                else{
+                    resolve(JSON.parse(res[0]))
+                }
+            })
+        })
+    }
+    var studentDetail = (value) => {
+        return new Promise((resolve, reject) => {
+            Promise.all([classTeacher(value), major(value)])
+                .then(async result => {
+                    var collegeName = await getCollege({collegeid: result[1].collegeid});
+                    resolve({
+                        enrol: value.enrol,
+                        className: value.name,
+                        majorName: result[1].name,
+                        collegeName: collegeName,
+                        classTeacher: result[0]
+                    })
+                })
+                .catch(err => {
+                    reject(err)
+                })
+        })
+    }
+    
+    getUser().then(result => {
+        return new Promise((resolve, reject) => {
+            if(identity == 'teacher'){
+                var temp = [getCollege(result)];
+                if(result.classTeacher == 'true'){
+                    temp.push(getClass(result));
+                }
+                Promise.all(temp)
+                    .then(res => {
+                        result.college = res[0];
+                        if(result.classTeacher == 'true'){
+                            result.class = res[1].name;
+                        }
+                        resolve(result)
+                    })
+                    .catch(err => {
+                        reject(err)
+                    })
             }
-            switch(identity){
-                case 'teacher':
-                    data.college = await college(data);
-                    if(data.classTeacher == 'true'){
-                        data.class = (await getclass(data)).name;
-                    }
-                    break;
-                case 'student':
-                    var userDetail = await studentDetail(data);
-                    data.enrol = userDetail.enrol;
-                    data.class = userDetail.className;
-                    data.major = userDetail.majorName;
-                    data.college = userDetail.collegeName;
-                    data.classTeacher = userDetail.classTeacher;
-                    break;
-                default:
-                    done(new Error('对象身份类型错误！'))
-            }
-            // 请求自己信息，将密码去除返回
-            // 请求他人信息，将隐私信息去除返回
-            if(userid == askerid){
-                delete data.password;
+            else if(identity == 'student'){
+                getClass(result).then(res => {
+                    return studentDetail(res)
+                })
+                .then(res => {
+                    result.enrol = res.enrol;
+                    result.class = res.className;
+                    result.major = res.majorName;
+                    result.college = res.collegeName;
+                    result.classTeacher = res.classTeacher;
+                    resolve(result)
+                })
+                .catch(err => {
+                    reject(err)
+                })
             }
             else{
-                delete data.password;
-                delete data.IDcard;
-                delete data.birthday;
+                logger.error('(user-detail):对象身份类型错误！');
+                reject('对象身份类型错误！')
             }
-            done(null, data)
+        })
+    })
+    .then(result => {
+        // 请求自己信息，将密码去除返回
+        // 请求他人信息，将隐私信息去除返回
+        if(userid == askerid){
+            delete result.password;
         }
+        else{
+            delete result.password;
+            delete result.IDcard;
+            delete result.birthday;
+        }
+        done(null, result)
+    })
+    .catch(err => {
+        done(new Error(err))
     })
 }
 
