@@ -95,7 +95,6 @@ public class CanalClient {
         // classSelect
         String csstudent = null;
         String csclass = null;
-        String csteacher = null;
         // courseSchedule
         String csmajor = null;
         String cscourse = null;
@@ -133,9 +132,6 @@ public class CanalClient {
             	else if(column.getName().equals("classid")) {
             		csclass = column.getValue();
             		classSelectJson.put(column.getName(), column.getValue());
-            	}
-            	else if(column.getName().equals("csteacher")) {
-            		csteacher = column.getValue();
             	}
             }
             else if(table.equals("courseSchedule")) {
@@ -173,7 +169,6 @@ public class CanalClient {
             else if(table.equals("classSelect")) {
             	RedisUtil.sadd("idx:classSelect:student:" + csstudent, classSelectJson.toString());
             	RedisUtil.sadd("idx:classSelect:class:" + csclass, key);
-            	RedisUtil.sadd("idx:classSelect:teacher:" + csteacher, key);
             }
             else if(table.equals("courseSchedule")) {
             	//RedisUtil.sadd("idx:courseSchedule:major:" + csmajor, key);
@@ -196,7 +191,6 @@ public class CanalClient {
         // classSelect
         String csstudent = null;
         String csclass = null;
-        String csteacher = null;
         // courseSchedule
         String csmajor = null;
         String cscourse = null;
@@ -234,9 +228,6 @@ public class CanalClient {
             		csclass = column.getValue();
             		classSelectJson.put(column.getName(), column.getValue());
             	}
-            	else if(column.getName().equals("csteacher")) {
-            		csteacher = column.getValue();
-            	}
             }
             else if(table.equals("courseSchedule")) {
             	if(column.getName().equals("majorid")) {
@@ -266,7 +257,6 @@ public class CanalClient {
             else if(table.equals("classSelect")) {
             	RedisUtil.srem("idx:classSelect:student:" + csstudent, classSelectJson.toString());
             	RedisUtil.srem("idx:classSelect:class:" + csclass, key);
-            	RedisUtil.srem("idx:classSelect:teacher:" + csteacher, key);
             }
             else if(table.equals("courseSchedule")) {
             	//RedisUtil.srem("idx:courseSchedule:major:" + csmajor, key);
@@ -290,7 +280,6 @@ public class CanalClient {
         // classSelect
         String csstudent = null;
         String csclass = null;
-        String csteacher = null;
         // courseSchedule
         String csmajor = null;
         String cscourse = null;
@@ -328,9 +317,6 @@ public class CanalClient {
             	else if(column.getName().equals("classid")) {
             		csclass = column.getValue();
             		classSelectJson.put(column.getName(), column.getValue());
-            	}
-            	else if(column.getName().equals("csteacher")) {
-            		csteacher = column.getValue();
             	}
             }
             else if(table.equals("courseSchedule")) {
@@ -366,7 +352,6 @@ public class CanalClient {
             else if(table.equals("classSelect")) {
             	RedisUtil.sadd("idx:classSelect:student:" + csstudent, classSelectJson.toString());
             	RedisUtil.sadd("idx:classSelect:class:" + csclass, key);
-            	RedisUtil.sadd("idx:classSelect:teacher:" + csteacher, key);
             }
             else if(table.equals("courseSchedule")) {
             	//RedisUtil.sadd("idx:courseSchedule:major:" + csmajor, key);
@@ -390,7 +375,6 @@ public class CanalClient {
         // classSelect
         String csstudent = null;
         String csclass = null;
-        String csteacher = null;
         // courseSchedule
         String csmajor = null;
         String cscourse = null;
@@ -428,9 +412,6 @@ public class CanalClient {
             	else if(column.getName().equals("classid")) {
             		csclass = column.getValue();
             		classSelectJson.put(column.getName(), column.getValue());
-            	}
-            	else if(column.getName().equals("csteacher")) {
-            		csteacher = column.getValue();
             	}
             }
             else if(table.equals("courseSchedule")) {
@@ -471,7 +452,6 @@ public class CanalClient {
             else if(table.equals("classSelect")) {
             	RedisUtil.srem("idx:classSelect:student:" + csstudent, classSelectJson.toString());
             	RedisUtil.srem("idx:classSelect:class:" + csclass, key);
-            	RedisUtil.srem("idx:classSelect:teacher:" + csteacher, key);
             }
             else if(table.equals("courseSchedule")) {
             	//RedisUtil.srem("idx:courseSchedule:major:" + csmajor, key);

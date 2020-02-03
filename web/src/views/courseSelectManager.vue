@@ -4,7 +4,7 @@
             <el-button type="primary" :size="buttonSize" plain @click="classAdd()">开课添加</el-button>
             <el-button type="success" :size="buttonSize" plain @click="classImport()">开课导入</el-button>
             <el-button type="danger" :size="buttonSize" plain @click="classDelete()">开课删除</el-button>
-            <el-button type="primary" :size="buttonSize" plain @click="classControllSet()">选课设置</el-button>
+            <el-button type="primary" :size="buttonSize" plain @click="classControllSet()">设置</el-button>
             <el-cascader class="hidden-xs-only" v-model="filterSchoolYear" :options="schoolYearSelect" @change="handleSelectChange" :show-all-levels="true" placeholder="学年选择"></el-cascader>
         </el-row>
         <el-row class="classSelectXsTop">
@@ -184,75 +184,118 @@
 			</el-row>
 		</el-dialog>
 
-        <!-- 选课设置 -->
+        <!-- 设置 -->
         <el-dialog
 			:visible.sync="controllDialogVisible"
-			title="选课设置"
+			title="设置"
             :fullscreen="addDialogFullScreen"
 			center>
 			<el-row class="classControll">
 				<el-col :md='{span: 16, offset: 4}'>
-                    <el-progress :text-inside="true" :stroke-width="20" :percentage="progressPercentage" :format="progressFormat" style="margin-bottom: 30px;"></el-progress>
-                    <el-form :model="controllForm" :rules="controllRules" ref="controllForm" label-position="left" label-width="80px" class="controllForm">
-                        <el-form-item label="开课学年" prop="schoolYear">
-                            <el-select v-model="controllForm.schoolYear" filterable :disabled="isDisabled">
-                                <el-option
-                                    v-for="item in schoolYearSelect"
-                                    :key="item.value"
-                                    :label="item.label"
-                                    :value="item.value">
-                                </el-option>
-                            </el-select>
-                        </el-form-item>
-                        <el-form-item label="开课学期" prop="schoolTerm">
-                            <el-select v-model="controllForm.schoolTerm" filterable :disabled="isDisabled">
-                                <el-option
-                                    v-for="item in 2"
-                                    :key="item"
-                                    :label="item"
-                                    :value="item">
-                                </el-option>
-                            </el-select>
-                        </el-form-item>
-                        <el-form-item label="起止时间" prop="start2end">
-                            <el-date-picker
-                                :disabled="isDisabled"
-                                v-model="controllForm.start2end"
-                                type="datetimerange"
-                                value-format="yyyy-MM-dd HH:mm:ss"
-                                range-separator="至"
-                                start-placeholder="开始日期"
-                                end-placeholder="结束日期">
-                            </el-date-picker>
-                        </el-form-item>
-                        <el-form-item label="是否限容" prop="isCapacityLimit">
-                            <el-radio-group v-model="controllForm.isCapacityLimit" :disabled="isDisabled">
-                                <el-radio label="1">是</el-radio>
-                                <el-radio label="0">否</el-radio>
-                            </el-radio-group>
-                        </el-form-item>
-                        <el-form-item label="是否可退" prop="isDrop">
-                            <el-radio-group v-model="controllForm.isDrop" :disabled="isDisabled">
-                                <el-radio label="1">是</el-radio>
-                                <el-radio label="0">否</el-radio>
-                            </el-radio-group>
-                        </el-form-item>
-                        <el-form-item>
-                            <el-popover
-                                :disabled="drawLotsTipIsDisabled"
-                                placement="top"
-                                width="230"
-                                v-model="drawLotsTipDialogVisible">
-                                <p>上一阶段选课尚未抽签，开启新阶段选课后将无法抽签，是否继续</p>
-                                <div style="text-align: right; margin: 0">
-                                    <el-button size="mini" type="text" @click="drawLotsTipDialogVisible = false">取消</el-button>
-                                    <el-button type="primary" size="mini" @click="submitControllForm('controllForm')">确定</el-button>
-                                </div>
-                                <el-button slot="reference" type="primary" class="submit_btn" @click="submitSet('controllForm')" :disabled="isDisabled">设置</el-button>
-                            </el-popover>
-					    	<el-button type="success" class="submit_btn" style="margin-left: 10px;" @click="drawLots()" :disabled="isDisabled">抽签</el-button>
-					  	</el-form-item>
-                    </el-form>
+                    <el-tabs v-model="activeName" @tab-click="handleClick">
+                        <el-tab-pane label="选课设置" name="select">
+                            <el-progress :text-inside="true" :stroke-width="20" :percentage="progressPercentage" :format="progressFormat" style="margin-bottom: 30px;"></el-progress>
+                            <el-form :model="controllForm" :rules="controllRules" ref="controllForm" label-position="left" label-width="80px" class="controllForm">
+                                <el-form-item label="开课学年" prop="schoolYear">
+                                    <el-select v-model="controllForm.schoolYear" filterable :disabled="isDisabled">
+                                        <el-option
+                                            v-for="item in schoolYearSelect"
+                                            :key="item.value"
+                                            :label="item.label"
+                                            :value="item.value">
+                                        </el-option>
+                                    </el-select>
+                                </el-form-item>
+                                <el-form-item label="开课学期" prop="schoolTerm">
+                                    <el-select v-model="controllForm.schoolTerm" filterable :disabled="isDisabled">
+                                        <el-option
+                                            v-for="item in 2"
+                                            :key="item"
+                                            :label="item"
+                                            :value="item">
+                                        </el-option>
+                                    </el-select>
+                                </el-form-item>
+                                <el-form-item label="起止时间" prop="start2end">
+                                    <el-date-picker
+                                        :disabled="isDisabled"
+                                        v-model="controllForm.start2end"
+                                        type="datetimerange"
+                                        value-format="yyyy-MM-dd HH:mm:ss"
+                                        range-separator="至"
+                                        start-placeholder="开始日期"
+                                        end-placeholder="结束日期">
+                                    </el-date-picker>
+                                </el-form-item>
+                                <el-form-item label="是否限容" prop="isCapacityLimit">
+                                    <el-radio-group v-model="controllForm.isCapacityLimit" :disabled="isDisabled">
+                                        <el-radio label="1">是</el-radio>
+                                        <el-radio label="0">否</el-radio>
+                                    </el-radio-group>
+                                </el-form-item>
+                                <el-form-item label="是否可退" prop="isDrop">
+                                    <el-radio-group v-model="controllForm.isDrop" :disabled="isDisabled">
+                                        <el-radio label="1">是</el-radio>
+                                        <el-radio label="0">否</el-radio>
+                                    </el-radio-group>
+                                </el-form-item>
+                                <el-form-item>
+                                    <el-popover
+                                        :disabled="drawLotsTipIsDisabled"
+                                        placement="top"
+                                        width="230"
+                                        v-model="drawLotsTipDialogVisible">
+                                        <p>上一阶段选课尚未抽签，开启新阶段选课后将无法抽签，是否继续</p>
+                                        <div style="text-align: right; margin: 0">
+                                            <el-button size="mini" type="text" @click="drawLotsTipDialogVisible = false">取消</el-button>
+                                            <el-button type="primary" size="mini" @click="submitControllForm('controllForm')">确定</el-button>
+                                        </div>
+                                        <el-button slot="reference" type="primary" class="submit_btn" @click="submitSet('controllForm')" :disabled="isDisabled">设置</el-button>
+                                    </el-popover>
+                                    <el-button type="success" class="submit_btn" style="margin-left: 10px;" @click="drawLots()" :disabled="isDisabled">抽签</el-button>
+                                </el-form-item>
+                            </el-form>
+                        </el-tab-pane>
+                        <el-tab-pane label="成绩登记设置" name="grade">
+                            <el-progress :text-inside="true" :stroke-width="20" :percentage="gradeProgressPercentage" :format="gradeProgressFormat" style="margin-bottom: 30px;"></el-progress>
+                            <el-form :model="gradeControllForm" :rules="controllRules" ref="gradeControllForm" label-position="left" label-width="80px" class="controllForm">
+                                <el-form-item label="登记学年" prop="schoolYear">
+                                    <el-select v-model="gradeControllForm.schoolYear" filterable :disabled="gradeIsDisabled">
+                                        <el-option
+                                            v-for="item in schoolYearSelect"
+                                            :key="item.value"
+                                            :label="item.label"
+                                            :value="item.value">
+                                        </el-option>
+                                    </el-select>
+                                </el-form-item>
+                                <el-form-item label="登记学期" prop="schoolTerm">
+                                    <el-select v-model="gradeControllForm.schoolTerm" filterable :disabled="gradeIsDisabled">
+                                        <el-option
+                                            v-for="item in 2"
+                                            :key="item"
+                                            :label="item"
+                                            :value="item">
+                                        </el-option>
+                                    </el-select>
+                                </el-form-item>
+                                <el-form-item label="起止时间" prop="start2end">
+                                    <el-date-picker
+                                        :disabled="gradeIsDisabled"
+                                        v-model="gradeControllForm.start2end"
+                                        type="datetimerange"
+                                        value-format="yyyy-MM-dd HH:mm:ss"
+                                        range-separator="至"
+                                        start-placeholder="开始日期"
+                                        end-placeholder="结束日期">
+                                    </el-date-picker>
+                                </el-form-item>
+                                <el-form-item>
+                                    <el-button type="primary" style="width: 100%;" @click="submitGradeSet('gradeControllForm')" :disabled="gradeIsDisabled">设置</el-button>
+                                </el-form-item>
+                            </el-form>
+                        </el-tab-pane>
+                    </el-tabs>
 				</el-col>
 			</el-row>
 		</el-dialog>
@@ -313,6 +356,7 @@ export default {
             courseTableTopBar: ['一', '二', '三', '四', '五', '六', '七'],
             buttonSize: 'medium',
             file: '',
+            activeName: 'select',
             currentPage: 1,
             listPageSize: 10,
             listTotal: 0,
@@ -327,9 +371,12 @@ export default {
             controllDialogVisible: false,
             drawLotsTipDialogVisible: false,
             progressPercentage: 0,
+            gradeProgressPercentage: 0,
             controllForm: {},
             controllDetail: {},
+            gradeControllForm: {},
             isDisabled: false,
+            gradeIsDisabled: false,
             drawLotsTipIsDisabled: false,
             addRules: {
                 course: [
@@ -755,6 +802,28 @@ export default {
                 return '选课进行中'
             }
         },
+        gradeProgressFormat(percentage){
+            // 成绩设置
+            // 进度条显示
+            if(percentage == 0){
+                return '成绩登记未开始'
+            }
+            else if(percentage >= 100){
+                return '成绩登记已结束'
+            }
+            else{
+                return '成绩登记进行中'
+            }
+        },
+        handleClick(){
+            // 设置标签点击
+            if(this.activeName == 'select'){
+                this.classControllSet();
+            }
+            else if(this.activeName == 'grade'){
+                this.gradeControllSet();
+            }
+        },
         classControllSet(){
             // 选课设置
             // 选课情况获取
@@ -796,6 +865,7 @@ export default {
                         else{
                             this.isDisabled = false;
                             this.progressPercentage = 100;
+                            this.controllForm = {};
                         }
                         this.controllDialogVisible = true;
                     }
@@ -889,6 +959,75 @@ export default {
                         }
                     })
             }
+        },
+        gradeControllSet(){
+            // 成绩设置
+            // 获取成绩情况
+            this.$axios
+                .get('/api/grade/controll', {headers: {'showLoading': false}})
+                .then(res => {
+                    if(res.status == 200){
+                        var data = res.data;
+                        var now = new Date();
+                        var start = new Date(data.gradeStart);
+                        var end = new Date(data.gradeEnd);
+                        if(data.schoolYear == '0'){
+                            this.gradeIsDisabled = false;
+                            this.gradeProgressPercentage = 0;
+                        }
+                        else if(now < start){
+                            this.gradeIsDisabled = false;
+                            this.gradeProgressPercentage = 0;
+                            this.gradeControllForm = {
+                                schoolYear: data.schoolYear,
+                                schoolTerm: data.schoolTerm,
+                                start2end: [data.gradeStart, data.gradeEnd]
+                            }
+                        }
+                        else if(start <= now && now <= end){
+                            this.gradeIsDisabled = true;
+                            this.gradeProgressPercentage = ((now - start) / (end - start))*100;
+                            this.gradeControllForm = {
+                                schoolYear: data.schoolYear,
+                                schoolTerm: data.schoolTerm,
+                                start2end: [data.gradeStart, data.gradeEnd]
+                            }
+                        }
+                        else{
+                            this.gradeIsDisabled = false;
+                            this.progressPercentage = 100;
+                            this.gradeControllForm = {};
+                        }
+                        this.controllDialogVisible = true;
+                    }
+                })
+        },
+        submitGradeSet(formName){
+            // 选课设置
+            this.$refs[formName].validate(valid => {
+                if(valid){
+                    this.gradeControllForm.gradeStart = this.gradeControllForm.start2end[0];
+                    this.gradeControllForm.gradeEnd = this.gradeControllForm.start2end[1];
+                    this.$axios
+                        .post('/api/grade/controll', this.gradeControllForm)
+                        .then(res => {
+                            if(res.status == 200){
+                                this.$message({
+                                    message: res.data.msg,
+                                    type: "success"
+                                });
+                                this.controllDialogVisible = false;
+                            }
+                        })
+                }
+                else{
+                    this.$message({
+                        message: "填写格式错误！",
+                        type: "error"
+                    });
+                    return false;
+                }
+            })
         },
         isEmpty(value){
 			return (

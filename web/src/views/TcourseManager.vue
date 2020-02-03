@@ -171,7 +171,6 @@ export default {
                         }
                         else{
                             this.classList = res.data.data;
-                            this.listTotal = res.data.count;
                         }
                     }
                 })
@@ -385,7 +384,6 @@ export default {
                     }
                     else{
                         this.classList = res.data.data;
-                        this.listTotal = res.data.count;
                     }
                 }
             })

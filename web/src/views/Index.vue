@@ -85,7 +85,7 @@ export default{
 					{
 						icon: 'el-icon-edit',
 						title: '成绩管理',
-						path: 'gradeManager'
+						path: 'tgradeManager'
 					}
 				]
 				break;

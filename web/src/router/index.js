@@ -16,6 +16,7 @@ import CourseSelectManager from '../views/CourseSelectManager.vue'
 import TcourseManager from '../views/TcourseManager.vue'
 import CourseSelect from '../views/CourseSelect.vue'
 import CourseTable from '../views/CourseTable.vue'
+import TgradeManager from '../views/TgradeManager.vue'
 import NotFound from '../views/404.vue'
 
 Vue.use(VueRouter)
@@ -108,6 +109,11 @@ const routes = [
 				path: '/courseTable',
 				name: 'courseTable',
 				component: CourseTable
+			},
+			{
+				path: '/tgradeManager',
+				name: 'tgradeManager',
+				component: TgradeManager
 			}
 		]
 	},
