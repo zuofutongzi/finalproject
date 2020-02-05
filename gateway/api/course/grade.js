@@ -93,4 +93,35 @@ router.get('/grade/class', passport.authenticate('jwt', {session: false}), (req,
     }
 })
 
+// @route  POST /api/grade/import
+// @desc   成绩导入
+// @token  true
+// @return msg
+// @access teacher
+// @params {classid: String}
+router.post('/grade/import', passport.authenticate('jwt', {session: false}), upload.single('file'), (req, done) => {
+    if(req.user.identity != 'teacher'){
+        done.status(500).send('没有权限！')
+    }
+    else{
+        var file = req.file;
+        var options = req.body;
+        var uri = key.courseServerRequest + '/grade/import';
+        request.post({
+            url: uri,
+            json: {file: file, options: options},
+            gzip: true
+        }).then((response) => {
+            if(response.status == 500){
+                done.status(500).send(response.msg)
+            }
+            else{
+                done.send(response)
+            }
+        }).catch((err) => {
+            done.status(500).send('文件上传失败！')
+        })
+    }
+})
+
 module.exports = router;

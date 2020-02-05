@@ -110,3 +110,6 @@
 2020-01-17 18:27:07 [error]: (user-id2name):ERR wrong number of arguments for 'mget' command
 2020-01-18 14:19:25 [error]: (user-register):ER_NO_REFERENCED_ROW_2: Cannot add or update a child row: a foreign key constraint fails (`user`.`student`, CONSTRAINT `stuclassid` FOREIGN KEY (`classid`) REFERENCES `class` (`classid`))
 2020-01-18 14:25:58 [error]: (user-register):ER_BAD_NULL_ERROR: Column 'classid' cannot be null
+2020-02-05 14:10:38 [error]: (user-id2name):ERR wrong number of arguments for 'mget' command
+2020-02-05 14:11:52 [error]: (user-id2name):ERR wrong number of arguments for 'mget' command
+2020-02-05 14:12:31 [error]: (user-id2name):ERR wrong number of arguments for 'mget' command

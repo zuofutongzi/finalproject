@@ -22,38 +22,8 @@
 			center>
 			<el-row class="gradeEdit">
 				<el-col :xs='{span: 24}' :sm='{span: 16, offset: 4}'>
-                    <!-- <el-divider content-position="left"><span>* </span>导入格式</el-divider>
-                    <el-image :src="require('../assets/teach/table.jpg')"></el-image><br>
-                    <el-image :src="require('../assets/teach/schedule.jpg')"></el-image><br>
-                    <div class="tag-group">
-                        <span class="tag-group__title">学院选择如下：</span>
-                        <el-tag
-                            v-for="item in items"
-                            :key="item.label"
-                            :type="item.type">
-                            {{ item.label }}
-                        </el-tag>
-                    </div>
-                    <p>专业选择如下：</p>
-                    <el-tree :data="majorList"></el-tree>
-                    <p style="color: red;">班级编号必须由英文或数字组成</p>
-                    <el-divider content-position="left">文件导入</el-divider>
-					<el-upload
-                        class="upload-demo"
-                        ref="upload"
-                        action="/api/course/schedule/import"
-                        accept=".xls,.xlsx"
-                        :headers="headers"
-                        :on-error="handleError"
-                        :on-change="handleChange"
-                        :on-success="handleSuccess"
-                        :limit="1"
-                        :auto-upload="false">
-                        <el-button slot="trigger" size="small" type="primary">选取文件</el-button>
-                        <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload">上传到服务器</el-button>
-                        <div slot="tip" class="el-upload__tip">只接收.xls/.xlsx文件，上传文件不超过1mb</div>
-                    </el-upload> -->
                     <el-tabs v-model="activeName" @tab-click="handleClick">
+                        <p>有{{ stuNoGrade }}名学生成绩尚未录入</p>
                         <el-tab-pane label="成绩录入" name="edit">
                             <el-table
                                 :data="stuList"
@@ -75,7 +45,29 @@
                                 </el-table-column>
                             </el-table>
                         </el-tab-pane>
-                        <el-tab-pane label="成绩导入" name="import">成绩导入</el-tab-pane>
+                        <el-tab-pane label="成绩导入" name="import">
+                            <el-divider content-position="left"><span>* </span>导入格式</el-divider>
+                            <el-image :src="require('../assets/teach/table.jpg')"></el-image><br>
+                            <el-image :src="require('../assets/teach/grade.jpg')"></el-image><br>
+                            <el-divider content-position="left">文件导入</el-divider>
+                            <el-upload
+                                class="upload-demo"
+                                ref="upload"
+                                action="/api/grade/import"
+                                accept=".xls,.xlsx"
+                                :headers="headers"
+                                :data="uploadOption"
+                                :on-error="handleError"
+                                :on-change="handleChange"
+                                :on-success="handleSuccess"
+                                :before-upload="beforeUpload"
+                                :limit="1"
+                                :auto-upload="false">
+                                <el-button slot="trigger" size="small" type="primary" :disabled="uploadBtnDisabled">选取文件</el-button>
+                                <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload" :disabled="uploadBtnDisabled">上传到服务器</el-button>
+                                <div slot="tip" class="el-upload__tip">只接收.xls/.xlsx文件，上传文件不超过1mb</div>
+                            </el-upload>
+                        </el-tab-pane>
                     </el-tabs>
 				</el-col>
 			</el-row>
@@ -103,6 +95,12 @@ export default {
             }
         }
         return {
+            headers: {
+                Authorization: localStorage.eleToken
+            },
+            uploadOption:{
+                classid: ''
+            },
             user: {},
             controllDetail: {},
             classDetail: {},
@@ -110,9 +108,13 @@ export default {
             classList: [],
             stuList: [],
             filterSchoolYear: '',
+            file: '',
             activeName: 'edit',
+            stuNoGrade: 0,
             editDialogVisible: false,
             inputDisabled: false,
+            uploadBtnDisabled: false,
+            loading: null,
             stuGrade: []
         };
     },
@@ -169,9 +171,11 @@ export default {
             var end = new Date(this.controllDetail.gradeEnd);
             if(value.schoolYear != this.controllDetail.schoolYear || value.schoolTerm != this.controllDetail.schoolTerm || now < start || now > end){
                 this.inputDisabled = true;
+                this.uploadBtnDisabled = true;
             }
             else{
                 this.inputDisabled = false;
+                this.uploadBtnDisabled = false;
             }
             var options = {
                 classid: value.classid
@@ -194,30 +198,100 @@ export default {
                             this.stuGrade[index] = item.grade;
                             return item;
                         })
+                        this.stuNoGrade = 0;
+                        this.stuGrade.forEach(item => {
+                            if(this.isEmpty(item)){
+                                this.stuNoGrade += 1;
+                            }
+                        })
                         this.editDialogVisible = true;
                     }
                 })
         },
         editGrade(row){
             // 修改学生成绩
-            if(!this.isEmpty(this.stuGrade[row.index])){
-                var reg = /^\d+(\.\d)?$/;
-                if(!reg.test(this.stuGrade[row.index])){
-                    this.$message({
-                        message: '请填写整数或一位小数',
-                        type: "error"
-                    });
-                }
-                else{
-                    var options = {
-                        classid: row.classid,
-                        studentid: row.studentid,
-                        grade: this.stuGrade[row.index]
-                    }
-                    this.$axios
-                        .post('/api/grade', options, {headers: {'showLoading': false}})
-                }
+            var reg = /^\d+(\.\d)?$/;
+            if(!reg.test(this.stuGrade[row.index]) || this.isEmpty(this.stuGrade[row.index])){
+                this.$message({
+                    message: '请填写整数或一位小数',
+                    type: "error"
+                });
             }
+            else{
+                var options = {
+                    classid: row.classid,
+                    studentid: row.studentid,
+                    grade: this.stuGrade[row.index]
+                }
+                this.$axios
+                    .post('/api/grade', options, {headers: {'showLoading': false}})
+                    .then(res => {
+                        if(res.status == 200){
+                            this.stuNoGrade = 0;
+                            this.stuGrade.forEach(item => {
+                                if(this.isEmpty(item)){
+                                    this.stuNoGrade += 1;
+                                }
+                            })
+                        }
+                    })
+            }
+        },
+        submitUpload(){
+            // 上传到服务器
+            if(this.isEmpty(this.file)){
+                this.$message({
+                    message: '文件不能为空',
+                    type: "error"
+                });
+            }
+            else{
+                this.uploadOption.classid = this.classDetail.classid;
+                this.$refs.upload.submit();
+            }
+        },
+        beforeUpload(file){
+            // 文件上传前
+            const isLt1M = file.size / 1024 < 1024;
+            if (!isLt1M) {
+                this.$message({
+                    message: '上传头像图片大小不能超过1M!',
+                    type: "error"
+                });
+            }
+            else{
+                this.loading = this.$loading({
+                    lock: true,
+                    text: "数据较大，请耐性等待",
+                    background: 'rgba(0,0,0,0.7)'
+                });
+            }
+            return isLt1M;
+        },
+        handleChange(file,fileList){
+			// 文件添加
+            if(!this.isEmpty(file) && file.status == 'ready'){
+				this.file = file.name;
+            }
+        },
+        handleError(err, file, fileList){
+            // 文件上传失败
+            this.loading.close();
+            this.$message({
+                message: err.message,
+                type: "error"
+            });
+        },
+        handleSuccess(response, file, fileList){
+            // 文件上传成功
+            this.loading.close();
+            this.editDialogVisible = false;
+            this.file = '';
+            this.$refs.upload.clearFiles();
+            this.$message({
+                message: response.msg,
+                type: "success"
+            });
         },
         isEmpty(value){
             return (
@@ -279,5 +353,13 @@ export default {
     }
     .tgradeManager .el-table .success-row{
         background: #f0f9eb;
+    }
+    .tgradeManager .el-divider__text{
+        font-weight: bolder;
+        left: 0 !important;
+        padding-left: 0 !important;
+    }
+    .tgradeManager .el-divider__text span{
+        color: red;
     }
 </style>

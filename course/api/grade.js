@@ -22,11 +22,11 @@ async function edit(msg, done){
     const mysql = await connectHandler();
     mysql.query(updateSql, update_params, (err, result) => {
         if(err){
-            logger.error('(course-edit):' + err.message);
+            logger.error('(grade-edit):' + err.message);
             done(new Error('成绩录入失败！'))
         }
         else{
-            logger.info('(course-edit):' + studentid + '学生' + classid + '课程成绩' + grade + '录入成功');
+            logger.info('(grade-edit):' + studentid + '学生' + classid + '课程成绩' + grade + '录入成功');
             done(null, {msg: '成绩录入成功'})
         }
     })
@@ -37,7 +37,7 @@ async function edit(msg, done){
 function getControll(msg, done){
     redis.mget('gradeControll:main', (err, res) => {
         if(err){
-            logger.error('(course-getControll):' + err.message);
+            logger.error('(grade-getControll):' + err.message);
             done(new Error('数据库访问失败，请稍后再试...'))
         }
         else{
@@ -61,11 +61,11 @@ async function setControll(msg, done){
     const mysql = await connectHandler();
     mysql.query(updateSql, update_params, (err, result) => {
         if(err){
-            logger.error('(course-setControll):' + err.message);
+            logger.error('(grade-setControll):' + err.message);
             done(new Error('成绩登记设置失败！'))
         }
         else{
-            logger.info('(course-setControll):' + schoolYear + '-' + schoolTerm + '学年成绩登记设置成功');
+            logger.info('(grade-setControll):' + schoolYear + '-' + schoolTerm + '学年成绩登记设置成功');
             done(null, {msg: '成绩登记设置成功'})
         }
     })
@@ -83,7 +83,7 @@ function clist(msg, done){
         return new Promise((resolve, reject) => {
             redis.sort('idx:classSelect:class:' + classid, 'alpha', 'get', 'classSelect:*', (err, keys) => {
                 if(err){
-                    logger.error('(course-clist):' + err.message);
+                    logger.error('(grade-clist):' + err.message);
                     reject('数据库访问失败，请稍后再试...')
                 }
                 else{
@@ -110,7 +110,7 @@ function clist(msg, done){
             userSeneca.act('target:server-user,module:user,if:id2name', options,
             (err, res) => {
                 if(err){
-                    logger.error('(course-scheduleImport):server-user访问失败');
+                    logger.error('(grade-clist):server-user访问失败');
                     reject('server-user访问失败')
                 }
                 else{
@@ -135,6 +135,81 @@ function clist(msg, done){
         done(new Error(err))
     })
 }
+
+// 成绩导入
+// var options = {
+//     classid: String
+// }
+router.post('/grade/import', async (msg, done) => {
+    try{
+        var file = msg.body.file;
+        var { classid } = msg.body.options;
+        
+        var stuIndex = 0; // 学号下标
+        var gradeIndex = 1; // 成绩下标
+        
+        // 数组转buffer
+        var copy = Buffer.from(file.buffer.data)
+        // 解析文件
+        var obj = xlsx.parse(copy);
+        // 数据需要在第一个表中
+        if(obj[0].data.length == 0){
+            throw new Error('格式错误，请重新检查文件内容是否符合要求！')
+        }
+
+        var data = obj[0].data;
+        var navigation = data[0];
+        var rule = ['学号', '成绩'];
+        // 确认表格头部是否正确
+        for(var i = 0; i < rule.length; i++){
+            if(navigation[i] != rule[i]){
+                throw new Error('格式错误，请重新检查表头是否符合要求！')
+            }
+        }
+
+        data = data.slice(1,data.length);
+        // 过滤空的数据
+        data = data.filter((value) => {    
+            return !(
+                value === undefined ||
+                value === null ||
+                (typeof value === 'object' && Object.keys(value).length === 0) ||
+                (typeof value === 'string' && value.trim().length === 0)
+            )
+        })
+
+        if(data.length == 0){
+            throw new Error('文件内容为空，请重新检查文件内容')
+        }
+
+        var updateSql = 'update classSelect set grade = case studentid '
+        data.forEach(item => {
+            var reg = /^\d+(\.\d)?$/;
+            if(!reg.test(item[gradeIndex])){
+                throw new Error(item[stuIndex] + '学生的成绩不为整数或一位小数，请重新检查文件内容')
+            }
+            updateSql += ' when ' + item[stuIndex] + ' then ' + item[gradeIndex];
+        })
+        updateSql += ' end where classid = ' + classid;
+
+        const mysql = await connectHandler();
+        mysql.query(updateSql, (err, result) => {
+            if(err){
+                logger.error('(grade-import):' + err.message);
+                done.send({status: 500, msg: '成绩导入失败！'})
+            }
+            else{
+                logger.info('(grade-import):' + classid + '成绩导入成功');
+                done.send({msg: '成绩导入成功'})
+            }
+        })
+        mysql.release();
+    }
+    catch(err){
+        logger.error('(grade-import):' + err.message);
+        done.send({status: 500, msg: err.message})
+    }
+})
 
 module.exports = {
     edit: edit,

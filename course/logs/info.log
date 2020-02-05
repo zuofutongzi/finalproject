@@ -35,3 +35,24 @@
 2020-02-03 18:14:46 [info]: (course-edit):31601075学生2554课程成绩66.0录入成功
 2020-02-03 18:14:47 [info]: (course-edit):31601076学生2554课程成绩77.0录入成功
 2020-02-03 18:14:48 [info]: (course-edit):31601077学生2554课程成绩88.5录入成功
+2020-02-05 14:10:38 [error]: (course-scheduleImport):server-user访问失败
+2020-02-05 14:11:52 [error]: (course-scheduleImport):server-user访问失败
+2020-02-05 14:12:31 [error]: (course-scheduleImport):server-user访问失败
+2020-02-05 14:16:54 [info]: (grade-edit):31601077学生2554课程成绩87录入成功
+2020-02-05 14:36:40 [info]: (class-img):图片上传成功！
+2020-02-05 14:57:55 [error]: (grade-import):row is not defined
+2020-02-05 14:58:44 [error]: (grade-import):31601076学生的成绩不为整数或一位小数，请重新检查文件内容
+2020-02-05 14:59:38 [error]: (grade-import):31601076学生的成绩不为整数或一位小数，请重新检查文件内容
+2020-02-05 15:00:00 [error]: (grade-import):ER_PARSE_ERROR: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '31601076 then 68when 31601075 then 76.5 end where classid = 2554' at line 1
+2020-02-05 15:00:53 [info]: (grade-import):2554成绩导入成功
+2020-02-05 15:01:19 [info]: (grade-import):2554成绩导入成功
+2020-02-05 15:01:52 [error]: (grade-import):ER_PARSE_ERROR: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'end where classid = 2554' at line 1
+2020-02-05 15:02:41 [error]: (grade-import):文件内容为空，请重新检查文件内容
+2020-02-05 15:03:03 [info]: (grade-import):2554成绩导入成功
+2020-02-05 15:03:50 [info]: (grade-import):2554成绩导入成功
+2020-02-05 15:07:39 [info]: (grade-edit):31601075学生2554课程成绩66录入成功
+2020-02-05 15:16:27 [info]: (grade-edit):31601075学生2554课程成绩0录入成功
+2020-02-05 15:16:33 [info]: (grade-edit):31601076学生2554课程成绩88录入成功
+2020-02-05 15:16:38 [info]: (grade-edit):31601076学生2554课程成绩66录入成功
+2020-02-05 15:16:40 [info]: (grade-edit):31601077学生2554课程成绩75录入成功
+2020-02-05 15:17:14 [info]: (grade-import):2554成绩导入成功

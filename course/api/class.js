@@ -830,7 +830,7 @@ router.post('/class/img', async (msg, done) => {
     }
     catch(err){
         logger.error('(class-img):' + err.message);
-        done.send(err)
+        done.send({status: 500, msg: err.message})
     }
 })
 

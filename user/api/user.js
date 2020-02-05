@@ -952,22 +952,27 @@ function id2name(msg, done){
     userid.forEach(item => {
         options.push(identity + ':' + item);
     })
-    redis.mget(options, (err, res) => {
-        if(err){
-            logger.error('(user-id2name):' + err.message);
-            done(new Error('数据库访问失败，请稍后再试...'))
-        }
-        else{
-            res = res.map(item => {
-                item = JSON.parse(item);
-                delete item.IDcard;
-                delete item.password;
-                delete item.birthday;
-                return item;
-            })
-            done(null, res)
-        }
-    })
+    if(options.length != 0){
+        redis.mget(options, (err, res) => {
+            if(err){
+                logger.error('(user-id2name):' + err.message);
+                done(new Error('数据库访问失败，请稍后再试...'))
+            }
+            else{
+                res = res.map(item => {
+                    item = JSON.parse(item);
+                    delete item.IDcard;
+                    delete item.password;
+                    delete item.birthday;
+                    return item;
+                })
+                done(null, res)
+            }
+        })
+    }
+    else{
+        done(null, [])
+    }
 }
 
 // 学生专业获取

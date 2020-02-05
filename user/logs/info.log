@@ -234,3 +234,6 @@
 2020-01-25 18:20:54 [info]: (user-register):用户添加成功
 2020-01-25 18:21:42 [info]: (school-classAdd):班级添加成功！
 2020-01-25 18:22:18 [info]: (user-register):用户添加成功
+2020-02-05 14:10:38 [error]: (user-id2name):ERR wrong number of arguments for 'mget' command
+2020-02-05 14:11:52 [error]: (user-id2name):ERR wrong number of arguments for 'mget' command
+2020-02-05 14:12:31 [error]: (user-id2name):ERR wrong number of arguments for 'mget' command
