@@ -291,3 +291,7 @@
 2020-02-03 15:17:43 [info]: (select-selectLimit):31601076选课2554成功
 2020-02-03 15:18:07 [info]: (select-selectLimit):31601075选课2554成功
 2020-02-03 15:18:21 [error]: (select-selectLimit):31601074选课2554失败
+2020-02-06 15:23:41 [info]: (selectControll-set):课程设置成功
+2020-02-06 15:24:25 [info]: (select-waitingSQueue):31601077选课2696排队成功
+2020-02-06 15:24:25 [info]: (select-select):31601077选课2696成功
+2020-02-06 15:25:11 [info]: (selectControll-drawlots):抽签成功

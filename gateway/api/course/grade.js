@@ -7,6 +7,29 @@ const key = require('../../config/key.js')
 const courseSeneca = key.courseSeneca
 const upload = multer()
 
+// @route  GET /api/grade
+// @desc   成绩获取
+// @token  true
+// @return gradeList
+// @access student
+// @params {studentid: String, schoolYear: String/null, schoolTerm: String/null}
+router.get('/grade', passport.authenticate('jwt', {session: false}), (req, done) => {
+    if(req.user.identity !== 'student'){
+        done.status(500).send("没有权限！")
+    }
+    else{
+        courseSeneca.act('target:server-course,module:grade,if:list', req.query,
+        (err,res) => {
+            if(err){
+                done.status(500).send(err.data.payload.details.message)
+            }
+            else{
+                done.send(res)
+            }
+        })
+    }
+})
+
 // @route  POST /api/grade
 // @desc   成绩修改
 // @token  true

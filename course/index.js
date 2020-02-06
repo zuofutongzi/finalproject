@@ -37,6 +37,7 @@ seneca.add('target:server-course,module:class,if:tlist', myclass.tlist)
 app.use('/', myclass.router)
 
 // grade
+seneca.add('target:server-course,module:grade,if:list', grade.list)
 seneca.add('target:server-course,module:grade,if:edit', grade.edit)
 seneca.add('target:server-course,module:grade,if:get-controll', grade.getControll)
 seneca.add('target:server-course,module:grade,if:set-controll', grade.setControll)

@@ -8,10 +8,171 @@ const connectHandler = key.mysql
 const redis = key.redis
 const userSeneca = key.userSeneca
 
+// 成绩获取
+// var options = {
+//     studentid: String,
+//     schoolYear: String/null,
+//     schoolTerm: String/null
+// }
+function list(msg, done){
+    var { studentid, schoolYear, schoolTerm } = msg;
+
+    var getClassSelect = () => {
+        return new Promise((resolve, reject) => {
+            redis.smembers('idx:classSelect:student:' + studentid, (err, keys) => {
+                if(err){
+                    logger.error('(grade-list):' + err.message);
+                    reject('数据库访问失败，请稍后再试...')
+                }
+                else{
+                    resolve(keys)
+                }
+            })
+        })
+    }
+
+    // 获取学生的选课
+    getClassSelect().then(result => {
+        var classid = result.map(item => {
+            item = JSON.parse(item);
+            return 'class:' + item.classid
+        })
+        var stuClassid = result.map(item => {
+            item = JSON.parse(item);
+            return 'classSelect:' + item.stuClassid;
+        })
+        var getClass = new Promise((resolve, reject) => {
+            if(classid.length == 0){
+                resolve([])
+            }
+            else{
+                redis.mget(classid, (err, keys) => {
+                    if(err){
+                        logger.error('(grade-list):' + err.message);
+                        reject('数据库访问失败，请稍后再试...')
+                    }
+                    else{
+                        keys = keys.map(item => {
+                            return JSON.parse(item)
+                        })
+                        resolve(keys)
+                    }
+                })
+            }
+        })
+        var getStuClass = new Promise((resolve, reject) => {
+            if(stuClassid.length == 0){
+                resolve([])
+            }
+            else{
+                redis.mget(stuClassid, (err, keys) => {
+                    if(err){
+                        logger.error('(grade-list):' + err.message);
+                        reject('数据库访问失败，请稍后再试...')
+                    }
+                    else{
+                        keys = keys.map(item => {
+                            return JSON.parse(item)
+                        })
+                        resolve(keys)
+                    }
+                })
+            }
+        })
+        return new Promise((resolve, reject) => {
+            Promise.all([getClass, getStuClass])
+                .then(result => {
+                    resolve(result)
+                })
+                .catch(err => {
+                    reject(err)
+                })
+        })
+    })
+    .then(result => {
+        // class和classselect数据合并
+        var myclass = result[0];
+        var stuClass = result[1];
+        stuClass = stuClass.map(item => {
+            var index = myclass.findIndex(citem => {
+                return item.classid == citem.classid;
+            })
+            if(index != -1){
+                item.schoolYear = myclass[index].schoolYear;
+                item.schoolTerm = myclass[index].schoolTerm;
+                item.courseid = myclass[index].courseid;
+            }
+            return item;
+        })
+        return stuClass
+    })
+    .then(result => {
+        return new Promise((resolve, reject) => {
+            // 筛选
+            if(schoolYear){
+                result = result.filter(item => {
+                    return item.schoolYear == schoolYear && item.schoolTerm == schoolTerm;
+                })
+            }
+            // 同一门课修多次，则取成绩高的
+            var newArr = [];
+            result.forEach(item => {
+                var index = newArr.findIndex(citem => {
+                    return item.courseid == citem.courseid;
+                })
+                if(index == -1){
+                    newArr.push(item);
+                }
+                else if(parseFloat(newArr[index].grade) < parseFloat(item.grade)){
+                    newArr.splice(index, 1, item);
+                }
+            })
+            var courseid = [];
+            newArr.forEach(item => {
+                courseid.push('course:' + item.courseid);
+            })
+            if(courseid.length == 0){
+                resolve(newArr)
+            }
+            else{
+                redis.mget(courseid, (err, keys) => {
+                    if(err){
+                        logger.error('(grade-list):' + err.message);
+                        reject('数据库访问失败，请稍后再试...')
+                    }
+                    else{
+                        keys = keys.map(item => {
+                            return JSON.parse(item)
+                        })
+                        newArr = newArr.map(item => {
+                            var index = keys.findIndex(citem => {
+                                return item.courseid == citem.courseid;
+                            })
+                            if(index != -1){
+                                for(let k in keys[index]){
+                                    item[k] = keys[index][k];
+                                }
+                            }
+                            return item;
+                        })
+                        resolve(newArr)
+                    }
+                })
+            }
+        })
+    })
+    .then(result => {
+        done(null, result)
+    })
+    .catch(err => {
+        done(new Error(err))
+    })
+}
+
 // 成绩修改
 // var options = {
-//     classid: classid,
-//     studentid: studentid,
+//     classid: String,
+//     studentid: String,
 //     grade: String
 // }
 async function edit(msg, done){
@@ -212,6 +373,7 @@ router.post('/grade/import', async (msg, done) => {
 })
 
 module.exports = {
+    list: list,
     edit: edit,
     getControll: getControll,
     setControll: setControll,

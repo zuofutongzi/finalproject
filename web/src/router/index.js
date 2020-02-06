@@ -17,6 +17,7 @@ import TcourseManager from '../views/TcourseManager.vue'
 import CourseSelect from '../views/CourseSelect.vue'
 import CourseTable from '../views/CourseTable.vue'
 import TgradeManager from '../views/TgradeManager.vue'
+import GradeCheck from '../views/GradeCheck.vue'
 import NotFound from '../views/404.vue'
 
 Vue.use(VueRouter)
@@ -114,6 +115,11 @@ const routes = [
 				path: '/tgradeManager',
 				name: 'tgradeManager',
 				component: TgradeManager
+			},
+			{
+				path: '/gradeCheck',
+				name: 'gradeCheck',
+				component: GradeCheck
 			}
 		]
 	},
