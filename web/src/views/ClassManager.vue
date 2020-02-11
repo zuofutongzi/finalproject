@@ -45,11 +45,6 @@
                 label="专业"
                 prop="major">
             </el-table-column>
-            <el-table-column
-                label="人数"
-                prop="number"
-                min-width="50">
-            </el-table-column>
         </el-table>
         <el-pagination
             layout="prev, pager, next"

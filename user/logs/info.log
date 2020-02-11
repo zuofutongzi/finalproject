@@ -237,3 +237,21 @@
 2020-02-05 14:10:38 [error]: (user-id2name):ERR wrong number of arguments for 'mget' command
 2020-02-05 14:11:52 [error]: (user-id2name):ERR wrong number of arguments for 'mget' command
 2020-02-05 14:12:31 [error]: (user-id2name):ERR wrong number of arguments for 'mget' command
+2020-02-09 13:39:09 [info]: (notify-add):通知添加成功
+2020-02-09 13:39:10 [info]: (notify-appendix):文件上传成功！
+2020-02-09 13:39:18 [info]: (notify-edit):通知修改成功
+2020-02-09 13:40:10 [info]: (user-register):用户添加成功
+2020-02-09 13:42:01 [info]: (user-register):用户添加成功
+2020-02-09 13:42:05 [info]: (user-delete):用户删除成功
+2020-02-11 13:02:25 [info]: (notify-add):通知添加成功
+2020-02-11 13:02:26 [info]: (notify-appendix):文件上传成功！
+2020-02-11 13:02:39 [info]: (notify-edit):通知修改成功
+2020-02-11 13:03:24 [info]: (school-classAdd):班级添加成功！
+2020-02-11 13:03:48 [info]: (user-delete):用户删除成功
+2020-02-11 13:04:31 [info]: (user-register):用户添加成功
+2020-02-11 13:08:26 [info]: (user-change):用户信息修改成功
+2020-02-11 13:08:46 [info]: (user-password):密码修改成功
+2020-02-11 16:41:10 [info]: (user-import):用户导入成功
+2020-02-11 16:45:31 [info]: (user-import):用户导入成功
+2020-02-11 17:03:10 [info]: (user-import):用户导入成功
+2020-02-11 17:05:45 [info]: (user-change):用户信息修改成功
