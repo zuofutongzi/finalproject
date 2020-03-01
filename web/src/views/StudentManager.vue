@@ -504,7 +504,7 @@ export default {
                                                 _this.userList = res.data.data;
                                                 _this.listTotal = res.data.count;
                                                 _this.currentPage = 1;
-                                                _this.multipleSelection.splice(0, this.multipleSelection.length);
+                                                _this.multipleSelection.splice(0, _this.multipleSelection.length);
                                                 _this.$refs.multipleTable.clearSelection();
                                             }
                                         })

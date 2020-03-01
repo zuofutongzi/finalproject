@@ -85,7 +85,7 @@
                     </div>
                     <p>专业选择如下：</p>
                     <el-tree :data="majorList"></el-tree>
-                    <p style="color: red;">班级编号必须由英文或数字组成</p>
+                    <!-- <p style="color: red;">班级编号必须由英文或数字组成</p> -->
                     <el-divider content-position="left">文件导入</el-divider>
 					<el-upload
                         class="upload-demo"

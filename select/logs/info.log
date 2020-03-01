@@ -307,3 +307,5 @@
 2020-02-11 13:12:58 [info]: (select-waitingSQueue):31601077选课2938排队成功
 2020-02-11 13:12:58 [info]: (select-select):31601077选课2938成功
 2020-02-11 13:14:39 [info]: (selectControll-drawlots):抽签成功
+2020-03-01 14:46:27 [info]: (selectControll-set):课程设置成功
+2020-03-01 15:23:17 [info]: (select-waitingSQueue):31601077选课2901排队成功

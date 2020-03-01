@@ -123,7 +123,7 @@ function list(msg, done){
                 if(index == -1){
                     newArr.push(item);
                 }
-                else if(parseFloat(newArr[index].grade) < parseFloat(item.grade)){
+                else if(newArr[index].grade == '' || parseFloat(newArr[index].grade) < parseFloat(item.grade)){
                     newArr.splice(index, 1, item);
                 }
             })
