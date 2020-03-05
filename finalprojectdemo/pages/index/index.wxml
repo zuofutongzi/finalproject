@@ -1,0 +1,32 @@
+<view class="mcontainer">
+  <view class="item">
+    <view class="login-item">
+      <view class="login-item-info">用户名</view>
+      <view><input bindinput="usernameInput" /></view>
+    </view>
+    <view class="login-item">
+      <view class="login-item-info">密码</view>
+      <view class="login-pwd">
+        <input style="flex-grow:1" password="true" bindinput="passwordInput"></input>
+      </view>
+    </view>
+    <view class="login-item">
+      <view class="login-item-info">验证码</view>
+      <view><input bindinput="identifyInput" /></view>
+    </view>
+
+    <text class="identify" style="background-image: url({{identify}})" bindtap='refreshidentify'></text>
+
+    <view class="login-item">
+      <view class="login-item-info">身份</view>
+      <radio-group class="login-radio-group" bindchange="radioChange">
+        <label class="login-radio-label" wx:for="{{identity}}" wx:key="value">
+          <radio class="login-radio" value="{{item.value}}" checked="{{item.checked}}" />{{item.name}}
+        </label>
+      </radio-group>
+    </view>
+    <view class="login-item bottom">
+      <button class="login-btn" bindtap="loginBtnClick">登陆</button>
+    </view>
+  </view>
+</view>
