@@ -20,3 +20,6 @@
 2020-02-05 15:00:00 [error]: (grade-import):ER_PARSE_ERROR: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '31601076 then 68when 31601075 then 76.5 end where classid = 2554' at line 1
 2020-02-05 15:01:52 [error]: (grade-import):ER_PARSE_ERROR: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'end where classid = 2554' at line 1
 2020-02-05 15:02:41 [error]: (grade-import):文件内容为空，请重新检查文件内容
+2020-03-29 19:32:04 [error]: (course-scheduleImport):信息管理与信息系统专业109009课程计划已存在，请重新检查文件内容是否符合要求！
+2020-03-29 19:50:23 [error]: (course-slist):当前学期没有开课
+2020-03-30 18:25:56 [error]: (course-add):ER_DUP_ENTRY: Duplicate entry 'abcdefg' for key 'PRIMARY'

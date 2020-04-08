@@ -113,3 +113,6 @@
 2020-02-05 14:10:38 [error]: (user-id2name):ERR wrong number of arguments for 'mget' command
 2020-02-05 14:11:52 [error]: (user-id2name):ERR wrong number of arguments for 'mget' command
 2020-02-05 14:12:31 [error]: (user-id2name):ERR wrong number of arguments for 'mget' command
+2020-03-29 19:29:02 [error]: (school-classImport):有教师编号重复出现，请重新检查文件内容！
+2020-03-29 19:29:15 [error]: (school-classImport):有教师编号重复出现，请重新检查文件内容！
+2020-03-29 19:29:25 [error]: (school-classImport):ER_NO_REFERENCED_ROW_2: Cannot add or update a child row: a foreign key constraint fails (`user`.`class`, CONSTRAINT `clteacherid` FOREIGN KEY (`teacherid`) REFERENCES `teacher` (`userid`))

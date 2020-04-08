@@ -153,10 +153,10 @@ async function mydelete(msg, done){
                 done(new Error('数据库访问失败，请稍后再试...'))
             }
             else if(keys != 0){
-                resolve(true)
+                resolve(false)
             }
             else{
-                resolve(false)
+                resolve(true)
             }
         })
     })
@@ -169,10 +169,10 @@ async function mydelete(msg, done){
                 done(new Error('数据库访问失败，请稍后再试...'))
             }
             else if(res.length != 0){
-                resolve(true)
+                resolve(false)
             }
             else{
-                resolve(false)
+                resolve(true)
             }
         })
     })
